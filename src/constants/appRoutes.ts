@@ -1,0 +1,52 @@
+import type { PermissionKey } from "@/constants/permissions";
+
+export const PUBLIC_ROUTES = [
+  "/",
+  "/features",
+  "/solutions",
+  "/pricing",
+  "/about",
+  "/contact",
+  "/blog",
+  "/login",
+  "/access-denied",
+  "/offline",
+] as const;
+
+export const DASHBOARD_HOME = "/dashboard";
+
+export const ROUTE_PERMISSIONS: Record<string, PermissionKey[]> = {
+  "/dashboard": ["dashboard.view"],
+  "/dashboard/profile": ["dashboard.view"],
+  "/dashboard/opd": ["appointments.view"],
+  "/dashboard/ipd": ["occupancy.view"],
+  "/dashboard/patients/new": ["patients.create"],
+  "/dashboard/patients": ["patients.view"],
+  "/dashboard/doctors": ["doctors.view"],
+  "/dashboard/staff": ["staffAccess.view"],
+  "/dashboard/appointments/new": ["appointments.create"],
+  "/dashboard/appointments": ["appointments.view"],
+  "/dashboard/charge-master": ["billing.view"],
+  "/dashboard/billing/create": ["billing.create"],
+  "/dashboard/billing/checkout": ["billing.finalize"],
+  "/dashboard/billing": ["billing.view"],
+  "/dashboard/rooms": ["wards.view"],
+  "/dashboard/wards": ["wards.view"],
+  "/dashboard/occupancy": ["occupancy.view"],
+  "/dashboard/discharge-summaries": ["discharge.view"],
+  "/dashboard/discharge": ["discharge.view"],
+  "/dashboard/consents": ["consents.view"],
+  "/dashboard/print/bills": ["billing.export"],
+  "/dashboard/print/discharge": ["discharge.view"],
+  "/dashboard/print/consents": ["consents.view"],
+  "/dashboard/announcements": ["communications.view"],
+  "/dashboard/notifications": ["communications.view"],
+  "/dashboard/communications": ["communications.view"],
+  "/dashboard/staff-access": ["staffAccess.view"],
+  "/dashboard/print-templates": ["settings.view"],
+  "/dashboard/reports": ["reports.view"],
+  "/dashboard/analytics": ["analytics.view"],
+  "/dashboard/audit-logs": ["audit.view"],
+  "/dashboard/blog": ["blog.view"],
+  "/dashboard/settings": ["settings.view"],
+};
