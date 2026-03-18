@@ -1,0 +1,92 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "VH Hospital operations platform Vahi Hospital" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]: VH
+          - generic [ref=e8]:
+            - paragraph [ref=e9]: Hospital operations platform
+            - generic [ref=e10]: Vahi Hospital
+        - generic [ref=e11]:
+          - link "Staff access" [ref=e12] [cursor=pointer]:
+            - /url: /login
+          - link "Open board" [ref=e13] [cursor=pointer]:
+            - /url: /dashboard
+          - button "Options" [ref=e16]:
+            - img [ref=e17]
+            - generic [ref=e21]: Options
+    - main [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: Product journal
+          - heading "Hospital workflow notes, launch updates, and operating insights." [level=1] [ref=e28]
+          - paragraph [ref=e29]: This public blog is the SEO-facing phase-2 content surface. Published articles come from the same CMS used inside the admin dashboard.
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]:
+              - generic [ref=e33]: Hospital Operations
+              - generic [ref=e34]: Published
+            - heading "Designing a queue board for real reception pressure" [level=2] [ref=e35]
+            - paragraph [ref=e36]: A practical front-desk queue board should keep patient identity, appointment state, billing readiness, and admission context in one compact surface.
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - img [ref=e39]
+                - text: 09 Mar 2026
+              - generic [ref=e41]:
+                - img [ref=e42]
+                - text: 1 min read
+            - link "Read article" [ref=e46] [cursor=pointer]:
+              - /url: /blog/designing-a-queue-board-for-real-reception-pressure
+          - generic [ref=e47]:
+            - generic [ref=e48]:
+              - generic [ref=e49]: Hospital Operations
+              - generic [ref=e50]: Published
+            - heading "Why invite-only staff access matters in hospital systems" [level=2] [ref=e51]
+            - paragraph [ref=e52]: Why explicit access approval matters in hospital software before Google sign-in ever reaches billing, occupancy, and patient workflows.
+            - generic [ref=e53]:
+              - generic [ref=e54]:
+                - img [ref=e55]
+                - text: 08 Mar 2026
+              - generic [ref=e57]:
+                - img [ref=e58]
+                - text: 1 min read
+            - link "Read article" [ref=e62] [cursor=pointer]:
+              - /url: /blog/why-invite-only-staff-access-matters
+    - contentinfo [ref=e63]:
+      - generic [ref=e64]:
+        - generic [ref=e65]:
+          - paragraph [ref=e66]: VHMS Product Journal
+          - heading "Vahi HMS Enterprise" [level=2] [ref=e67]
+          - paragraph [ref=e68]: Production-grade hospital operations platform built for modern reception, billing, occupancy, communications, and clinical administration.
+          - paragraph [ref=e69]: © 2026 Vahi HMS Enterprise. All rights reserved.
+        - generic [ref=e70]:
+          - generic [ref=e71]:
+            - paragraph [ref=e72]: Platform
+            - navigation [ref=e73]:
+              - link "Home" [ref=e74] [cursor=pointer]:
+                - /url: /
+              - link "Features" [ref=e75] [cursor=pointer]:
+                - /url: /features
+              - link "Solutions" [ref=e76] [cursor=pointer]:
+                - /url: /solutions
+              - link "Pricing" [ref=e77] [cursor=pointer]:
+                - /url: /pricing
+          - generic [ref=e78]:
+            - paragraph [ref=e79]: Community
+            - navigation [ref=e80]:
+              - link "About" [ref=e81] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=e82] [cursor=pointer]:
+                - /url: /contact
+              - link "Blog" [ref=e83] [cursor=pointer]:
+                - /url: /blog
+          - generic [ref=e84]:
+            - paragraph [ref=e85]: Access
+            - navigation [ref=e86]:
+              - link "Staff access" [ref=e87] [cursor=pointer]:
+                - /url: /login
+              - link "Open board" [ref=e88] [cursor=pointer]:
+                - /url: /dashboard
+  - region "Notifications alt+T"
+  - alert [ref=e89]

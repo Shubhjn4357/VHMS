@@ -261,7 +261,7 @@ export function BarcodeCameraScanner({
           </Badge>
           {isResolving
             ? (
-              <Badge className="bg-cyan-500/12 text-cyan-700 dark:text-cyan-300" variant="outline">
+              <Badge className="bg-primary/12 text-primary" variant="outline">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 Resolving code
               </Badge>
@@ -279,7 +279,7 @@ export function BarcodeCameraScanner({
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
           <div>
-            <div className="barcode-camera-shell min-h-[340px] overflow-hidden rounded-[28px] border border-border bg-slate-950">
+            <div className="barcode-camera-shell min-h-[340px] overflow-hidden rounded-[28px] border border-border bg-surface-strong">
               <div className="h-[340px] w-full" id={scannerElementId} />
             </div>
 

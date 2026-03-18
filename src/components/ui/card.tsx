@@ -9,7 +9,7 @@ function Card({
   return (
     <div
       className={cn(
-        "glass-panel rounded-[22px] text-card-foreground",
+        "overflow-hidden rounded-[var(--radius-panel)] border bg-card text-card-foreground shadow-[var(--shadow-soft)]",
         className,
       )}
       {...props}
@@ -21,7 +21,7 @@ function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-2 p-4 lg:p-5", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-1.5 p-6", className)} {...props} />;
 }
 
 function CardTitle({
@@ -30,7 +30,7 @@ function CardTitle({
 }: React.HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={cn("text-lg font-semibold tracking-tight text-foreground sm:text-[1.2rem]", className)}
+      className={cn("leading-none font-semibold tracking-tight text-foreground", className)}
       {...props}
     />
   );
@@ -42,7 +42,7 @@ function CardDescription({
 }: React.HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={cn("text-sm leading-6 text-muted-foreground", className)}
+      className={cn("text-sm text-muted-foreground", className)}
       {...props}
     />
   );
@@ -52,7 +52,7 @@ function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("px-4 pb-4 lg:px-5 lg:pb-5", className)} {...props} />;
+  return <div className={cn("p-6 pt-0", className)} {...props} />;
 }
 
 function CardFooter({
@@ -61,7 +61,7 @@ function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center gap-3 px-4 pb-4 pt-0 lg:px-5 lg:pb-5", className)}
+      className={cn("flex items-center p-6 pt-0", className)}
       {...props}
     />
   );

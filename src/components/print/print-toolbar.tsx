@@ -11,7 +11,7 @@ type PrintToolbarProps = {
 
 export function PrintToolbar({ title, subtitle }: PrintToolbarProps) {
   return (
-    <div className="print-toolbar flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-line bg-white px-5 py-4 shadow-[var(--shadow-soft)]">
+    <div className="print-toolbar flex flex-wrap items-center justify-between gap-4 rounded-[24px] border border-line bg-surface px-5 py-4 shadow-[var(--shadow-soft)]">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
           Print preview

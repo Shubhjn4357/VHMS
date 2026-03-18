@@ -29,7 +29,7 @@ export function PublicBlogIndex({
         {posts.length === 0
           ? (
             <EmptyState
-              className="bg-white"
+              className="bg-surface"
               description="No public articles are published yet. Drafts can be written inside the dashboard blog CMS and published when ready."
               icon={Newspaper}
               title="Blog launch space is ready"
@@ -40,11 +40,11 @@ export function PublicBlogIndex({
               {posts.map((post) => (
                 <SurfaceCard
                   key={post.id}
-                  className="flex h-full flex-col bg-[linear-gradient(180deg,rgba(255,255,255,1)_0%,rgba(232,240,245,0.68)_100%)]"
+                  className="surface-card-strong flex h-full flex-col"
                 >
                   {post.coverImageUrl
                     ? (
-                      <div className="mb-5 overflow-hidden rounded-[24px] border border-border/70">
+                      <div className="mb-5 overflow-hidden rounded-xl border border-border/70">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           alt={post.title}
@@ -55,28 +55,28 @@ export function PublicBlogIndex({
                     )
                     : null}
                   <div className="flex flex-wrap items-center gap-3 text-xs font-semibold uppercase tracking-[0.18em]">
-                    <span className="rounded-full bg-[rgba(15,118,110,0.12)] px-3 py-1 text-brand">
+                    <span className="rounded-md bg-secondary px-3 py-1 text-secondary-foreground">
                       {post.category?.name ?? "Hospital operations"}
                     </span>
-                    <span className="rounded-full bg-[rgba(21,94,239,0.12)] px-3 py-1 text-accent">
+                    <span className="rounded-md bg-accent px-3 py-1 text-accent-foreground">
                       Published
                     </span>
                   </div>
 
-                  <h2 className="mt-5 text-3xl font-semibold tracking-tight text-ink">
+                  <h2 className="mt-5 text-3xl font-semibold tracking-tight text-foreground">
                     {post.title}
                   </h2>
-                  <p className="mt-4 text-base leading-7 text-ink-soft">
+                  <p className="mt-4 text-base leading-7 text-muted-foreground">
                     {post.seoDescription ?? post.excerpt ?? post.body.slice(0, 180)}
                   </p>
 
-                  <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-ink-soft">
+                  <div className="mt-6 flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-2">
-                      <CalendarDays className="h-4 w-4 text-brand" />
+                      <CalendarDays className="h-4 w-4 text-primary" />
                       {formatPublishDate(post.publishedAt)}
                     </span>
                     <span className="inline-flex items-center gap-2">
-                      <Clock3 className="h-4 w-4 text-brand" />
+                      <Clock3 className="h-4 w-4 text-primary" />
                       {post.readingMinutes} min read
                     </span>
                   </div>
@@ -84,7 +84,7 @@ export function PublicBlogIndex({
                   <div className="mt-8">
                     <Link
                       href={`/blog/${post.slug}`}
-                      className="rounded-full bg-brand px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-strong"
+                      className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
                     >
                       Read article
                     </Link>

@@ -25,13 +25,13 @@ export function BulkActionToolbar({
   }
 
   return (
-    <SurfaceCard className="glass-panel-muted border-brand/20">
+    <SurfaceCard className="rounded-xl border-dashed bg-muted/20">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Bulk actions
           </p>
-          <p className="mt-2 text-sm text-ink-soft">
+          <p className="mt-2 text-sm text-muted-foreground">
             {count} selected {pluralize(itemLabel, count)}
           </p>
         </div>

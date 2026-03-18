@@ -117,8 +117,8 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
           ["Failed messages", summary.failedMessages],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -127,12 +127,12 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
 
       <section className="grid gap-6 2xl:grid-cols-[1.1fr_0.9fr]">
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Revenue by doctor
           </p>
           <div className="mt-5 overflow-x-auto">
             <table className="min-w-full text-left text-sm">
-              <thead className="text-ink-soft">
+              <thead className="text-muted-foreground">
                 <tr>
                   <th className="pb-3">Doctor</th>
                   <th className="pb-3 text-right">Bills</th>
@@ -144,16 +144,16 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
               <tbody>
                 {reportsQuery.data.revenueByDoctor.map((row) => (
                   <tr key={row.doctorName} className="border-t border-line">
-                    <td className="py-3 font-medium text-ink">
+                    <td className="py-3 font-medium text-foreground">
                       {row.doctorName}
                     </td>
-                    <td className="py-3 text-right text-ink-soft">
+                    <td className="py-3 text-right text-muted-foreground">
                       {row.bills}
                     </td>
-                    <td className="py-3 text-right text-ink">
+                    <td className="py-3 text-right text-foreground">
                       {formatCurrency(row.totalBilled)}
                     </td>
-                    <td className="py-3 text-right text-brand">
+                    <td className="py-3 text-right text-primary">
                       {formatCurrency(row.amountCollected)}
                     </td>
                     <td className="py-3 text-right text-danger">
@@ -167,25 +167,25 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Outstanding bills
           </p>
           <div className="mt-5 space-y-3">
             {reportsQuery.data.outstandingBills.map((row) => (
               <div
                 key={row.billId}
-                className="glass-panel-muted rounded-[22px] p-4"
+                className="management-subtle-card p-4"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div>
-                    <p className="font-semibold text-ink">{row.billNumber}</p>
-                    <p className="text-sm text-ink-soft">{row.patientName}</p>
+                    <p className="font-semibold text-foreground">{row.billNumber}</p>
+                    <p className="text-sm text-muted-foreground">{row.patientName}</p>
                   </div>
                   <div className="text-right">
                     <p className="font-semibold text-danger">
                       {formatCurrency(row.balanceAmount)}
                     </p>
-                    <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                       {row.paymentStatus.replaceAll("_", " ")}
                     </p>
                   </div>
@@ -198,41 +198,41 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
 
       <section className="grid gap-6 xl:grid-cols-3">
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Appointment states
           </p>
           <div className="mt-5 space-y-3">
             {reportsQuery.data.appointmentStatus.map((row) => (
               <div
                 key={row.status}
-                className="glass-panel-muted flex items-center justify-between rounded-[20px] px-4 py-3"
+                className="management-subtle-card flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm font-medium text-ink">
+                <span className="text-sm font-medium text-foreground">
                   {row.status.replaceAll("_", " ")}
                 </span>
-                <span className="text-sm text-ink-soft">{row.total}</span>
+                <span className="text-sm text-muted-foreground">{row.total}</span>
               </div>
             ))}
           </div>
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Communication channels
           </p>
           <div className="mt-5 space-y-3">
             {reportsQuery.data.communicationByChannel.map((row) => (
               <div
                 key={row.channel}
-                className="glass-panel-muted rounded-[20px] px-4 py-3"
+                className="management-subtle-card px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-medium text-ink">
+                  <span className="text-sm font-medium text-foreground">
                     {row.channel.replaceAll("_", " ")}
                   </span>
-                  <span className="text-sm text-ink-soft">{row.total}</span>
+                  <span className="text-sm text-muted-foreground">{row.total}</span>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                   {row.delivered} delivered / {row.queued} queued / {row.failed}
                   {" "}
                   failed
@@ -243,24 +243,24 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Staff access posture
           </p>
           <div className="mt-5 space-y-3">
             {reportsQuery.data.staffAccessByRole.map((row) => (
               <div
                 key={row.role}
-                className="glass-panel-muted rounded-[20px] px-4 py-3"
+                className="management-subtle-card px-4 py-3"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <span className="text-sm font-medium text-ink">
+                  <span className="text-sm font-medium text-foreground">
                     {row.role.replaceAll("_", " ")}
                   </span>
-                  <span className="text-sm text-brand">
+                  <span className="text-sm text-primary">
                     {row.approved} approved
                   </span>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                   {row.pending} pending / {row.revoked} revoked
                 </p>
               </div>
@@ -270,12 +270,12 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
       </section>
 
       <SurfaceCard>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
           Occupancy by ward
         </p>
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-full text-left text-sm">
-            <thead className="text-ink-soft">
+            <thead className="text-muted-foreground">
               <tr>
                 <th className="pb-3">Ward</th>
                 <th className="pb-3 text-right">Occupied</th>
@@ -288,20 +288,20 @@ export function ReportingCenter({ hideHeader = false }: ReportingCenterProps) {
             <tbody>
               {reportsQuery.data.occupancyByWard.map((row) => (
                 <tr key={row.wardId} className="border-t border-line">
-                  <td className="py-3 font-medium text-ink">{row.wardName}</td>
-                  <td className="py-3 text-right text-ink">
+                  <td className="py-3 font-medium text-foreground">{row.wardName}</td>
+                  <td className="py-3 text-right text-foreground">
                     {row.occupied}/{row.total}
                   </td>
-                  <td className="py-3 text-right text-ink-soft">
+                  <td className="py-3 text-right text-muted-foreground">
                     {row.reserved}
                   </td>
-                  <td className="py-3 text-right text-ink-soft">
+                  <td className="py-3 text-right text-muted-foreground">
                     {row.cleaning}
                   </td>
-                  <td className="py-3 text-right text-ink-soft">
+                  <td className="py-3 text-right text-muted-foreground">
                     {row.blocked}
                   </td>
-                  <td className="py-3 text-right text-brand">
+                  <td className="py-3 text-right text-primary">
                     {formatPercent(row.occupancyRate)}
                   </td>
                 </tr>

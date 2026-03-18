@@ -107,7 +107,7 @@ function SortableTemplateSection({
     <div
       className={cn(
         "flex items-start justify-between gap-4 rounded-[22px] border border-line bg-surface-alt px-4 py-3 transition",
-        isDragging ? "border-brand bg-white shadow-[var(--shadow-soft)]" : "",
+        isDragging ? "border-brand bg-surface shadow-[var(--shadow-soft)]" : "",
       )}
       ref={setNodeRef}
       style={{
@@ -335,7 +335,7 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
                 className={cn(
                   "h-auto w-full rounded-[24px] px-4 py-4 text-left transition",
                   selectedKey === template.key
-                    ? "border-brand bg-white shadow-[var(--shadow-soft)]"
+                    ? "border-brand bg-surface shadow-[var(--shadow-soft)]"
                     : "border-line bg-surface-alt hover:border-brand",
                 )}
                 key={template.key}

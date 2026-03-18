@@ -3,6 +3,7 @@
 import { BarChart3, Loader2 } from "lucide-react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ROLE_LABELS } from "@/constants/roles";
@@ -92,8 +93,8 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
           ["Blocked sign-ins", summary.blockedSignIns],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -102,15 +103,15 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
 
       <section className="grid gap-6 2xl:grid-cols-[1.05fr_0.95fr]">
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Daily revenue trend
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-7">
             {dailyRevenue.map((entry) => (
               <div key={entry.date} className="space-y-3">
-                <div className="glass-panel-muted flex h-48 items-end rounded-[24px] p-3">
+                <div className="management-subtle-card flex h-48 items-end rounded-xl p-3">
                   <div
-                    className="w-full rounded-[18px] bg-[linear-gradient(180deg,#2dd4bf_0%,#155eef_100%)]"
+                    className="w-full rounded-lg bg-primary"
                     style={{
                       height: `${
                         Math.max(
@@ -122,13 +123,13 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
                   />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-ink">
+                  <p className="text-sm font-medium text-foreground">
                     {entry.date.slice(5)}
                   </p>
-                  <p className="text-xs text-ink-soft">
+                  <p className="text-xs text-muted-foreground">
                     {formatCurrency(entry.billed)}
                   </p>
-                  <p className="text-xs text-brand">
+                  <p className="text-xs text-primary">
                     Paid {formatCurrency(entry.paid)}
                   </p>
                 </div>
@@ -139,20 +140,20 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
 
         <div className="space-y-6">
           <SurfaceCard>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Module usage
             </p>
             <div className="mt-6 space-y-3">
               {moduleUsage.map((entry) => (
                 <div
                   key={entry.module}
-                  className="glass-panel-muted rounded-[22px] p-4"
+                  className="management-subtle-card p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <p className="font-medium text-ink">{entry.module}</p>
-                    <span className="glass-chip rounded-full px-3 py-2 text-sm text-ink">
+                    <p className="font-medium text-foreground">{entry.module}</p>
+                    <Badge variant="outline">
                       {entry.total}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               ))}
@@ -160,22 +161,22 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
           </SurfaceCard>
 
           <SurfaceCard>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Action activity
             </p>
             <div className="mt-6 space-y-3">
               {actionActivity.map((entry) => (
                 <div
                   key={entry.action}
-                  className="glass-panel-muted rounded-[22px] p-4"
+                  className="management-subtle-card p-4"
                 >
                   <div className="flex items-center justify-between gap-4">
-                    <p className="font-medium text-ink">
+                    <p className="font-medium text-foreground">
                       {entry.action.replaceAll(".", " ")}
                     </p>
-                    <span className="glass-chip rounded-full px-3 py-2 text-sm text-ink">
+                    <Badge variant="outline">
                       {entry.total}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               ))}
@@ -186,24 +187,24 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
 
       <section className="grid gap-6 xl:grid-cols-4">
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Channel performance
           </p>
           <div className="mt-5 space-y-3">
             {channelPerformance.map((entry) => (
               <div
                 key={entry.channel}
-                className="glass-panel-muted rounded-[22px] p-4"
+                className="management-subtle-card p-4"
               >
                 <div className="flex items-center justify-between gap-4">
-                  <p className="font-medium text-ink">
+                  <p className="font-medium text-foreground">
                     {entry.channel.replaceAll("_", " ")}
                   </p>
-                  <span className="text-sm text-brand">
+                  <span className="text-sm text-primary">
                     {formatPercent(entry.deliveryRate)}
                   </span>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                   {entry.delivered} delivered / {entry.queued} queued /{" "}
                   {entry.failed} failed
                 </p>
@@ -213,57 +214,57 @@ export function AnalyticsDashboard({ hideHeader = false }: AnalyticsDashboardPro
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Sign-in outcomes
           </p>
           <div className="mt-5 space-y-3">
             {signInActivity.map((entry) => (
               <div
                 key={entry.label}
-                className="glass-panel-muted flex items-center justify-between rounded-[22px] px-4 py-3"
+                className="management-subtle-card flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm font-medium text-ink">
+                <span className="text-sm font-medium text-foreground">
                   {entry.label}
                 </span>
-                <span className="text-sm text-ink-soft">{entry.total}</span>
+                <span className="text-sm text-muted-foreground">{entry.total}</span>
               </div>
             ))}
           </div>
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Staff distribution
           </p>
           <div className="mt-5 space-y-3">
             {roleDistribution.map((entry) => (
               <div
                 key={entry.role}
-                className="glass-panel-muted flex items-center justify-between rounded-[22px] px-4 py-3"
+                className="management-subtle-card flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm font-medium text-ink">
+                <span className="text-sm font-medium text-foreground">
                   {ROLE_LABELS[entry.role]}
                 </span>
-                <span className="text-sm text-ink-soft">{entry.total}</span>
+                <span className="text-sm text-muted-foreground">{entry.total}</span>
               </div>
             ))}
           </div>
         </SurfaceCard>
 
         <SurfaceCard>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Bed status mix
           </p>
           <div className="mt-5 space-y-3">
             {occupancyBreakdown.map((entry) => (
               <div
                 key={entry.label}
-                className="glass-panel-muted flex items-center justify-between rounded-[22px] px-4 py-3"
+                className="management-subtle-card flex items-center justify-between px-4 py-3"
               >
-                <span className="text-sm font-medium text-ink">
+                <span className="text-sm font-medium text-foreground">
                   {entry.label.replaceAll("_", " ")}
                 </span>
-                <span className="text-sm text-ink-soft">{entry.total}</span>
+                <span className="text-sm text-muted-foreground">{entry.total}</span>
               </div>
             ))}
           </div>

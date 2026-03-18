@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils/cn";
 
 type PageHeaderProps = {
@@ -20,31 +21,33 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "glass-panel-strong flex flex-col gap-4 rounded-[24px] p-4 text-card-foreground lg:flex-row lg:items-end lg:justify-between lg:p-5",
+        "overflow-hidden rounded-[var(--radius-panel)] border bg-card p-6 text-card-foreground shadow-[var(--shadow-soft)]",
         className,
       )}
     >
-      <div className="max-w-3xl">
-        {eyebrow
-          ? (
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
-              {eyebrow}
-            </p>
-          )
-          : null}
-        <h1 className="mt-1.5 text-[1.45rem] font-semibold tracking-tight text-foreground sm:text-[1.8rem]">
-          {title}
-        </h1>
-        {description
-          ? (
-            <p className="mt-2 text-sm leading-6 text-muted-foreground sm:text-[0.95rem]">
-              {description}
-            </p>
-          )
-          : null}
-      </div>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="max-w-3xl">
+          {eyebrow
+            ? (
+              <Badge className="mb-4 w-fit" variant="secondary">
+                {eyebrow}
+              </Badge>
+            )
+            : null}
+          <h1 className="text-[1.55rem] font-semibold tracking-tight text-foreground sm:text-[1.95rem]">
+            {title}
+          </h1>
+          {description
+            ? (
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground sm:text-[0.97rem]">
+                {description}
+              </p>
+            )
+            : null}
+        </div>
 
-      {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+      </div>
     </div>
   );
 }

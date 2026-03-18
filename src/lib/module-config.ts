@@ -68,42 +68,42 @@ export const moduleCards: ModuleCard[] = [
     summary:
       "Doctor schedule planning, slot control, front-desk check-in, and queue progression.",
     status: "High throughput",
-    accent: "bg-[rgba(21,94,239,0.12)] text-accent",
+    accent: "bg-accent/12 text-accent",
   },
   {
     name: "OPD and IPD Billing",
     summary:
       "Dynamic charge templates, doctor mappings, receipts, payment status, and print-safe invoice flows.",
     status: "Financial core",
-    accent: "bg-[rgba(15,118,110,0.12)] text-brand",
+    accent: "bg-brand/12 text-brand",
   },
   {
     name: "Ward and Bed Occupancy",
     summary:
       "Real-time bed state, admission tracking, transfers, discharge readiness, and movement logs.",
     status: "Live board",
-    accent: "bg-[rgba(21,128,61,0.12)] text-success",
+    accent: "bg-success/12 text-success",
   },
   {
     name: "Consent and Discharge",
     summary:
       "Structured medical documents, e-sign capture, sealed consent state, and A4-ready summaries.",
     status: "Clinical workflow",
-    accent: "bg-[rgba(217,119,6,0.12)] text-warning",
+    accent: "bg-warning/12 text-warning",
   },
   {
     name: "Communication Engine",
     summary:
       "SMS, email, and WhatsApp templates tied to admissions, bills, reminders, and discharge milestones.",
     status: "Automation",
-    accent: "bg-[rgba(124,58,237,0.12)] text-[rgb(109,40,217)]",
+    accent: "bg-accent/12 text-accent",
   },
   {
     name: "Audit and Analytics",
     summary:
       "Permission changes, login history, revenue drill-downs, occupancy trends, and operational dashboards.",
     status: "Governance ready",
-    accent: "bg-[rgba(20,32,51,0.09)] text-ink",
+    accent: "bg-foreground/6 text-ink",
   },
 ] as const;
 

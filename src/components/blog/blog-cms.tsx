@@ -21,6 +21,7 @@ import { z } from "zod";
 import { BLOG_STATUS } from "@/constants/blogStatus";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { UploadField } from "@/components/forms/upload-field";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -55,9 +56,9 @@ const defaultValues: BlogEditorInput = {
 };
 
 const statusToneMap = {
-  DRAFT: "bg-[rgba(217,119,6,0.12)] text-warning",
-  PUBLISHED: "bg-[rgba(21,128,61,0.12)] text-success",
-  ARCHIVED: "bg-[rgba(20,32,51,0.08)] text-ink-soft",
+  DRAFT: "border-transparent bg-warning/15 text-warning",
+  PUBLISHED: "border-transparent bg-success/15 text-success",
+  ARCHIVED: "border-transparent bg-muted text-muted-foreground",
 } as const;
 
 function formatDateTime(value: string | null) {
@@ -229,11 +230,11 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
           ["Archived", summary?.archived ?? 0, "Hidden but retained"],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={label} className="p-5">
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
@@ -242,10 +243,10 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
         <SurfaceCard className="p-5 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 {selectedPost ? "Edit article" : "Create article"}
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 {selectedPost
                   ? selectedPost.title
                   : "Draft the next public update"}
@@ -410,7 +411,7 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
                     {selectedPost ? "Save article" : "Create article"}
                   </Button>
 
-                  <div className="rounded-full border border-line px-4 py-3 text-sm text-ink-soft">
+                  <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
                     {titleValue
                       ? slugifyBlogTitle(titleValue)
                       : "Slug preview will appear here"}
@@ -429,19 +430,19 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
         </SurfaceCard>
 
         <SurfaceCard className="p-5 sm:p-6">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="management-toolbar-shell">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Editorial queue
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Drafts, published articles, and archived records
               </h2>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="glass-panel-muted flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink-soft">
-                <Search className="h-4 w-4 text-brand" />
+            <div className="management-toolbar-actions">
+              <label className="management-search-shell">
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                   onChange={(event) => setSearch(event.target.value)}
@@ -451,7 +452,7 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
               </label>
 
               <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
+                className="min-w-40"
                 onChange={(event) =>
                   setStatusFilter(
                     event.target.value as (typeof BLOG_STATUS)[number] | "ALL",
@@ -482,7 +483,7 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
 
           {directoryQuery.isLoading
             ? (
-              <div className="glass-panel-muted mt-6 flex min-h-72 items-center justify-center rounded-[28px] border-dashed text-sm text-ink-soft">
+              <div className="management-subtle-card mt-6 flex min-h-72 items-center justify-center border-dashed text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading blog posts
               </div>
@@ -493,10 +494,10 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
                 {directoryQuery.data.posts.map((post) => (
                   <article
                     key={post.id}
-                    className={`rounded-[28px] border p-5 transition ${
+                    className={`rounded-xl border p-5 shadow-sm transition ${
                       selectedPost?.id === post.id
-                        ? "border-brand bg-[rgba(15,118,110,0.05)]"
-                        : "border-line bg-white/40 dark:bg-white/6"
+                        ? "border-primary bg-primary/5"
+                        : "border-border bg-card"
                     }`}
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -512,51 +513,50 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
                           />
                         )
                         : null}
-                      <h3 className="text-xl font-semibold text-ink">
+                      <h3 className="text-xl font-semibold text-foreground">
                         {post.title}
                       </h3>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-                              statusToneMap[post.status]
-                            }`}
+                          <Badge
+                            className={statusToneMap[post.status]}
+                            variant="outline"
                           >
                             {post.status}
-                          </span>
+                          </Badge>
                           {post.category
                             ? (
-                              <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                              <Badge variant="secondary">
                                 {post.category.name}
-                              </span>
+                              </Badge>
                             )
                             : null}
                         </div>
 
-                        <p className="text-sm leading-7 text-ink-soft">
+                        <p className="text-sm leading-7 text-muted-foreground">
                           {post.excerpt ?? post.body.slice(0, 180)}
                         </p>
 
                         <div className="grid gap-3 md:grid-cols-3">
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Slug
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {post.slug}
                             </p>
                           </div>
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Published
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {formatDateTime(post.publishedAt)}
                             </p>
                           </div>
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Updated
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {formatDateTime(post.updatedAt)}
                             </p>
                           </div>
@@ -609,7 +609,7 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
             )
             : (
               <EmptyState
-                className="mt-6 glass-panel-muted"
+                className="mt-6"
                 description="Create the first article in the editor to populate the public blog and the admin publishing queue."
                 icon={Newspaper}
                 title="No blog posts yet"

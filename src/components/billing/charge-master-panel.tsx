@@ -28,6 +28,7 @@ import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import {
@@ -83,6 +84,7 @@ export function ChargeMasterPanel() {
   const [selectedCharge, setSelectedCharge] = useState<ChargeRecord | null>(
     null,
   );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const deferredSearch = useDebouncedSearch(search);
 
   const { canAccess: canCreateBilling } = useModuleAccess(["billing.create"]);
@@ -157,10 +159,12 @@ export function ChargeMasterPanel() {
 
   function beginEditing(entry: ChargeRecord) {
     startTransition(() => setSelectedCharge(entry));
+    setIsDrawerOpen(true);
   }
 
   function clearSelection() {
     startTransition(() => setSelectedCharge(null));
+    setIsDrawerOpen(false);
   }
 
   function handleDelete(entry: ChargeRecord) {
@@ -336,136 +340,157 @@ export function ChargeMasterPanel() {
   return (
     <div className="space-y-6">
       <SurfaceCard>
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-              {selectedCharge ? "Edit charge" : "Create charge"}
+              Charge management
             </p>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-              Charge master
+              Charge master catalog
             </h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              Manage consults, investigations, and services used in billing.
+            </p>
           </div>
-
-          {selectedCharge
+          {canCreateBilling
             ? (
-              <Button
-                onClick={clearSelection}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                Cancel edit
+              <Button onClick={() => { clearSelection(); setIsDrawerOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create charge
               </Button>
             )
             : null}
         </div>
-
-        {canCreateBilling
-          ? (
-            <form
-              className="mt-6 space-y-5"
-              onSubmit={form.handleSubmit(handleSubmit)}
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Category</span>
-                  <ThemedSelect
-                    {...form.register("categoryKey")}
-                    className="mt-2"
-                  >
-                    {CHARGE_CATEGORIES.map((category) => (
-                      <option key={category} value={category}>
-                        {formatCategoryLabel(category)}
-                      </option>
-                    ))}
-                  </ThemedSelect>
-                </label>
-
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Code</span>
-                  <Input
-                    {...form.register("code")}
-                    className="mt-2 uppercase"
-                    placeholder="LAB-ECG-001"
-                  />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.code?.message}
-                  </p>
-                </label>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-[1.5fr_0.5fr]">
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">
-                    Charge name
-                  </span>
-                  <Input
-                    {...form.register("name")}
-                    className="mt-2"
-                    placeholder="ECG Investigation"
-                  />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.name?.message}
-                  </p>
-                </label>
-
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">
-                    Unit price
-                  </span>
-                  <Input
-                    {...form.register("unitPrice")}
-                    className="mt-2"
-                    min="0"
-                    step="0.01"
-                    type="number"
-                  />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.unitPrice?.message}
-                  </p>
-                </label>
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
-                  <Checkbox
-                    {...form.register("taxable")}
-                  />
-                  Taxable
-                </label>
-
-                <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
-                  <Checkbox
-                    {...form.register("active")}
-                  />
-                  Active in billing composer
-                </label>
-              </div>
-
-              <Button
-                disabled={createChargeMutation.isPending ||
-                  updateChargeMutation.isPending}
-                type="submit"
-              >
-                {createChargeMutation.isPending ||
-                    updateChargeMutation.isPending
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : selectedCharge
-                  ? <UserRoundPen className="h-4 w-4" />
-                  : <Plus className="h-4 w-4" />}
-                {selectedCharge ? "Save charge" : "Create charge"}
-              </Button>
-            </form>
-          )
-          : (
-            <EmptyState
-              className="mt-6 min-h-56"
-              description="Managing charge master entries requires the billing.create permission."
-              icon={Wallet}
-              title="Charge master is read-only"
-            />
-          )}
       </SurfaceCard>
+
+      <Drawer
+        open={isDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open);
+          if (!open) clearSelection();
+        }}
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>
+              {selectedCharge ? "Edit charge" : "Create new charge"}
+            </DrawerTitle>
+            <DrawerDescription>
+              {selectedCharge ? "Update the active charge item properties." : "Define a new charge for the billing catalog."}
+            </DrawerDescription>
+          </DrawerHeader>
+
+          <div className="p-4 bg-background">
+            {canCreateBilling
+              ? (
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Category</span>
+                      <ThemedSelect
+                        {...form.register("categoryKey")}
+                        className="mt-2"
+                      >
+                        {CHARGE_CATEGORIES.map((category) => (
+                          <option key={category} value={category}>
+                            {formatCategoryLabel(category)}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Code</span>
+                      <Input
+                        {...form.register("code")}
+                        className="mt-2 uppercase"
+                        placeholder="LAB-ECG-001"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.code?.message}
+                      </p>
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-[1.5fr_0.5fr]">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Charge name
+                      </span>
+                      <Input
+                        {...form.register("name")}
+                        className="mt-2"
+                        placeholder="ECG Investigation"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.name?.message}
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Unit price
+                      </span>
+                      <Input
+                        {...form.register("unitPrice")}
+                        className="mt-2"
+                        min="0"
+                        step="0.01"
+                        type="number"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.unitPrice?.message}
+                      </p>
+                    </label>
+                  </div>
+
+                  <div className="flex flex-wrap gap-4">
+                    <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
+                      <Checkbox
+                        {...form.register("taxable")}
+                      />
+                      Taxable
+                    </label>
+
+                    <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
+                      <Checkbox
+                        {...form.register("active")}
+                      />
+                      Active in billing composer
+                    </label>
+                  </div>
+
+                  <div className="flex justify-end pt-4 pb-8">
+                    <Button
+                      disabled={createChargeMutation.isPending ||
+                        updateChargeMutation.isPending}
+                      type="submit"
+                    >
+                      {createChargeMutation.isPending ||
+                          updateChargeMutation.isPending
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : selectedCharge
+                        ? <UserRoundPen className="h-4 w-4 mr-2" />
+                        : <Plus className="h-4 w-4 mr-2" />}
+                      {selectedCharge ? "Save charge" : "Create charge"}
+                    </Button>
+                  </div>
+                </form>
+              )
+              : (
+                <EmptyState
+                  className="mt-6 min-h-56 mb-8"
+                  description="Managing charge master entries requires the billing.create permission."
+                  icon={Wallet}
+                  title="Charge master is read-only"
+                />
+              )}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <SurfaceCard>
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">

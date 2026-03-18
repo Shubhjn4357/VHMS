@@ -13,7 +13,7 @@ import {
   UserRound,
   UserRoundPen,
 } from "lucide-react";
-import Link from "next/link";
+
 import { useSearchParams } from "next/navigation";
 import {
   startTransition,
@@ -31,13 +31,22 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { UploadField } from "@/components/forms/upload-field";
 import { OfflineDraftPanel } from "@/components/pwa/offline-draft-panel";
 import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { OptionsMenu } from "@/components/ui/options-menu";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/bottom-drawer";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
@@ -100,6 +109,7 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<PatientRecord | null>(
     null,
   );
@@ -186,11 +196,17 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
       return;
     }
 
-    startTransition(() => setSelectedEntry(entry));
+    startTransition(() => {
+      setSelectedEntry(entry);
+      setIsDrawerOpen(true);
+    });
   }
 
   function clearSelection() {
-    startTransition(() => setSelectedEntry(null));
+    startTransition(() => {
+      setSelectedEntry(null);
+      setIsDrawerOpen(false);
+    });
   }
 
   function restoreDraft() {
@@ -380,6 +396,7 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
       onSuccess: () => {
         clearDraft("patientRegistration");
         form.reset(defaultFormValues);
+        setIsDrawerOpen(false);
       },
     });
   }
@@ -440,12 +457,16 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
               <>
                 {canCreate
                   ? (
-                    <Link
+                    <Button
                       className={buttonVariants({ variant: "default" })}
-                      href="/dashboard/patients/new"
+                      onClick={() => {
+                        clearSelection();
+                        setIsDrawerOpen(true);
+                      }}
                     >
-                      Full-page registration
-                    </Link>
+                      <UserRound className="mr-2 h-4 w-4" />
+                      Register patient
+                    </Button>
                   )
                   : null}
                 <Button
@@ -484,316 +505,321 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
           ],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={label}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
 
-      <section className="patient-main-grid grid gap-6 2xl:grid-cols-[0.94fr_1.06fr]">
-        <SurfaceCard className="patient-form-panel">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+      <section className="patient-main-grid space-y-6">
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>
                 {selectedEntry ? "Edit patient profile" : "Register patient"}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              </DrawerTitle>
+              <DrawerDescription>
                 {selectedEntry
                   ? `Update ${selectedEntry.fullName}`
                   : "Capture the patient identity once"}
-              </h2>
-            </div>
+              </DrawerDescription>
+            </DrawerHeader>
 
-            {selectedEntry
-              ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => handleDelete(selectedEntry)}
-                    size="sm"
-                    type="button"
-                    variant="destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete patient
-                  </Button>
-                  <Button
-                    onClick={clearSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Cancel edit
-                  </Button>
-                </div>
-              )
-              : null}
-          </div>
-
-          {!selectedEntry && drafts.patientRegistration
-            ? (
-              <div className="mt-6">
-                <OfflineDraftPanel
-                  description="This registration draft is stored locally in the browser, so reception can recover it after a refresh or connection drop."
-                  isOnline={isOnline}
-                  onDiscard={discardDraft}
-                  onRestore={restoreDraft}
-                  title="Saved patient registration draft"
-                  updatedAt={drafts.patientRegistration.updatedAt}
-                />
-              </div>
-            )
-            : null}
-
-          {canManagePatients
-            ? (
-              <form
-                className="mt-6 space-y-5"
-                onSubmit={form.handleSubmit(handleSubmit)}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      First name
-                    </span>
-                    <Input
-                      {...form.register("firstName")}
-                      className="mt-2"
-                      placeholder="Ritika"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.firstName?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Last name
-                    </span>
-                    <Input
-                      {...form.register("lastName")}
-                      className="mt-2"
-                      placeholder="Sharma"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.lastName?.message}
-                    </p>
-                  </label>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Gender</span>
-                    <ThemedSelect
-                      {...form.register("gender")}
-                      className="mt-2"
-                    >
-                      {PATIENT_GENDERS.map((gender) => (
-                        <option key={gender} value={gender}>
-                          {gender.replaceAll("_", " ")}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Date of birth
-                    </span>
-                    <Input
-                      {...form.register("dateOfBirth")}
-                      className="mt-2"
-                      type="date"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.dateOfBirth?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Blood group
-                    </span>
-                    <ThemedSelect
-                      {...form.register("bloodGroup")}
-                      className="mt-2"
-                    >
-                      <option value="">Not captured</option>
-                      {BLOOD_GROUPS.map((bloodGroup) => (
-                        <option key={bloodGroup} value={bloodGroup}>
-                          {bloodGroup}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.bloodGroup?.message}
-                    </p>
-                  </label>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Phone</span>
-                    <Input
-                      {...form.register("phone")}
-                      className="mt-2"
-                      placeholder="+91-9876543210"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Alternate phone
-                    </span>
-                    <Input
-                      {...form.register("alternatePhone")}
-                      className="mt-2"
-                      placeholder="+91-9123456780"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Email</span>
-                    <Input
-                      {...form.register("email")}
-                      className="mt-2"
-                      placeholder="patient@example.com"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.email?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Emergency contact
-                    </span>
-                    <Input
-                      {...form.register("emergencyContact")}
-                      className="mt-2"
-                      placeholder="Sonal Sharma - +91-9000000000"
-                    />
-                  </label>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="block sm:col-span-3">
-                    <span className="text-sm font-medium text-ink">
-                      Address
-                    </span>
-                    <Textarea
-                      {...form.register("address")}
-                      className="mt-2 min-h-24"
-                      placeholder="Sector 12, Jaipur"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">City</span>
-                    <Input
-                      {...form.register("city")}
-                      className="mt-2"
-                      placeholder="Jaipur"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">State</span>
-                    <Input
-                      {...form.register("state")}
-                      className="mt-2"
-                      placeholder="Rajasthan"
-                    />
-                  </label>
-
-                  <div className="block">
-                    <UploadField
-                      description="Optional patient profile image for identification in front-desk workflows."
-                      label="Patient photo"
-                      onChange={(value) =>
-                        form.setValue("photoUrl", value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })}
-                      target="PATIENT_PHOTO"
-                      value={photoUrlValue ?? ""}
-                    />
-                  </div>
-                </div>
-
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Notes</span>
-                  <Textarea
-                    {...form.register("notes")}
-                    className="mt-2 min-h-28"
-                    placeholder="Allergy notes, registration remarks, or follow-up context."
-                  />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.notes?.message}
-                  </p>
-                </label>
-
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={isSaving || (!canCreate && !selectedEntry)}
-                    type="submit"
-                  >
-                    {isSaving
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : selectedEntry
-                      ? <UserRoundPen className="h-4 w-4" />
-                      : <UserRound className="h-4 w-4" />}
-                    {selectedEntry ? "Save patient profile" : "Register patient"}
-                  </Button>
-
-                  <Button
-                    onClick={clearPatientForm}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear form
-                  </Button>
-                </div>
-
-                {!selectedEntry
+            <div className="p-4 bg-background">
+              <div className="flex items-start justify-between gap-4">
+                <div />
+                {selectedEntry
                   ? (
-                    <p className="text-sm leading-6 text-ink-soft">
-                      {isOnline
-                        ? "New registrations autosave locally and queue on this device if the connection drops before submit."
-                        : "You are offline. New registrations will queue on this device and sync after reconnect."}
-                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => handleDelete(selectedEntry)}
+                        size="sm"
+                        type="button"
+                        variant="destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete patient
+                      </Button>
+                      <Button
+                        onClick={clearSelection}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        Cancel edit
+                      </Button>
+                    </div>
                   )
                   : null}
-              </form>
-            )
-            : (
-              <EmptyState
-                className="mt-6 min-h-56"
-                description="This route is available to patient viewers, but creating or editing profiles requires patients.create or patients.update."
-                icon={UserRound}
-                title="Read-only patient directory"
-              />
-            )}
-        </SurfaceCard>
+              </div>
+
+              {!selectedEntry && drafts.patientRegistration
+                ? (
+                  <div className="mt-2">
+                    <OfflineDraftPanel
+                      description="This registration draft is stored locally in the browser, so reception can recover it after a refresh or connection drop."
+                      isOnline={isOnline}
+                      onDiscard={discardDraft}
+                      onRestore={restoreDraft}
+                      title="Saved patient registration draft"
+                      updatedAt={drafts.patientRegistration.updatedAt}
+                    />
+                  </div>
+                )
+                : null}
+
+              {canManagePatients
+                ? (
+                  <form
+                    className="mt-4 space-y-5"
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          First name
+                        </span>
+                        <Input
+                          {...form.register("firstName")}
+                          className="mt-2"
+                          placeholder="Ritika"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.firstName?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Last name
+                        </span>
+                        <Input
+                          {...form.register("lastName")}
+                          className="mt-2"
+                          placeholder="Sharma"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.lastName?.message}
+                        </p>
+                      </label>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Gender</span>
+                        <ThemedSelect
+                          {...form.register("gender")}
+                          className="mt-2"
+                        >
+                          {PATIENT_GENDERS.map((gender) => (
+                            <option key={gender} value={gender}>
+                              {gender.replaceAll("_", " ")}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Date of birth
+                        </span>
+                        <Input
+                          {...form.register("dateOfBirth")}
+                          className="mt-2"
+                          type="date"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.dateOfBirth?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Blood group
+                        </span>
+                        <ThemedSelect
+                          {...form.register("bloodGroup")}
+                          className="mt-2"
+                        >
+                          <option value="">Not captured</option>
+                          {BLOOD_GROUPS.map((bloodGroup) => (
+                            <option key={bloodGroup} value={bloodGroup}>
+                              {bloodGroup}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.bloodGroup?.message}
+                        </p>
+                      </label>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Phone</span>
+                        <Input
+                          {...form.register("phone")}
+                          className="mt-2"
+                          placeholder="+91-9876543210"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Alternate phone
+                        </span>
+                        <Input
+                          {...form.register("alternatePhone")}
+                          className="mt-2"
+                          placeholder="+91-9123456780"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Email</span>
+                        <Input
+                          {...form.register("email")}
+                          className="mt-2"
+                          placeholder="patient@example.com"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.email?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Emergency contact
+                        </span>
+                        <Input
+                          {...form.register("emergencyContact")}
+                          className="mt-2"
+                          placeholder="Sonal Sharma - +91-9000000000"
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="block sm:col-span-3">
+                        <span className="text-sm font-medium text-ink">
+                          Address
+                        </span>
+                        <Textarea
+                          {...form.register("address")}
+                          className="mt-2 min-h-24"
+                          placeholder="Sector 12, Jaipur"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">City</span>
+                        <Input
+                          {...form.register("city")}
+                          className="mt-2"
+                          placeholder="Jaipur"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">State</span>
+                        <Input
+                          {...form.register("state")}
+                          className="mt-2"
+                          placeholder="Rajasthan"
+                        />
+                      </label>
+
+                      <div className="block">
+                        <UploadField
+                          description="Optional patient profile image for identification in front-desk workflows."
+                          label="Patient photo"
+                          onChange={(value) =>
+                            form.setValue("photoUrl", value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })}
+                          target="PATIENT_PHOTO"
+                          value={photoUrlValue ?? ""}
+                        />
+                      </div>
+                    </div>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Notes</span>
+                      <Textarea
+                        {...form.register("notes")}
+                        className="mt-2 min-h-28"
+                        placeholder="Allergy notes, registration remarks, or follow-up context."
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.notes?.message}
+                      </p>
+                    </label>
+
+                    <div className="flex flex-wrap gap-3 pb-6">
+                      <Button
+                        disabled={isSaving || (!canCreate && !selectedEntry)}
+                        type="submit"
+                      >
+                        {isSaving
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : selectedEntry
+                          ? <UserRoundPen className="h-4 w-4" />
+                          : <UserRound className="h-4 w-4" />}
+                        {selectedEntry ? "Save patient profile" : "Register patient"}
+                      </Button>
+
+                      <Button
+                        onClick={clearPatientForm}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        Clear form
+                      </Button>
+                    </div>
+
+                    {!selectedEntry
+                      ? (
+                        <p className="text-sm leading-6 text-ink-soft pb-6">
+                          {isOnline
+                            ? "New registrations autosave locally and queue on this device if the connection drops before submit."
+                            : "You are offline. New registrations will queue on this device and sync after reconnect."}
+                        </p>
+                      )
+                      : null}
+                  </form>
+                )
+                : (
+                  <EmptyState
+                    className="mt-6 min-h-56 mb-8"
+                    description="This route is available to patient viewers, but creating or editing profiles requires patients.create or patients.update."
+                    icon={UserRound}
+                    title="Read-only patient directory"
+                  />
+                )}
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         <SurfaceCard className="patient-directory-panel">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="management-toolbar-shell">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Searchable patient thread
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Operational identity records
               </h2>
             </div>
 
-            <label className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-3 text-sm text-muted-foreground">
-              <Search className="h-4 w-4 text-brand" />
+            <label className="management-search-shell">
+              <Search className="h-4 w-4 text-muted-foreground" />
               <Input
                 className="h-auto min-w-48 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                 onChange={(event) => setSearch(event.target.value)}
@@ -867,8 +893,8 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
           <div className="mt-6 space-y-4">
             {directoryQuery.isLoading
               ? (
-                <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
-                  <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   Loading patient records
                 </div>
               )
@@ -887,12 +913,12 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
             {entries.map((entry) => (
               <article
                 key={entry.id}
-                className="glass-panel-muted rounded-[28px] p-5"
+                className="management-record-shell p-5"
               >
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 text-xs font-medium text-ink-soft">
+                      <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                         <Checkbox
                           checked={selectedIds.includes(entry.id)}
                           onChange={() => toggleSelection(entry.id)}
@@ -909,78 +935,73 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
                           />
                         )
                         : (
-                          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-background/70 text-sm font-semibold text-brand">
+                          <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-muted text-sm font-semibold text-foreground">
                             {entry.firstName.slice(0, 1)}
                           </span>
                         )}
-                      <h3 className="text-xl font-semibold text-ink">
+                      <h3 className="text-xl font-semibold text-foreground">
                         {entry.fullName}
                       </h3>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                      <Badge variant="outline">
                         {entry.hospitalNumber}
-                      </span>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      </Badge>
+                      <Badge variant="secondary">
                         {entry.gender}
-                      </span>
+                      </Badge>
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-2">
-                      <div className="metric-tile rounded-[22px] px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      <div className="management-metric px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Contact
                         </p>
-                        <p className="mt-2 text-sm text-ink">
+                        <p className="mt-2 text-sm text-foreground">
                           {entry.phone || "Primary phone not added"}
                         </p>
-                        <p className="mt-1 text-sm text-ink-soft">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {entry.email || "Email not added"}
                         </p>
                       </div>
 
-                      <div className="metric-tile rounded-[22px] px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      <div className="management-metric px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Profile
                         </p>
-                        <p className="mt-2 text-sm text-ink">
+                        <p className="mt-2 text-sm text-foreground">
                           {entry.ageLabel || "DOB not captured"}
                         </p>
-                        <p className="mt-1 text-sm text-ink-soft">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {entry.bloodGroup || "Blood group not captured"}
                         </p>
                       </div>
                     </div>
 
-                    <p className="text-sm leading-6 text-ink-soft">
+                    <p className="text-sm leading-6 text-muted-foreground">
                       {formatPatientLocation(entry)}
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-3 xl:items-end">
-                    <p className="text-sm text-ink-soft">
+                    <p className="text-sm text-muted-foreground">
                       Updated {formatDateTime(entry.updatedAt)}
                     </p>
                     {canUpdate
                       ? (
-                        <div className="flex flex-wrap gap-2">
-                          <Button
-                            onClick={() => handleDelete(entry)}
-                            size="sm"
-                            type="button"
-                            variant="destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                          <Button
-                            onClick={() => beginEditing(entry)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <UserRoundPen className="h-4 w-4" />
-                            Edit profile
-                          </Button>
-                        </div>
+                        <OptionsMenu
+                          items={[
+                            {
+                              icon: UserRoundPen,
+                              label: "Edit profile",
+                              onSelect: () => beginEditing(entry),
+                            },
+                            {
+                              icon: Trash2,
+                              label: "Delete patient",
+                              onSelect: () => handleDelete(entry),
+                              tone: "danger",
+                            },
+                          ]}
+                        />
                       )
                       : null}
                   </div>
@@ -992,7 +1013,7 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
           {entries.length > 0
             ? (
               <div className="mt-4 flex justify-end">
-                <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-2 text-sm text-ink-soft">
+                <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
                   <Checkbox
                     checked={allVisibleSelected}
                     onChange={toggleAllVisible}

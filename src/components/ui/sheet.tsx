@@ -22,7 +22,9 @@ const SheetDescription = DialogDescription;
 
 const sheetVariants = {
   right:
-    "glass-panel-strong fixed inset-y-0 right-0 z-50 h-full w-[min(92vw,25rem)] rounded-l-[32px] shadow-[var(--shadow-card)]",
+    "fixed inset-y-0 right-0 z-50 h-full w-[min(92vw,26rem)] border-l bg-background shadow-[var(--shadow-card)]",
+  left:
+    "fixed inset-y-0 left-0 z-50 h-full w-[min(92vw,26rem)] border-r bg-background shadow-[var(--shadow-card)]",
 } as const;
 
 const SheetContent = React.forwardRef<

@@ -5,8 +5,7 @@ import { useTheme } from "next-themes";
 import { useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
-
-const cycleOrder = ["light", "dark", "system"] as const;
+import { THEME_MODE_ORDER } from "@/constants/appTheme";
 
 function subscribe() {
   return () => {};
@@ -21,10 +20,10 @@ export function ThemeToggle({ compact = false }: ThemeToggleProps) {
   const isMounted = useSyncExternalStore(subscribe, () => true, () => false);
   const currentTheme = isMounted ? theme ?? "system" : "system";
   const safeResolvedTheme = isMounted ? resolvedTheme : "light";
-  const currentIndex = cycleOrder.indexOf(
-    cycleOrder.find((mode) => mode === currentTheme) ?? "system",
+  const currentIndex = THEME_MODE_ORDER.indexOf(
+    THEME_MODE_ORDER.find((mode) => mode === currentTheme) ?? "system",
   );
-  const nextTheme = cycleOrder[(currentIndex + 1) % cycleOrder.length];
+  const nextTheme = THEME_MODE_ORDER[(currentIndex + 1) % THEME_MODE_ORDER.length];
 
   return (
     <Button

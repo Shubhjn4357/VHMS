@@ -18,16 +18,16 @@ export const metadata: Metadata = buildPublicMetadata({
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
+    <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4 py-10 sm:px-6">
       <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.96fr_1.04fr]">
-        <section className="glass-hero rounded-[36px] p-8 text-white shadow-[var(--shadow-card)]">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-white/66">
+        <section className="rounded-2xl border bg-sidebar p-8 text-sidebar-foreground shadow-[var(--shadow-card)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sidebar-foreground/70">
             Invite-only authentication
           </p>
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">
             Staff access starts before sign-in, not after.
           </h1>
-          <p className="mt-5 max-w-lg text-base leading-8 text-white/74">
+          <p className="mt-5 max-w-lg text-base leading-8 text-sidebar-foreground/80">
             Google OAuth is restricted to approved hospital identities. Access
             is granted only after an admin defines role, module permissions, and
             account status in the staff access register.
@@ -41,7 +41,7 @@ export default function LoginPage() {
             ].map((item) => (
               <div
                 key={item}
-                className="rounded-[26px] border border-white/10 bg-white/8 px-4 py-4 text-sm text-white/80 backdrop-blur-md"
+                className="rounded-xl border border-sidebar-border bg-sidebar-accent px-4 py-4 text-sm text-sidebar-accent-foreground"
               >
                 {item}
               </div>
@@ -49,21 +49,21 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <section className="glass-panel-strong rounded-[36px] p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
+        <section className="rounded-2xl border bg-card p-8 shadow-[var(--shadow-card)]">
+          <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
             Staff access portal
           </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
             Continue with approved Google account
           </h2>
-          <p className="mt-4 text-base leading-7 text-ink-soft">
+          <p className="mt-4 text-base leading-7 text-muted-foreground">
             Approved identities are checked against
             the staff access register before the session is allowed into the
             dashboard.
           </p>
 
-          <div className="glass-panel-muted mt-8 rounded-[28px] p-5">
-            <p className="text-sm text-ink-soft">Expected access profile</p>
+          <div className="management-subtle-card mt-8 p-5">
+            <p className="text-sm text-muted-foreground">Expected access profile</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               {[
                 ["Role", "Reception Staff"],
@@ -73,10 +73,10 @@ export default function LoginPage() {
               ].map(([label, value]) => (
                 <div
                   key={label}
-                  className="metric-tile rounded-[22px] px-4 py-4"
+                  className="management-metric px-4 py-4"
                 >
-                  <p className="text-sm text-ink-soft">{label}</p>
-                  <p className="mt-2 text-lg font-semibold text-ink">{value}</p>
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                  <p className="mt-2 text-lg font-semibold text-foreground">{value}</p>
                 </div>
               ))}
             </div>
@@ -87,15 +87,15 @@ export default function LoginPage() {
           <div className="mt-6 flex flex-wrap gap-3 text-sm">
             <Link
               href="/"
-              className="glass-chip rounded-full px-4 py-3 text-ink transition hover:border-brand hover:text-brand"
+              className="inline-flex items-center justify-center rounded-md border bg-background px-4 py-3 text-foreground transition hover:bg-accent hover:text-accent-foreground"
             >
               Back to public site
             </Link>
             <Link
               href="/blog"
-              className="glass-chip rounded-full px-4 py-3 text-ink-soft transition hover:text-ink"
+              className="inline-flex items-center justify-center rounded-md border bg-background px-4 py-3 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
             >
-              CheckOut The Blogs
+              Read the blog
             </Link>
           </div>
         </section>

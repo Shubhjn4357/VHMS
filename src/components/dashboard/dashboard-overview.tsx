@@ -151,9 +151,9 @@ function SortableLayoutWidget({
   return (
     <div
       className={cn(
-        "glass-panel-muted flex items-center justify-between gap-3 rounded-[22px] px-4 py-3 transition",
+        "management-subtle-card flex items-center justify-between gap-3 rounded-xl px-4 py-3 transition",
         widget.visible ? "text-foreground" : "text-muted-foreground opacity-70",
-        isDragging ? "border-primary/24 shadow-[var(--shadow-button)]" : "",
+        isDragging ? "border-primary/24 shadow-(--shadow-button)" : "",
       )}
       ref={setNodeRef}
       style={{
@@ -164,7 +164,7 @@ function SortableLayoutWidget({
       <div className="flex min-w-0 items-start gap-3">
         <Button
           aria-label={`Reorder ${widget.label}`}
-          className="glass-chip mt-0.5 text-muted-foreground hover:border-primary hover:text-primary"
+          className="mt-0.5 text-muted-foreground hover:text-primary"
           disabled={disabled}
           size="icon"
           type="button"
@@ -208,7 +208,7 @@ function OverviewPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[28px] bg-white/72 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] dark:bg-white/4">
+    <section className="surface-section rounded-[28px] p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-lg font-semibold text-foreground">{title}</p>
@@ -264,7 +264,7 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+          <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
             Live sync
           </span>
         }
@@ -273,14 +273,14 @@ function renderOverviewWidget(
       >
         <div className="grid gap-4 lg:grid-cols-3">
           {summaryCards.map((card) => (
-            <div className="metric-tile rounded-[24px] p-4" key={card.label}>
+            <div className="management-record-shell rounded-xl p-4" key={card.label}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-sm font-medium text-foreground">{card.label}</p>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(120,196,224,0.34)] text-primary">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/16 text-primary">
                   <ArrowUpRight className="h-4 w-4" />
                 </span>
               </div>
-              <div className="mt-4 space-y-3 rounded-[18px] border border-border/60 bg-background/70 p-3 dark:bg-white/3">
+              <div className="management-metric mt-4 space-y-3 rounded-lg p-3">
                 <div className="flex items-center justify-between gap-3">
                   <span className="text-sm text-muted-foreground">{card.topLabel}</span>
                   <span className="text-2xl font-semibold text-foreground">{card.top}</span>
@@ -316,7 +316,7 @@ function renderOverviewWidget(
           <div className="space-y-3">
             {doctorLoad.slice(0, 4).map((entry) => (
               <div
-                className="rounded-[20px] border border-border/60 bg-background/70 p-4 dark:bg-white/3"
+                className="management-subtle-card rounded-xl p-4"
                 key={entry.doctorName}
               >
                 <div className="flex items-start justify-between gap-3">
@@ -330,7 +330,7 @@ function renderOverviewWidget(
                 </div>
                 <div className="mt-3 flex items-center justify-between gap-3 text-sm">
                   <span className="text-muted-foreground">Checked in {entry.checkedIn}</span>
-                  <span className="rounded-full bg-[rgba(251,113,133,0.12)] px-3 py-1 font-medium text-[#e11d48] dark:text-[#fda4af]">
+                  <span className="rounded-full bg-warning/15 px-3 py-1 font-medium text-warning">
                     {entry.nextSlot ?? "No slot"}
                   </span>
                 </div>
@@ -341,7 +341,7 @@ function renderOverviewWidget(
           <div className="space-y-3">
             {appointmentQueue.map((appointment) => (
               <div
-                className="rounded-[20px] border border-border/60 bg-background/70 p-4 dark:bg-white/3"
+                className="management-subtle-card rounded-xl p-4"
                 key={appointment.id}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -349,7 +349,7 @@ function renderOverviewWidget(
                     <p className="font-medium text-foreground">{appointment.patientName}</p>
                     <p className="text-sm text-muted-foreground">{appointment.doctorName}</p>
                   </div>
-                  <span className="glass-chip rounded-full px-3 py-2 text-sm text-foreground">
+                  <span className="management-selection-pill px-3 py-2 text-sm text-foreground">
                     {appointment.time}
                   </span>
                 </div>
@@ -366,7 +366,7 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
             {summary.totalBeds} mapped beds
           </span>
         }
@@ -379,7 +379,7 @@ function renderOverviewWidget(
 
             return (
               <div
-                className="rounded-[20px] border border-border/60 bg-background/70 p-4 dark:bg-white/3"
+                className="management-subtle-card rounded-xl p-4"
                 key={ward.wardId}
               >
                 <div className="flex items-center justify-between gap-3">
@@ -393,18 +393,18 @@ function renderOverviewWidget(
                 </div>
                 <div className="mt-3 h-2 rounded-full bg-border/45">
                   <div
-                    className="h-2 rounded-full bg-[linear-gradient(90deg,#7dd3fc_0%,#2563eb_100%)]"
+                    className="h-2 rounded-full bg-primary"
                     style={{ width }}
                   />
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  <span className="rounded-full bg-background px-3 py-1 dark:bg-white/3">
+                  <span className="management-selection-pill px-3 py-1">
                     Available {ward.available}
                   </span>
-                  <span className="rounded-full bg-background px-3 py-1 dark:bg-white/3">
+                  <span className="management-selection-pill px-3 py-1">
                     Reserved {ward.reserved}
                   </span>
-                  <span className="rounded-full bg-background px-3 py-1 dark:bg-white/3">
+                  <span className="management-selection-pill px-3 py-1">
                     Cleaning {ward.cleaning}
                   </span>
                 </div>
@@ -420,14 +420,14 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
             {summary.pendingApprovals} waiting
           </span>
         }
         description="Delivery queue and pending approval pressure across message channels."
         title="Care coordination"
       >
-        <div className="rounded-[22px] border border-[rgba(248,113,113,0.16)] bg-[linear-gradient(180deg,rgba(255,255,255,0.9)_0%,rgba(255,246,246,0.92)_100%)] p-4 dark:border-[rgba(248,113,113,0.22)] dark:bg-[rgba(127,29,29,0.12)]">
+        <div className="alert-surface-danger rounded-[22px] p-4">
           <p className="font-medium text-foreground">Operational alerts</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {summary.unreadNotifications} unread notifications and {summary.pendingApprovals} approvals still need controlled review.
@@ -436,7 +436,7 @@ function renderOverviewWidget(
         <div className="mt-4 space-y-3">
           {communicationQueue.map((entry) => (
             <div
-              className="rounded-[20px] border border-border/60 bg-background/70 p-4 dark:bg-white/3"
+              className="management-subtle-card rounded-xl p-4"
               key={entry.channel}
             >
               <div className="flex items-center justify-between gap-3">
@@ -460,7 +460,7 @@ function renderOverviewWidget(
   return (
     <OverviewPanel
       actions={
-        <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+        <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
           {activityFeed.length} recent events
         </span>
       }
@@ -468,21 +468,23 @@ function renderOverviewWidget(
       title="Audit and approvals"
     >
       <div className="grid gap-4 lg:grid-cols-[0.78fr_1.22fr]">
-        <div className="glass-hero rounded-[24px] p-5 text-white">
-          <p className="text-sm text-white/68">Collections today</p>
+        <div className="rounded-xl border border-primary/20 bg-primary/[0.06] p-5 text-foreground">
+          <p className="text-sm font-medium uppercase tracking-[0.16em] text-primary">
+            Collections today
+          </p>
           <p className="mt-3 text-4xl font-semibold">{formatCurrency(summary.collectionsToday)}</p>
-          <p className="mt-3 text-sm leading-6 text-white/74">
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">
             The summary is using live bill totals instead of decorative placeholder revenue.
           </p>
         </div>
         <div className="space-y-3">
           {activityFeed.map((event, index) => (
             <div
-              className="rounded-[20px] border border-border/60 bg-background/70 p-4 dark:bg-white/3"
+              className="management-subtle-card rounded-xl p-4"
               key={event.id}
             >
               <div className="flex gap-3">
-                <span className="glass-chip flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-primary">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-background text-sm font-semibold text-foreground shadow-[var(--shadow-soft)]">
                   {index + 1}
                 </span>
                 <div>
@@ -751,7 +753,7 @@ export function DashboardOverview() {
         )
         : null}
 
-      <section className="glass-panel-strong overflow-hidden rounded-[34px] p-4 sm:p-5">
+      <section className="overflow-hidden rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
         <div className="flex flex-col gap-4 border-b border-border/70 pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
@@ -759,18 +761,18 @@ export function DashboardOverview() {
               <span className="h-3 w-3 rounded-full bg-[#fbbf24]" />
               <span className="h-3 w-3 rounded-full bg-[#34d399]" />
             </div>
-            <div className="glass-chip rounded-full px-4 py-2 text-xs font-medium text-muted-foreground">
+            <div className="management-selection-pill px-4 py-2 text-xs font-medium text-muted-foreground">
               /dashboard
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+            <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
               {formatCurrency(overviewQuery.data.summary.collectionsToday)} collected
             </span>
-            <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+            <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
               {overviewQuery.data.summary.occupiedBeds}/{overviewQuery.data.summary.totalBeds} beds in use
             </span>
-            <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+            <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
               Live sync
             </span>
           </div>

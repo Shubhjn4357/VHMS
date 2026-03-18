@@ -2,7 +2,6 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-  BellRing,
   FileStack,
   Loader2,
   Megaphone,
@@ -20,7 +19,9 @@ import { COMMUNICATION_CHANNEL } from "@/constants/communicationChannel";
 import { COMMUNICATION_STATUS } from "@/constants/communicationStatus";
 import { NOTIFICATION_PRIORITY } from "@/constants/notificationPriority";
 import { EmptyState } from "@/components/feedback/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
@@ -46,6 +47,20 @@ import {
 type TemplateFormValues = z.infer<typeof createCommunicationTemplateSchema>;
 type TemplateFormInput = z.input<typeof createCommunicationTemplateSchema>;
 type SendFormValues = z.infer<typeof sendCommunicationSchema>;
+type CommunicationStatusFilter =
+  | (typeof COMMUNICATION_STATUS)[number]
+  | "ALL";
+type AnnouncementDraft = {
+  title: string;
+  body: string;
+  status: (typeof ANNOUNCEMENT_STATUS)[number];
+  priority: (typeof NOTIFICATION_PRIORITY)[number];
+  pinned: boolean;
+  acknowledgementRequired: boolean;
+  expiresAt: string;
+  targetType: (typeof ANNOUNCEMENT_TARGET_TYPE)[number];
+  targetValue: string;
+};
 
 const defaultTemplateValues: TemplateFormInput = {
   key: "",
@@ -60,12 +75,23 @@ const defaultSendValues: SendFormValues = {
   patientId: "",
   destination: "",
 };
+const defaultAnnouncementDraft: AnnouncementDraft = {
+  title: "",
+  body: "",
+  status: "PUBLISHED",
+  priority: "HIGH",
+  pinned: false,
+  acknowledgementRequired: false,
+  expiresAt: "",
+  targetType: "ALL",
+  targetValue: "",
+};
 
 const logToneMap = {
-  QUEUED: "bg-[rgba(21,94,239,0.12)] text-accent",
-  SENT: "bg-[rgba(14,116,144,0.12)] text-cyan-700",
-  DELIVERED: "bg-[rgba(21,128,61,0.12)] text-success",
-  FAILED: "bg-[rgba(220,38,38,0.12)] text-danger",
+  QUEUED: "border-transparent bg-secondary text-secondary-foreground",
+  SENT: "border-transparent bg-primary/10 text-primary",
+  DELIVERED: "border-transparent bg-success/15 text-success",
+  FAILED: "border-transparent bg-destructive/15 text-destructive",
 } as const;
 
 type CommunicationManagementProps = {
@@ -74,23 +100,21 @@ type CommunicationManagementProps = {
 
 export function CommunicationManagement({ hideHeader = false }: CommunicationManagementProps) {
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<
-    (typeof COMMUNICATION_STATUS)[number] | "ALL"
-  >("ALL");
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    null,
+  const [statusFilter, setStatusFilter] = useState<CommunicationStatusFilter>("ALL");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [announcementDraft, setAnnouncementDraft] = useState<AnnouncementDraft>(
+    defaultAnnouncementDraft,
   );
-  const [announcementDraft, setAnnouncementDraft] = useState({
-    title: "",
-    body: "",
-    status: "PUBLISHED" as (typeof ANNOUNCEMENT_STATUS)[number],
-    priority: "HIGH" as (typeof NOTIFICATION_PRIORITY)[number],
-    pinned: false,
-    acknowledgementRequired: false,
-    expiresAt: "",
-    targetType: "ALL" as (typeof ANNOUNCEMENT_TARGET_TYPE)[number],
-    targetValue: "",
-  });
+
+  const [drawerMode, setDrawerMode] = useState<"TEMPLATE" | "ANNOUNCEMENT" | "SEND" | null>(null);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+
+  const clearSelection = () => {
+    startTransition(() => {
+      setSelectedTemplateId(null);
+      setDrawerMode(null);
+    });
+  };
 
   const { canAccess: canSend } = useModuleAccess(["communications.send"]);
   const workspaceQuery = useCommunicationWorkspace({
@@ -124,8 +148,39 @@ export function CommunicationManagement({ hideHeader = false }: CommunicationMan
   const announcements = workspaceQuery.data?.announcements ?? [];
   const summary = workspaceQuery.data?.summary;
   const patients = patientQuery.data?.entries ?? [];
-  const selectedTemplate =
-    templates.find((template) => template.id === selectedTemplateId) ?? null;
+  const selectedTemplate = templates.find((template) => template.id === selectedTemplateId) ?? null;
+
+  function updateAnnouncementField<Key extends keyof AnnouncementDraft>(
+    field: Key,
+    value: AnnouncementDraft[Key],
+  ) {
+    setAnnouncementDraft((draft) => ({ ...draft, [field]: value }));
+  }
+
+  function isAnnouncementStatus(
+    value: string,
+  ): value is AnnouncementDraft["status"] {
+    return (ANNOUNCEMENT_STATUS as readonly string[]).includes(value);
+  }
+
+  function isNotificationPriority(
+    value: string,
+  ): value is AnnouncementDraft["priority"] {
+    return (NOTIFICATION_PRIORITY as readonly string[]).includes(value);
+  }
+
+  function isAnnouncementTargetType(
+    value: string,
+  ): value is AnnouncementDraft["targetType"] {
+    return (ANNOUNCEMENT_TARGET_TYPE as readonly string[]).includes(value);
+  }
+
+  function isCommunicationStatusFilter(
+    value: string,
+  ): value is CommunicationStatusFilter {
+    return value === "ALL" ||
+      (COMMUNICATION_STATUS as readonly string[]).includes(value);
+  }
 
   useEffect(() => {
     if (!selectedTemplate) {
@@ -147,6 +202,8 @@ export function CommunicationManagement({ hideHeader = false }: CommunicationMan
       updateTemplateMutation.mutate({
         id: selectedTemplate.id,
         ...values,
+      }, {
+        onSuccess: () => setIsDrawerOpen(false),
       });
       return;
     }
@@ -154,6 +211,7 @@ export function CommunicationManagement({ hideHeader = false }: CommunicationMan
     createTemplateMutation.mutate(values, {
       onSuccess: (template) => {
         startTransition(() => setSelectedTemplateId(template.id));
+        setIsDrawerOpen(false);
       },
     });
   }
@@ -173,825 +231,397 @@ export function CommunicationManagement({ hideHeader = false }: CommunicationMan
       }],
     }, {
       onSuccess: () => {
-        setAnnouncementDraft({
-          title: "",
-          body: "",
-          status: "PUBLISHED",
-          priority: "HIGH",
-          pinned: false,
-          acknowledgementRequired: false,
-          expiresAt: "",
-          targetType: "ALL",
-          targetValue: "",
-        });
+        setAnnouncementDraft(defaultAnnouncementDraft);
+        setIsDrawerOpen(false);
       },
     });
   }
 
   return (
     <div className="space-y-6">
-      {hideHeader
-        ? null
-        : (
-          <PageHeader
-            eyebrow="Phase 5 communications"
-            title="Communication engine and notification center"
-            description="Templates, queued delivery, manual reconciliation, in-app alerts, and announcements are managed from one operations surface so outbound communication stays auditable."
-            actions={
-              <Button
-                onClick={() => {
-                  void workspaceQuery.refetch();
-                  void patientQuery.refetch();
-                }}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                {workspaceQuery.isFetching || patientQuery.isFetching
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <RefreshCcw className="h-4 w-4" />}
-                Refresh
-              </Button>
-            }
-          />
-        )}
+      {!hideHeader && (
+        <PageHeader
+          eyebrow="Communication & Notifications"
+          title="Central communication engine"
+          description="Manage templates, announcements, and outbound communications across all channels with full delivery audit logs."
+          actions={
+            <Button
+              onClick={() => {
+                void workspaceQuery.refetch();
+                void patientQuery.refetch();
+              }}
+              size="sm"
+              variant="outline"
+            >
+              {workspaceQuery.isFetching || patientQuery.isFetching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <RefreshCcw className="h-4 w-4" />
+              )}
+              Refresh
+            </Button>
+          }
+        />
+      )}
 
       <section className="grid gap-4 xl:grid-cols-6">
         {[
-          [
-            "Templates",
-            summary?.templates ?? 0,
-            "Configured message templates",
-          ],
-          ["Active", summary?.activeTemplates ?? 0, "Available for sending"],
-          ["Logs", summary?.logs ?? 0, "Recorded communication attempts"],
-          ["Queued", summary?.queued ?? 0, "Awaiting delivery reconciliation"],
-          ["Failed", summary?.failed ?? 0, "Need retry or review"],
-          [
-            "Unread alerts",
-            summary?.unreadNotifications ?? 0,
-            "Notification center items pending review",
-          ],
+          ["Templates", summary?.templates ?? 0, "Registered message keys"],
+          ["Active", summary?.activeTemplates ?? 0, "Ready for delivery"],
+          ["Logs", summary?.logs ?? 0, "All attempts and status"],
+          ["Queued", summary?.queued ?? 0, "Awaiting reconciliation"],
+          ["Failed", summary?.failed ?? 0, "Delivery errors recorded"],
+          ["Unread", summary?.unreadNotifications ?? 0, "Pending in notifications center"],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={label}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
-              {value}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">{value}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[0.92fr_1.08fr]">
-        <div className="space-y-6">
-          <SurfaceCard>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Template library
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  {selectedTemplate
-                    ? "Edit message template"
-                    : "Create template"}
-                </h2>
+      <Drawer open={isDrawerOpen} onOpenChange={(open: boolean) => {
+        setIsDrawerOpen(open);
+        if (!open) clearSelection();
+      }}>
+        <DrawerContent>
+          <div className="mx-auto w-full max-w-4xl overflow-y-auto p-6 pt-0 pb-8 focus:outline-none">
+            <DrawerHeader className="px-0 text-left">
+              <DrawerTitle className="text-2xl font-semibold tracking-tight text-foreground">
+                {drawerMode === "TEMPLATE" && (selectedTemplate ? "Edit Template" : "New Template")}
+                {drawerMode === "ANNOUNCEMENT" && "New Announcement"}
+                {drawerMode === "SEND" && "Queue Communication"}
+              </DrawerTitle>
+              <DrawerDescription>
+                {drawerMode === "TEMPLATE" && "Configure message keys, channels, and reusable template content."}
+                {drawerMode === "ANNOUNCEMENT" && "Publish system-wide alerts and pinned notices."}
+                {drawerMode === "SEND" && "Trigger manual communications based on active templates."}
+              </DrawerDescription>
+            </DrawerHeader>
+
+            {drawerMode === "TEMPLATE" && (
+              <div className="space-y-6">
+                {canSend ? (
+                  <form className="mt-2 space-y-5" onSubmit={templateForm.handleSubmit(handleTemplateSubmit)}>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Template key</span>
+                        <Input {...templateForm.register("key")} className="mt-2" placeholder="billing.receipt.email" />
+                      </label>
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Channel</span>
+                        <ThemedSelect {...templateForm.register("channel")} className="mt-2">
+                          {COMMUNICATION_CHANNEL.map((channel) => (
+                            <option key={channel} value={channel}>{channel.replaceAll("_", " ")}</option>
+                          ))}
+                        </ThemedSelect>
+                      </label>
+                    </div>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Title</span>
+                      <Input {...templateForm.register("title")} className="mt-2" placeholder="Subject line / title" />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Body</span>
+                      <Textarea {...templateForm.register("body")} className="mt-2 min-h-32" placeholder="Template text content..." />
+                    </label>
+
+                    <label className="management-subtle-card flex items-center gap-3 px-4 py-3 text-sm text-foreground">
+                      <Checkbox {...templateForm.register("active")} />
+                      Template is active
+                    </label>
+
+                    <Button disabled={createTemplateMutation.isPending || updateTemplateMutation.isPending} type="submit">
+                      {createTemplateMutation.isPending || updateTemplateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileStack className="h-4 w-4" />}
+                      {selectedTemplate ? "Update template" : "Create template"}
+                    </Button>
+                  </form>
+                ) : (
+                  <EmptyState description="Template management requires communications.send permissions." icon={FileStack} title="Read-only access" />
+                )}
+
+                <div className="mt-6 space-y-3">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Current Templates</p>
+                  {templates.map((template) => (
+                    <div key={template.id} className="management-subtle-card p-4 text-sm">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-lg font-semibold text-foreground">{template.title}</p>
+                          <p className="mt-1 text-muted-foreground">{template.key} / {template.channel.replaceAll("_", " ")}</p>
+                        </div>
+                        <Badge variant={template.active ? "default" : "secondary"}>
+                          {template.active ? "Active" : "Inactive"}
+                        </Badge>
+                      </div>
+                      {canSend && (
+                        <Button className="mt-4" onClick={() => setSelectedTemplateId(template.id)} size="sm" variant="outline">
+                          Edit template
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+            )}
 
-              {selectedTemplate
-                ? (
-                  <Button
-                    onClick={() =>
-                      startTransition(() => setSelectedTemplateId(null))}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    New template
-                  </Button>
-                )
-                : null}
-            </div>
-
-            {canSend
-              ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={templateForm.handleSubmit(handleTemplateSubmit)}
-                >
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Template key
-                      </span>
-                      <Input
-                        {...templateForm.register("key")}
-                        className="mt-2"
-                        placeholder="billing.receipt.email"
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Channel
-                      </span>
-                      <ThemedSelect
-                        {...templateForm.register("channel")}
-                        className="mt-2"
-                      >
-                        {COMMUNICATION_CHANNEL.map((channel) => (
-                          <option key={channel} value={channel}>
-                            {channel.replaceAll("_", " ")}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-                  </div>
-
+            {drawerMode === "ANNOUNCEMENT" && (
+              <div className="mt-2 space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
                   <label className="block">
                     <span className="text-sm font-medium text-ink">Title</span>
-                    <Input
-                      {...templateForm.register("title")}
-                      className="mt-2"
-                      placeholder="Receipt ready for {{patientName}}"
-                    />
+                    <Input className="mt-2" onChange={(e) => updateAnnouncementField("title", e.target.value)} value={announcementDraft.title} />
                   </label>
-
                   <label className="block">
-                    <span className="text-sm font-medium text-ink">Body</span>
-                    <Textarea
-                      {...templateForm.register("body")}
-                      className="mt-2 min-h-32"
-                      placeholder="Use placeholders like {{patientName}} and {{patientHospitalNumber}}."
-                    />
+                    <span className="text-sm font-medium text-ink">Status</span>
+                    <ThemedSelect className="mt-2" onChange={(e) => {
+                      if (isAnnouncementStatus(e.target.value)) {
+                        updateAnnouncementField("status", e.target.value);
+                      }
+                    }} value={announcementDraft.status}>
+                      {ANNOUNCEMENT_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+                    </ThemedSelect>
                   </label>
-
-                  <label className="glass-panel-muted flex items-center gap-3 rounded-[22px] px-4 py-3 text-sm text-ink">
-                    <Checkbox
-                      {...templateForm.register("active")}
-                    />
-                    Template active
-                  </label>
-
-                  <Button
-                    disabled={createTemplateMutation.isPending ||
-                      updateTemplateMutation.isPending}
-                    type="submit"
-                  >
-                    {createTemplateMutation.isPending ||
-                        updateTemplateMutation.isPending
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <FileStack className="h-4 w-4" />}
-                    {selectedTemplate ? "Save template" : "Create template"}
-                  </Button>
-                </form>
-              )
-              : (
-                <EmptyState
-                  className="mt-6 min-h-56"
-                  description="Communication history is visible here, but managing templates and delivery flows requires communications.send."
-                  icon={FileStack}
-                  title="Read-only communication access"
-                />
-              )}
-
-            <div className="mt-6 space-y-3">
-              {templates.map((template) => (
-                <div
-                  key={template.id}
-                  className="glass-panel-muted rounded-[22px] p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-semibold text-ink">
-                        {template.title}
-                      </p>
-                      <p className="mt-1 text-sm text-ink-soft">
-                        {template.key} / {template.channel.replaceAll("_", " ")}
-                      </p>
-                    </div>
-                    <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                      {template.active ? "Active" : "Inactive"}
-                    </span>
-                  </div>
-
-                  {canSend
-                    ? (
-                      <Button
-                        className="mt-4"
-                        onClick={() =>
-                          startTransition(() =>
-                            setSelectedTemplateId(template.id)
-                          )}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <FileStack className="h-4 w-4" />
-                        Edit template
-                      </Button>
-                    )
-                    : null}
                 </div>
-              ))}
-            </div>
-          </SurfaceCard>
 
-          <SurfaceCard>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                Announcement composer
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                System-wide alerts and pinned notices
-              </h2>
-            </div>
+                <label className="block">
+                  <span className="text-sm font-medium text-ink">Body</span>
+                  <Textarea className="mt-2 min-h-28" onChange={(e) => updateAnnouncementField("body", e.target.value)} value={announcementDraft.body} />
+                </label>
 
-            {canSend
-              ? (
-                <div className="mt-6 space-y-5">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Title
-                      </span>
-                      <Input
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            title: event.target.value,
-                          }))}
-                        value={announcementDraft.title}
-                      />
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Status
-                      </span>
-                      <ThemedSelect
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            status: event.target
-                              .value as (typeof ANNOUNCEMENT_STATUS)[number],
-                          }))}
-                        value={announcementDraft.status}
-                      >
-                        {ANNOUNCEMENT_STATUS.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-                  </div>
-
+                <div className="grid gap-4 sm:grid-cols-3">
                   <label className="block">
-                    <span className="text-sm font-medium text-ink">Body</span>
-                    <Textarea
-                      className="mt-2 min-h-28"
-                      onChange={(event) =>
-                        setAnnouncementDraft((draft) => ({
-                          ...draft,
-                          body: event.target.value,
-                        }))}
-                      value={announcementDraft.body}
-                    />
+                    <span className="text-sm font-medium text-ink">Priority</span>
+                    <ThemedSelect className="mt-2" onChange={(e) => {
+                      if (isNotificationPriority(e.target.value)) {
+                        updateAnnouncementField("priority", e.target.value);
+                      }
+                    }} value={announcementDraft.priority}>
+                      {NOTIFICATION_PRIORITY.map(p => <option key={p} value={p}>{p}</option>)}
+                    </ThemedSelect>
                   </label>
-
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Priority
-                      </span>
-                      <ThemedSelect
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            priority: event.target
-                              .value as (typeof NOTIFICATION_PRIORITY)[number],
-                          }))}
-                        value={announcementDraft.priority}
-                      >
-                        {NOTIFICATION_PRIORITY.map((priority) => (
-                          <option key={priority} value={priority}>
-                            {priority}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Target
-                      </span>
-                      <ThemedSelect
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            targetType: event.target
-                              .value as (typeof ANNOUNCEMENT_TARGET_TYPE)[
-                                number
-                              ],
-                          }))}
-                        value={announcementDraft.targetType}
-                      >
-                        {ANNOUNCEMENT_TARGET_TYPE.map((targetType) => (
-                          <option key={targetType} value={targetType}>
-                            {targetType}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Target value
-                      </span>
-                      <Input
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            targetValue: event.target.value,
-                          }))}
-                        placeholder="Role or department"
-                        value={announcementDraft.targetValue}
-                      />
-                    </label>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-3">
-                    <label className="glass-panel-muted flex items-center gap-3 rounded-[22px] px-4 py-3 text-sm text-ink">
-                      <Checkbox
-                        checked={announcementDraft.pinned}
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            pinned: event.target.checked,
-                          }))}
-                      />
-                      Pinned
-                    </label>
-                    <label className="glass-panel-muted flex items-center gap-3 rounded-[22px] px-4 py-3 text-sm text-ink">
-                      <Checkbox
-                        checked={announcementDraft.acknowledgementRequired}
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            acknowledgementRequired: event.target.checked,
-                          }))}
-                      />
-                      Ack required
-                    </label>
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Expiry
-                      </span>
-                      <Input
-                        className="mt-2"
-                        onChange={(event) =>
-                          setAnnouncementDraft((draft) => ({
-                            ...draft,
-                            expiresAt: event.target.value,
-                          }))}
-                        type="datetime-local"
-                        value={announcementDraft.expiresAt}
-                      />
-                    </label>
-                  </div>
-
-                  <Button
-                    disabled={createAnnouncementMutation.isPending}
-                    onClick={handleAnnouncementSubmit}
-                    type="button"
-                  >
-                    {createAnnouncementMutation.isPending
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <Megaphone className="h-4 w-4" />}
-                    Publish announcement
-                  </Button>
-                </div>
-              )
-              : null}
-
-            <div className="mt-6 space-y-3">
-              {announcements.map((announcement) => (
-                <div
-                  key={announcement.id}
-                  className="glass-panel-muted rounded-[22px] p-4"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-lg font-semibold text-ink">
-                        {announcement.title}
-                      </p>
-                      <p className="mt-1 text-sm text-ink-soft">
-                        {announcement.status} / {announcement.priority}
-                      </p>
-                    </div>
-                    {announcement.pinned
-                      ? (
-                        <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                          Pinned
-                        </span>
-                      )
-                      : null}
-                  </div>
-
-                  <p className="mt-3 text-sm leading-6 text-ink-soft">
-                    {announcement.body}
-                  </p>
-                  <p className="mt-3 text-xs uppercase tracking-[0.16em] text-ink-soft">
-                    {announcement.targets.map((target) =>
-                      target.targetType === "ALL"
-                        ? "All staff"
-                        : `${target.targetType}: ${target.targetValue}`
-                    ).join(" / ")}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </SurfaceCard>
-        </div>
-
-        <div className="space-y-6">
-          <SurfaceCard>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                Send composer
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                Queue outbound communication
-              </h2>
-            </div>
-
-            {canSend
-              ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={sendForm.handleSubmit((values) =>
-                    sendMutation.mutate(values)
-                  )}
-                >
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Template
-                      </span>
-                      <ThemedSelect
-                        {...sendForm.register("templateId")}
-                        className="mt-2"
-                      >
-                        <option value="">Select template</option>
-                        {templates.filter((template) => template.active).map((
-                          template,
-                        ) => (
-                          <option key={template.id} value={template.id}>
-                            {template.title} /{" "}
-                            {template.channel.replaceAll("_", " ")}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Patient
-                      </span>
-                      <ThemedSelect
-                        {...sendForm.register("patientId")}
-                        className="mt-2"
-                      >
-                        <option value="">Optional patient</option>
-                        {patients.map((patient) => (
-                          <option key={patient.id} value={patient.id}>
-                            {patient.hospitalNumber} - {patient.fullName}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-                  </div>
-
                   <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Destination
-                    </span>
-                    <Input
-                      {...sendForm.register("destination")}
-                      className="mt-2"
-                      placeholder="Mobile number, email, or delivery label"
-                    />
+                    <span className="text-sm font-medium text-ink">Target</span>
+                    <ThemedSelect className="mt-2" onChange={(e) => {
+                      if (isAnnouncementTargetType(e.target.value)) {
+                        updateAnnouncementField("targetType", e.target.value);
+                      }
+                    }} value={announcementDraft.targetType}>
+                      {ANNOUNCEMENT_TARGET_TYPE.map(t => <option key={t} value={t}>{t}</option>)}
+                    </ThemedSelect>
                   </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Target value</span>
+                    <Input className="mt-2" onChange={(e) => updateAnnouncementField("targetValue", e.target.value)} placeholder="Role or department" value={announcementDraft.targetValue} />
+                  </label>
+                </div>
 
-                  <Button
-                    disabled={sendMutation.isPending}
-                    type="submit"
-                  >
-                    {sendMutation.isPending
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <Send className="h-4 w-4" />}
-                    Queue communication
-                  </Button>
-                </form>
-              )
-              : (
-                <EmptyState
-                  className="mt-6 min-h-48"
-                  description="Communication send, retry, and announcement actions require communications.send."
-                  icon={Send}
-                  title="Send disabled"
-                />
-              )}
-          </SurfaceCard>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <label className="management-subtle-card flex items-center gap-3 px-4 py-3 text-sm text-foreground">
+                    <Checkbox checked={announcementDraft.pinned} onChange={(e) => updateAnnouncementField("pinned", e.target.checked)} />
+                    Pinned
+                  </label>
+                  <label className="management-subtle-card flex items-center gap-3 px-4 py-3 text-sm text-foreground">
+                    <Checkbox checked={announcementDraft.acknowledgementRequired} onChange={(e) => updateAnnouncementField("acknowledgementRequired", e.target.checked)} />
+                    Ack required
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Expiry (Optional)</span>
+                    <Input className="mt-2" onChange={(e) => updateAnnouncementField("expiresAt", e.target.value)} type="datetime-local" value={announcementDraft.expiresAt} />
+                  </label>
+                </div>
 
-          <SurfaceCard>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Queue and delivery log
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  Reconcile message outcomes
-                </h2>
+                <Button disabled={createAnnouncementMutation.isPending} onClick={handleAnnouncementSubmit}>
+                  {createAnnouncementMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Megaphone className="h-4 w-4" />}
+                  Publish announcement
+                </Button>
               </div>
+            )}
 
-              <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="glass-panel-muted flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink-soft">
-                <Search className="h-4 w-4 text-brand" />
+            {drawerMode === "SEND" && (
+              <form
+                className="mt-2 space-y-5"
+                onSubmit={sendForm.handleSubmit((values) =>
+                  sendMutation.mutate(values, { onSuccess: () => setIsDrawerOpen(false) })
+                )}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Template</span>
+                    <ThemedSelect {...sendForm.register("templateId")} className="mt-2">
+                      <option value="">Select template</option>
+                      {templates.filter(t => t.active).map(t => (
+                        <option key={t.id} value={t.id}>{t.title} / {t.channel}</option>
+                      ))}
+                    </ThemedSelect>
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Patient (Optional)</span>
+                    <ThemedSelect {...sendForm.register("patientId")} className="mt-2">
+                      <option value="">Select patient</option>
+                      {patients.map(p => (
+                        <option key={p.id} value={p.id}>{p.hospitalNumber} - {p.fullName}</option>
+                      ))}
+                    </ThemedSelect>
+                  </label>
+                </div>
+                <label className="block">
+                  <span className="text-sm font-medium text-ink">Destination (Mobile / Email)</span>
+                  <Input {...sendForm.register("destination")} className="mt-2" placeholder="Recipient address" />
+                </label>
+                <Button disabled={sendMutation.isPending} type="submit">
+                  {sendMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  Queue communication
+                </Button>
+              </form>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <section className="grid gap-6">
+        <SurfaceCard className="space-y-5">
+          <div className="management-toolbar-shell">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Operations Queue</p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">Audit trail and delivery status</h3>
+          </div>
+          <div className="management-toolbar-actions">
+            <label className="management-search-shell">
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                   onChange={(event) => setSearch(event.target.value)}
-                  placeholder="Search destination, patient, template"
+                  placeholder="Search logs..."
                   value={search}
                 />
-              </label>
+            </label>
 
-                <ThemedSelect
-                  className="glass-panel-muted rounded-full py-3 font-medium"
-                  onChange={(event) =>
-                    setStatusFilter(
-                      event.target.value as
-                        | (typeof COMMUNICATION_STATUS)[number]
-                        | "ALL",
-                    )}
-                  value={statusFilter}
-                >
-                  <option value="ALL">All statuses</option>
-                  {COMMUNICATION_STATUS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </ThemedSelect>
+            <ThemedSelect
+              className="min-w-40"
+              onChange={(event) => {
+                if (isCommunicationStatusFilter(event.target.value)) {
+                  setStatusFilter(event.target.value);
+                }
+              }}
+              value={statusFilter}
+            >
+              <option value="ALL">All statuses</option>
+              {COMMUNICATION_STATUS.map(s => <option key={s} value={s}>{s}</option>)}
+            </ThemedSelect>
+            {canSend && (
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => { setDrawerMode("TEMPLATE"); setIsDrawerOpen(true); }}>
+                  <FileStack className="h-4 w-4" />
+                  Templates
+                </Button>
+                <Button variant="outline" onClick={() => { setDrawerMode("ANNOUNCEMENT"); setIsDrawerOpen(true); }}>
+                  <Megaphone className="h-4 w-4" />
+                  Announce
+                </Button>
+                <Button onClick={() => { setDrawerMode("SEND"); setIsDrawerOpen(true); }}>
+                  <Send className="h-4 w-4" />
+                  Queue
+                </Button>
               </div>
-            </div>
+            )}
+          </div>
+          </div>
+        </SurfaceCard>
 
-            <div className="mt-6 space-y-4">
-              {logs.length === 0
-                ? (
-                  <EmptyState
-                    description="No communication logs match the current filter set. Queue a template-driven message to start the audit trail."
-                    icon={Send}
-                    title="No communication logs"
-                  />
-                )
-                : null}
-
-              {logs.map((log) => (
-                <article
-                  key={log.id}
-                  className="glass-panel-muted rounded-[24px] p-4"
-                >
-                  <div className="flex flex-col gap-4">
-                    <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-3">
-                          <p className="text-lg font-semibold text-ink">
-                            {log.templateTitle || "Manual communication"}
-                          </p>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-                              logToneMap[log.status]
-                            }`}
-                          >
-                            {log.status}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-sm text-ink-soft">
-                          {log.channel.replaceAll("_", " ")} / {log.destination}
-                        </p>
-                        <p className="mt-1 text-sm text-ink-soft">
-                          {log.patientName
-                            ? `${log.patientName} (${log.patientHospitalNumber})`
-                            : "No patient attached"}
-                        </p>
-                      </div>
-
-                      {log.retryCount !== null
-                        ? (
-                          <div className="metric-tile rounded-[20px] px-4 py-3 text-sm text-ink">
-                            Retries: {log.retryCount}
-                          </div>
-                        )
-                        : null}
+        {announcements.length > 0 && (
+          <SurfaceCard>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">System Alerts</p>
+            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+              {announcements.map((announcement) => (
+                <div key={announcement.id} className="management-record-shell p-4 text-sm">
+                  <div className="flex items-start justify-between">
+                    <p className="font-semibold text-foreground">{announcement.title}</p>
+                    <div className="flex items-center gap-2">
+                      {announcement.pinned && <Badge variant="secondary">Pinned</Badge>}
+                      <Badge variant="outline">
+                        {announcement.targets.map(t => t.targetType === "ALL" ? "All" : t.targetValue || t.targetType).join(", ")}
+                      </Badge>
                     </div>
-
-                    <div className="glass-panel rounded-[20px] px-4 py-4 text-sm leading-6 text-ink-soft">
-                      <p className="font-semibold text-ink">
-                        {log.payloadTitle || "No rendered title"}
-                      </p>
-                      <p className="mt-2">
-                        {log.payloadBody || "No rendered body"}
-                      </p>
-                      {log.lastError
-                        ? (
-                          <p className="mt-3 text-danger">
-                            Last error: {log.lastError}
-                          </p>
-                        )
-                        : null}
-                    </div>
-
-                    {canSend && log.queueId
-                      ? (
-                        <div className="flex flex-wrap gap-3">
-                          {log.queueStatus === "QUEUED"
-                            ? (
-                              <>
-                                <Button
-                                  onClick={() =>
-                                    updateQueueMutation.mutate({
-                                      id: log.queueId as string,
-                                      action: "MARK_SENT",
-                                    })}
-                                  size="sm"
-                                  type="button"
-                                  variant="outline"
-                                >
-                                  Mark sent
-                                </Button>
-                                <Button
-                                  className="hover:border-destructive hover:text-destructive"
-                                  onClick={() =>
-                                    updateQueueMutation.mutate({
-                                      id: log.queueId as string,
-                                      action: "MARK_FAILED",
-                                      errorMessage:
-                                        "Provider returned delivery error.",
-                                    })}
-                                  size="sm"
-                                  type="button"
-                                  variant="outline"
-                                >
-                                  Mark failed
-                                </Button>
-                              </>
-                            )
-                            : null}
-
-                          {log.queueStatus === "SENT"
-                            ? (
-                              <>
-                                <Button
-                                  onClick={() =>
-                                    updateQueueMutation.mutate({
-                                      id: log.queueId as string,
-                                      action: "MARK_DELIVERED",
-                                    })}
-                                  size="sm"
-                                  type="button"
-                                  variant="outline"
-                                >
-                                  Mark delivered
-                                </Button>
-                                <Button
-                                  className="hover:border-destructive hover:text-destructive"
-                                  onClick={() =>
-                                    updateQueueMutation.mutate({
-                                      id: log.queueId as string,
-                                      action: "MARK_FAILED",
-                                      errorMessage: "Delivery callback failed.",
-                                    })}
-                                  size="sm"
-                                  type="button"
-                                  variant="outline"
-                                >
-                                  Mark failed
-                                </Button>
-                              </>
-                            )
-                            : null}
-
-                          {log.queueStatus === "FAILED"
-                            ? (
-                              <Button
-                                onClick={() =>
-                                  updateQueueMutation.mutate({
-                                    id: log.queueId as string,
-                                    action: "REQUEUE",
-                                  })}
-                                size="sm"
-                                type="button"
-                                variant="outline"
-                              >
-                                Requeue
-                              </Button>
-                            )
-                            : null}
-                        </div>
-                      )
-                      : null}
                   </div>
-                </article>
+                  <p className="mt-2 text-muted-foreground line-clamp-2">{announcement.body}</p>
+                </div>
               ))}
             </div>
           </SurfaceCard>
+        )}
 
-          <SurfaceCard>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                Notification center
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                In-app alerts and announcement echoes
-              </h2>
-            </div>
-
-            <div className="mt-6 space-y-3">
-              {notifications.length === 0
-                ? (
-                  <EmptyState
-                    className="min-h-48"
-                    description="No in-app notifications are available yet."
-                    icon={BellRing}
-                    title="Notification center is clear"
-                  />
-                )
-                : notifications.map((item) => (
-                  <div
-                    key={item.id}
-                    className="glass-panel-muted rounded-[22px] p-4"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-lg font-semibold text-ink">
-                          {item.title}
-                        </p>
-                        <p className="mt-2 text-sm leading-6 text-ink-soft">
-                          {item.body}
-                        </p>
+        <SurfaceCard>
+          <div className="space-y-4">
+            {logs.length === 0 ? (
+              <EmptyState description="No communication logs found in history." icon={Send} title="Queue is empty" />
+            ) : (
+              logs.map((log) => (
+                <article key={log.id} className="management-record-shell p-5 text-sm">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        <p className="text-lg font-semibold text-foreground">{log.templateTitle || "Manual message"}</p>
+                        <Badge className={logToneMap[log.status]} variant="outline">{log.status}</Badge>
                       </div>
-                      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                        {item.priority}
-                      </span>
+                      <p className="mt-2 text-muted-foreground">{log.channel.replaceAll("_", " ")} / {log.destination}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{log.patientName || "System generated"}</p>
                     </div>
+                    {log.status === "FAILED" && canSend && (
+                      <Button onClick={() => updateQueueMutation.mutate({ id: log.id, action: "REQUEUE" })} size="sm" variant="outline">
+                        Retry delivery
+                      </Button>
+                    )}
+                  </div>
+                  {log.lastError && (
+                    <div className="mt-3 rounded-lg bg-danger/5 p-3 text-xs text-danger">
+                      Error: {log.lastError}
+                    </div>
+                  )}
+                </article>
+              ))
+            )}
+          </div>
+        </SurfaceCard>
 
-                    <div className="mt-4 flex flex-wrap gap-3">
-                      {!item.read
-                        ? (
+        {notifications.length > 0 && (
+          <SurfaceCard>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">In-app Alerts</p>
+            <div className="mt-4 space-y-3">
+              {notifications.map((notification) => (
+                <div key={notification.id} className="management-subtle-card p-4 text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <p className="font-semibold text-foreground">{notification.title}</p>
+                        <p className="mt-1 text-muted-foreground">{notification.body}</p>
+                        {notification.sourceType === "ANNOUNCEMENT" && !notification.acknowledgedAt && (
                           <Button
-                            onClick={() =>
-                              updateNotificationMutation.mutate({
-                                id: item.id,
-                                action: "MARK_READ",
-                              })}
+                            className="mt-3"
+                            onClick={() => updateNotificationMutation.mutate({ id: notification.id, action: "ACKNOWLEDGE" })}
                             size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            Mark read
-                          </Button>
-                        )
-                        : null}
-
-                      {canSend && !item.acknowledgedAt
-                        ? (
-                          <Button
-                            onClick={() =>
-                              updateNotificationMutation.mutate({
-                                id: item.id,
-                                action: "ACKNOWLEDGE",
-                              })}
-                            size="sm"
-                            type="button"
                             variant="outline"
                           >
                             Acknowledge
                           </Button>
-                        )
-                        : null}
+                        )}
+                      </div>
+                      {!notification.read && (
+                        <Button
+                          onClick={() => updateNotificationMutation.mutate({ id: notification.id, action: "MARK_READ" })}
+                          size="sm"
+                          variant="ghost"
+                        >
+                          Mark read
+                        </Button>
+                      )}
                     </div>
-                  </div>
-                ))}
+                </div>
+              ))}
             </div>
           </SurfaceCard>
-        </div>
+        )}
       </section>
     </div>
   );

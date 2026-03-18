@@ -44,20 +44,31 @@ const envSchema = z.object({
   TWILIO_WHATSAPP_FROM: z.string().optional(),
   SENTRY_DSN: z.string().optional(),
   OTEL_EXPORTER_OTLP_ENDPOINT: z.string().optional(),
+  ENABLE_FIGMA_CAPTURE: z.boolean().default(false),
   NODE_ENV: z.enum(["development", "test", "production"]),
 });
 
+const defaultEnv = {
+  DATABASE_URL: "postgresql://user:password@host/database",
+  NEXTAUTH_URL: "http://localhost:3000",
+  NEXTAUTH_SECRET: "dev-only-secret-change-before-production",
+  GOOGLE_CLIENT_ID: "google-client-id",
+  GOOGLE_CLIENT_SECRET: "google-client-secret",
+  APP_NAME: "HMS Enterprise",
+  HOSPITAL_NAME: "XYZ Hospital",
+} as const;
+
 export const env = envSchema.parse({
   DATABASE_URL: process.env.DATABASE_URL ??
-    "postgresql://user:password@host/database",
-  NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? "http://localhost:3000",
+    defaultEnv.DATABASE_URL,
+  NEXTAUTH_URL: process.env.NEXTAUTH_URL ?? defaultEnv.NEXTAUTH_URL,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET ??
-    "dev-only-secret-change-before-production",
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "google-client-id",
+    defaultEnv.NEXTAUTH_SECRET,
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? defaultEnv.GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ??
-    "google-client-secret",
-  APP_NAME: process.env.APP_NAME ?? "HMS Enterprise",
-  HOSPITAL_NAME: process.env.HOSPITAL_NAME ?? "XYZ Hospital",
+    defaultEnv.GOOGLE_CLIENT_SECRET,
+  APP_NAME: process.env.APP_NAME ?? defaultEnv.APP_NAME,
+  HOSPITAL_NAME: process.env.HOSPITAL_NAME ?? defaultEnv.HOSPITAL_NAME,
   BOOTSTRAP_SUPER_ADMIN_EMAILS: process.env.BOOTSTRAP_SUPER_ADMIN_EMAILS,
   BOOTSTRAP_ADMIN_EMAILS: process.env.BOOTSTRAP_ADMIN_EMAILS,
   UPLOAD_STORAGE_DRIVER: process.env.UPLOAD_STORAGE_DRIVER ?? "auto",
@@ -88,12 +99,57 @@ export const env = envSchema.parse({
   TWILIO_WHATSAPP_FROM: process.env.TWILIO_WHATSAPP_FROM,
   SENTRY_DSN: process.env.SENTRY_DSN,
   OTEL_EXPORTER_OTLP_ENDPOINT: process.env.OTEL_EXPORTER_OTLP_ENDPOINT,
+  ENABLE_FIGMA_CAPTURE: parseBooleanEnv(process.env.ENABLE_FIGMA_CAPTURE),
   NODE_ENV: process.env.NODE_ENV === "production" ||
       process.env.NODE_ENV === "test" ||
       process.env.NODE_ENV === "development"
     ? process.env.NODE_ENV
     : "development",
 });
+
+function assertConfiguredProductionEnv() {
+  if (env.NODE_ENV !== "production") {
+    return;
+  }
+
+  const invalidEntries = [
+    env.DATABASE_URL === defaultEnv.DATABASE_URL ? "DATABASE_URL" : null,
+    env.NEXTAUTH_SECRET === defaultEnv.NEXTAUTH_SECRET ? "NEXTAUTH_SECRET" : null,
+    env.GOOGLE_CLIENT_ID === defaultEnv.GOOGLE_CLIENT_ID
+      ? "GOOGLE_CLIENT_ID"
+      : null,
+    env.GOOGLE_CLIENT_SECRET === defaultEnv.GOOGLE_CLIENT_SECRET
+      ? "GOOGLE_CLIENT_SECRET"
+      : null,
+  ].filter(Boolean);
+
+  if (invalidEntries.length > 0) {
+    throw new Error(
+      `Production configuration is incomplete. Provide real values for: ${invalidEntries.join(", ")}.`,
+    );
+  }
+
+  if (
+    env.COMMUNICATION_EMAIL_PROVIDER === "RESEND" &&
+    (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL)
+  ) {
+    throw new Error(
+      "COMMUNICATION_EMAIL_PROVIDER=RESEND requires RESEND_API_KEY and RESEND_FROM_EMAIL in production.",
+    );
+  }
+
+  if (
+    (env.COMMUNICATION_SMS_PROVIDER === "TWILIO" ||
+      env.COMMUNICATION_WHATSAPP_PROVIDER === "TWILIO") &&
+    (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN)
+  ) {
+    throw new Error(
+      "TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN are required when Twilio transport is enabled in production.",
+    );
+  }
+}
+
+assertConfiguredProductionEnv();
 function parseEmailList(value?: string) {
   return [
     ...new Set(

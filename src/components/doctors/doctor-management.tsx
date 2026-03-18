@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Download,
   Loader2,
+  Plus,
   Printer,
   RefreshCcw,
   Search,
@@ -19,12 +20,15 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { EmptyState } from "@/components/feedback/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { UploadField } from "@/components/forms/upload-field";
 import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { OptionsMenu } from "@/components/ui/options-menu";
 import { PageHeader } from "@/components/ui/page-header";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import {
@@ -97,6 +101,8 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorManagementRecord | null>(
     null,
   );
+
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
   const deferredSearch = useDebouncedSearch(search);
   const { canAccess: canManage } = useModuleAccess(["doctors.manage"]);
@@ -201,6 +207,7 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
 
   function clearSelection() {
     startTransition(() => setSelectedDoctor(null));
+    setIsDrawerOpen(false);
   }
 
   function handleSubmit(values: DoctorFormValues) {
@@ -408,207 +415,201 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
           ["Departments", summary?.departments ?? 0, "Reusable master categories"],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[0.92fr_1.08fr]">
+      <div className="space-y-6">
         <SurfaceCard>
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                Doctor master
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Doctor management
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                {selectedDoctor
-                  ? `Edit ${selectedDoctor.fullName}`
-                  : "Add a doctor"}
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                Doctor master roster
               </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Manage doctors available for IPD admissions and OPD appointments.
+              </p>
             </div>
-            {selectedDoctor
+            {canManage
               ? (
-                <Button
-                  onClick={clearSelection}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  Clear form
+                <Button onClick={() => { clearSelection(); setIsDrawerOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add doctor
                 </Button>
               )
               : null}
           </div>
-
-          {canManage
-            ? (
-              <form
-                className="mt-6 space-y-5"
-                onSubmit={form.handleSubmit(handleSubmit)}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block sm:col-span-2">
-                    <span className="text-sm font-medium text-ink">Doctor name</span>
-                    <Input
-                      {...form.register("fullName")}
-                      className="mt-2"
-                      placeholder="Dr. Karina Safar"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.fullName?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Designation</span>
-                    <Input
-                      {...form.register("designation")}
-                      className="mt-2"
-                      placeholder="Consultant Physician"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Specialty</span>
-                    <Input
-                      {...form.register("specialty")}
-                      className="mt-2"
-                      placeholder="Cardiology"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Department</span>
-                    <Input
-                      {...form.register("departmentName")}
-                      className="mt-2"
-                      list="doctor-departments"
-                      placeholder="Cardiology"
-                    />
-                    <datalist id="doctor-departments">
-                      {departmentSuggestions.map((departmentName) => (
-                        <option key={departmentName} value={departmentName} />
-                      ))}
-                    </datalist>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Consultation fee</span>
-                    <Input
-                      {...form.register("consultationFee")}
-                      className="mt-2"
-                      min="0"
-                      step="0.01"
-                      type="number"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.consultationFee?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Email</span>
-                    <Input
-                      {...form.register("email")}
-                      className="mt-2"
-                      placeholder="doctor@hospital.test"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.email?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Phone</span>
-                    <Input
-                      {...form.register("phone")}
-                      className="mt-2"
-                      placeholder="+91-9876543210"
-                    />
-                  </label>
-                </div>
-
-                <UploadField
-                  description="Used for printed documents and signature-supported clinical workflows."
-                  label="Doctor signature"
-                  onChange={(value) =>
-                    form.setValue("signatureUrl", value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })}
-                  target="DOCTOR_SIGNATURE"
-                  value={signatureUrlValue ?? ""}
-                />
-
-                <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
-                  <Checkbox {...form.register("active")} />
-                  Available for new appointments and admissions
-                </label>
-
-                <div className="flex flex-wrap gap-3">
-                  <Button disabled={isSaving} type="submit">
-                    {isSaving
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : selectedDoctor
-                      ? <UserRoundPen className="h-4 w-4" />
-                      : <Stethoscope className="h-4 w-4" />}
-                    {selectedDoctor ? "Save doctor" : "Create doctor"}
-                  </Button>
-                  <Button
-                    onClick={clearSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Reset
-                  </Button>
-                  {selectedDoctor
-                    ? (
-                      <Button
-                        disabled={deleteDoctorMutation.isPending}
-                        onClick={() => handleDelete(selectedDoctor)}
-                        size="sm"
-                        type="button"
-                        variant="destructive"
-                      >
-                        {deleteDoctorMutation.isPending
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <Trash2 className="h-4 w-4" />}
-                        Delete doctor
-                      </Button>
-                    )
-                    : null}
-                </div>
-              </form>
-            )
-            : (
-              <EmptyState
-                className="mt-6 min-h-56"
-                description="Viewing doctors requires doctors.view. Editing them requires doctors.manage."
-                icon={Stethoscope}
-                title="Doctor master is read-only"
-              />
-            )}
         </SurfaceCard>
 
+        <Drawer
+          open={isDrawerOpen}
+          onOpenChange={(open) => {
+            setIsDrawerOpen(open);
+            if (!open) clearSelection();
+          }}
+        >
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>
+                {selectedDoctor ? `Edit ${selectedDoctor.fullName}` : "Add new doctor"}
+              </DrawerTitle>
+              <DrawerDescription>
+                {selectedDoctor ? "Modify doctor details below." : "Enter doctor details to add them to the master roster."}
+              </DrawerDescription>
+            </DrawerHeader>
+
+            <div className="p-4 bg-background">
+              {canManage
+                ? (
+                  <form
+                    className="space-y-5"
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block sm:col-span-2">
+                        <span className="text-sm font-medium text-ink">Doctor name</span>
+                        <Input
+                          {...form.register("fullName")}
+                          className="mt-2"
+                          placeholder="Dr. Karina Safar"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.fullName?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Designation</span>
+                        <Input
+                          {...form.register("designation")}
+                          className="mt-2"
+                          placeholder="Consultant Physician"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Specialty</span>
+                        <Input
+                          {...form.register("specialty")}
+                          className="mt-2"
+                          placeholder="Cardiology"
+                        />
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Department</span>
+                        <Input
+                          {...form.register("departmentName")}
+                          className="mt-2"
+                          list="doctor-departments"
+                          placeholder="Cardiology"
+                        />
+                        <datalist id="doctor-departments">
+                          {departmentSuggestions.map((departmentName) => (
+                            <option key={departmentName} value={departmentName} />
+                          ))}
+                        </datalist>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Consultation fee</span>
+                        <Input
+                          {...form.register("consultationFee")}
+                          className="mt-2"
+                          min="0"
+                          step="0.01"
+                          type="number"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.consultationFee?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Email</span>
+                        <Input
+                          {...form.register("email")}
+                          className="mt-2"
+                          placeholder="doctor@hospital.test"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.email?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Phone</span>
+                        <Input
+                          {...form.register("phone")}
+                          className="mt-2"
+                          placeholder="+91-9876543210"
+                        />
+                      </label>
+                    </div>
+
+                    <UploadField
+                      description="Used for printed documents and signature-supported clinical workflows."
+                      label="Doctor signature"
+                      onChange={(value) =>
+                        form.setValue("signatureUrl", value, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        })}
+                      target="DOCTOR_SIGNATURE"
+                      value={signatureUrlValue ?? ""}
+                    />
+
+                    <label className="management-subtle-card inline-flex items-center gap-3 px-4 py-3 text-sm text-foreground">
+                      <Checkbox {...form.register("active")} />
+                      Available for new appointments and admissions
+                    </label>
+
+                    <div className="flex justify-end gap-3 pt-4 pb-8">
+                      <Button disabled={isSaving} type="submit">
+                        {isSaving
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : selectedDoctor
+                          ? <UserRoundPen className="h-4 w-4 mr-2" />
+                          : <Stethoscope className="h-4 w-4 mr-2" />}
+                        {selectedDoctor ? "Save doctor" : "Create doctor"}
+                      </Button>
+                    </div>
+                  </form>
+                )
+                : (
+                  <EmptyState
+                    className="mt-6 min-h-56 mb-8"
+                    description="Viewing doctors requires doctors.view. Editing them requires doctors.manage."
+                    icon={Stethoscope}
+                    title="Doctor master is read-only"
+                  />
+                )}
+            </div>
+          </DrawerContent>
+        </Drawer>
+
         <SurfaceCard>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="management-toolbar-shell">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Doctor directory
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Scheduling and admission roster
               </h2>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-3 text-sm text-ink-soft">
-                <Search className="h-4 w-4 text-brand" />
+            <div className="management-toolbar-actions">
+              <label className="management-search-shell">
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                   onChange={(event) => setSearch(event.target.value)}
@@ -618,7 +619,7 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
               </label>
 
               <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
+                className="min-w-36"
                 onChange={(event) =>
                   setStatusFilter(event.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
                 value={statusFilter}
@@ -714,8 +715,8 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
           <div className="mt-6 space-y-3">
             {doctorQuery.isLoading
               ? (
-                <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
-                  <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   Loading doctor directory
                 </div>
               )
@@ -733,46 +734,42 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
 
             {entries.map((entry) => (
               <article
-                className="glass-panel-muted rounded-[24px] p-4"
+                className="management-record-shell p-5"
                 key={entry.id}
               >
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 text-xs font-medium text-ink-soft">
+                      <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                         <Checkbox
                           checked={selectedIds.includes(entry.id)}
                           onChange={() => toggleSelection(entry.id)}
                         />
                         Select
                       </label>
-                      <h3 className="text-lg font-semibold text-ink">
+                      <h3 className="text-lg font-semibold text-foreground">
                         {entry.fullName}
                       </h3>
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-                        entry.active
-                          ? "bg-[rgba(21,128,61,0.12)] text-success"
-                          : "bg-[rgba(20,32,51,0.08)] text-ink-soft"
-                      }`}>
+                      <Badge variant={entry.active ? "success" : "secondary"}>
                         {entry.active ? "Active" : "Inactive"}
-                      </span>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                      </Badge>
+                      <Badge variant="outline">
                         {formatCurrency(entry.consultationFee)}
-                      </span>
+                      </Badge>
                       {entry.signatureUrl
                         ? (
-                          <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                          <Badge variant="secondary">
                             Signature on file
-                          </span>
+                          </Badge>
                         )
                         : null}
                     </div>
-                    <p className="mt-3 text-sm text-ink-soft">
+                    <p className="mt-3 text-sm text-muted-foreground">
                       {[entry.designation, entry.specialty, entry.departmentName]
                         .filter(Boolean)
                         .join(" / ") || "Department not assigned"}
                     </p>
-                    <p className="mt-2 text-sm text-ink-soft">
+                    <p className="mt-2 text-sm text-muted-foreground">
                       {entry.totalAppointments} appointments / last activity{" "}
                       {formatDateTime(entry.lastAppointmentAt)}
                     </p>
@@ -780,27 +777,24 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
 
                   {canManage
                     ? (
-                      <div className="flex flex-wrap gap-2">
-                        <Button
-                          onClick={() => startTransition(() => setSelectedDoctor(entry))}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <UserRoundPen className="h-4 w-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          disabled={deleteDoctorMutation.isPending}
-                          onClick={() => handleDelete(entry)}
-                          size="sm"
-                          type="button"
-                          variant="destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          Delete
-                        </Button>
-                      </div>
+                      <OptionsMenu
+                        items={[
+                          {
+                            icon: UserRoundPen,
+                            label: "Edit doctor",
+                            onSelect: () => {
+                              startTransition(() => setSelectedDoctor(entry));
+                              setIsDrawerOpen(true);
+                            },
+                          },
+                          {
+                            icon: Trash2,
+                            label: "Delete doctor",
+                            onSelect: () => handleDelete(entry),
+                            tone: "danger",
+                          },
+                        ]}
+                      />
                     )
                     : null}
                 </div>
@@ -811,7 +805,7 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
           {entries.length > 0
             ? (
               <div className="mt-4 flex justify-end">
-                <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-2 text-sm text-ink-soft">
+                <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
                   <Checkbox
                     checked={allVisibleSelected}
                     onChange={toggleAllVisible}
@@ -822,7 +816,7 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
             )
             : null}
         </SurfaceCard>
-      </section>
+      </div>
     </div>
   );
 }

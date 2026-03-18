@@ -1,0 +1,138 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - generic [ref=e9]:
+              - paragraph [ref=e10]: Hospital command center
+              - heading "Vahi HMS Enterprise" [level=1] [ref=e11]
+            - generic [ref=e12]: Live operations mesh
+          - generic [ref=e13]:
+            - paragraph [ref=e14]: Dashboard
+            - heading "Operations dashboard" [level=2] [ref=e15]
+            - paragraph [ref=e16]: Access-aware hospital operations shell for appointments, billing, occupancy, reporting, and staff control.
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - paragraph [ref=e22]: Occupancy pulse
+              - paragraph [ref=e23]: 0/0
+            - generic [ref=e24]: 0% active
+          - paragraph [ref=e25]: Beds occupied
+          - generic [ref=e27]:
+            - generic [ref=e29]:
+              - generic [ref=e30]:
+                - img [ref=e32]
+                - generic [ref=e34]:
+                  - paragraph [ref=e35]: Pending approvals
+                  - paragraph [ref=e36]: Discharge, consent, and workflow checks
+              - paragraph [ref=e37]: "0"
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - img [ref=e42]
+                - generic [ref=e47]:
+                  - paragraph [ref=e48]: Unread alerts
+                  - paragraph [ref=e49]: Review queue and staff notifications
+              - paragraph [ref=e50]: "0"
+          - generic [ref=e51]:
+            - link "Reports" [ref=e52] [cursor=pointer]:
+              - /url: /dashboard/reports
+            - link "Settings" [ref=e53] [cursor=pointer]:
+              - /url: /dashboard/settings
+              - img [ref=e54]
+              - text: Settings
+    - generic [ref=e57]:
+      - banner [ref=e58]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - button [ref=e62]:
+              - img [ref=e63]
+            - generic [ref=e66]:
+              - generic [ref=e67]:
+                - generic [ref=e68]: Dashboard
+                - generic [ref=e69]: Live operations mesh
+              - heading "Operations dashboard" [level=2] [ref=e70]
+              - paragraph [ref=e71]: Access-aware hospital operations shell for appointments, billing, occupancy, reporting, and staff control.
+          - generic [ref=e74]:
+            - img [ref=e75]
+            - textbox [ref=e78]:
+              - /placeholder: Search patients, doctors, bills, appointments, wards, rooms, beds, or scan a barcode
+            - button [ref=e80]:
+              - img [ref=e81]
+          - generic [ref=e84]:
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - img [ref=e87]
+                - text: Online
+              - generic [ref=e91]:
+                - img [ref=e92]
+                - text: Sync healthy
+              - button "Switch theme. Current theme is system." [ref=e95]:
+                - img [ref=e96]
+                - generic [ref=e98]: System
+            - link "Public site" [ref=e99] [cursor=pointer]:
+              - /url: /
+            - button "Options" [ref=e101]:
+              - img [ref=e102]
+              - generic [ref=e106]: Options
+            - link "Staff access" [ref=e107] [cursor=pointer]:
+              - /url: /login
+      - generic [ref=e108]:
+        - main [ref=e109]:
+          - generic [ref=e111]:
+            - generic [ref=e114]:
+              - generic [ref=e115]: Clinical documents
+              - heading "Discharge" [level=1] [ref=e116]
+              - paragraph [ref=e117]: Draft, revise, finalize, and print discharge summaries against live admissions from the dedicated discharge workflow route.
+            - generic [ref=e118]:
+              - generic [ref=e119]:
+                - generic [ref=e120]:
+                  - paragraph [ref=e121]: Summaries
+                  - paragraph [ref=e122]: "0"
+                  - paragraph [ref=e123]: Stored discharge records
+                - generic [ref=e124]:
+                  - paragraph [ref=e125]: Drafts
+                  - paragraph [ref=e126]: "0"
+                  - paragraph [ref=e127]: Still editable
+                - generic [ref=e128]:
+                  - paragraph [ref=e129]: Finalized
+                  - paragraph [ref=e130]: "0"
+                  - paragraph [ref=e131]: Locked for print/export
+                - generic [ref=e132]:
+                  - paragraph [ref=e133]: Ready
+                  - paragraph [ref=e134]: "0"
+                  - paragraph [ref=e135]: Can be sealed now
+                - generic [ref=e136]:
+                  - paragraph [ref=e137]: Missing summary
+                  - paragraph [ref=e138]: "0"
+                  - paragraph [ref=e139]: Admissions without discharge docs
+              - generic [ref=e140]:
+                - generic [ref=e142]:
+                  - generic [ref=e143]:
+                    - paragraph [ref=e144]: Summary register
+                    - heading "Admission-linked discharge documents" [level=3] [ref=e145]
+                    - paragraph [ref=e146]: Draft, revise, and finalize A4-ready discharge summaries.
+                  - generic [ref=e147]:
+                    - generic [ref=e148]:
+                      - img [ref=e149]
+                      - textbox [ref=e152]:
+                        - /placeholder: Search patient, UHID, doctor
+                    - generic [ref=e153]:
+                      - combobox [ref=e154]:
+                        - option "All statuses" [selected]
+                        - option "DRAFT"
+                        - option "FINALIZED"
+                      - img
+                - generic [ref=e157]:
+                  - img [ref=e158]
+                  - text: Loading discharge summaries
+        - contentinfo [ref=e160]:
+          - generic [ref=e161]:
+            - generic [ref=e164]:
+              - paragraph [ref=e165]: VHMS Admin Engine
+              - paragraph [ref=e166]: Patient, finance, ward, and communication workflows stay connected in one system.
+            - generic [ref=e167]:
+              - paragraph [ref=e168]: Invite-only hospital operations workspace.
+              - paragraph [ref=e169]: v4.0.1
+  - region "Notifications alt+T"
+  - alert [ref=e170]

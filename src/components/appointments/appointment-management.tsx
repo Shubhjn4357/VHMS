@@ -15,7 +15,7 @@ import {
   Trash2,
   UserRoundPen,
 } from "lucide-react";
-import Link from "next/link";
+
 import { useSearchParams } from "next/navigation";
 import {
   startTransition,
@@ -32,13 +32,22 @@ import { APPOINTMENT_VISIT_TYPES } from "@/constants/appointmentVisitType";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { OfflineDraftPanel } from "@/components/pwa/offline-draft-panel";
 import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
+import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { OptionsMenu } from "@/components/ui/options-menu";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/bottom-drawer";
 import {
   useAppointmentDirectory,
   useCreateAppointment,
@@ -77,14 +86,14 @@ const defaultFormValues: AppointmentFormValues = {
 const defaultAppointmentFormValuesJson = JSON.stringify(defaultFormValues);
 
 const statusToneMap: Record<string, string> = {
-  SCHEDULED: "bg-[rgba(21,94,239,0.12)] text-accent",
-  CONFIRMED: "bg-[rgba(15,118,110,0.12)] text-brand",
-  CHECKED_IN: "bg-[rgba(21,128,61,0.12)] text-success",
-  IN_CONSULTATION: "bg-[rgba(14,116,144,0.12)] text-cyan-700",
-  COMPLETED: "bg-[rgba(20,32,51,0.08)] text-ink",
-  CANCELLED: "bg-[rgba(220,38,38,0.12)] text-danger",
-  NO_SHOW: "bg-[rgba(217,119,6,0.12)] text-warning",
-  RESCHEDULED: "bg-[rgba(124,58,237,0.12)] text-[rgb(109,40,217)]",
+  SCHEDULED: "border-transparent bg-secondary text-secondary-foreground",
+  CONFIRMED: "border-transparent bg-primary/10 text-primary",
+  CHECKED_IN: "border-transparent bg-success/15 text-success",
+  IN_CONSULTATION: "border-transparent bg-primary text-primary-foreground",
+  COMPLETED: "border-transparent bg-muted text-foreground",
+  CANCELLED: "border-transparent bg-destructive/15 text-destructive",
+  NO_SHOW: "border-transparent bg-warning/15 text-warning",
+  RESCHEDULED: "border-transparent bg-accent text-accent-foreground",
 };
 
 function formatDateTime(value: string) {
@@ -113,6 +122,7 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
   >("ALL");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<AppointmentRecord | null>(
     null,
   );
@@ -224,11 +234,17 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
       return;
     }
 
-    startTransition(() => setSelectedEntry(entry));
+    startTransition(() => {
+      setSelectedEntry(entry);
+      setIsDrawerOpen(true);
+    });
   }
 
   function clearSelection() {
-    startTransition(() => setSelectedEntry(null));
+    startTransition(() => {
+      setSelectedEntry(null);
+      setIsDrawerOpen(false);
+    });
   }
 
   function restoreDraft() {
@@ -462,6 +478,7 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
       onSuccess: () => {
         clearDraft("appointmentScheduling");
         form.reset(defaultFormValues);
+        setIsDrawerOpen(false);
       },
     });
   }
@@ -542,12 +559,16 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
               <>
                 {canCreate
                   ? (
-                    <Link
+                    <Button
                       className={buttonVariants({ variant: "default" })}
-                      href="/dashboard/appointments/new"
+                      onClick={() => {
+                        clearSelection();
+                        setIsDrawerOpen(true);
+                      }}
                     >
-                      Full-page scheduling
-                    </Link>
+                      <CalendarClock className="mr-2 h-4 w-4" />
+                      Schedule
+                    </Button>
                   )
                   : null}
                 <Button
@@ -575,247 +596,252 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
           ["Cancelled", summary?.cancelled ?? 0, "Removed from live queue"],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={label}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
 
-      <section className="appointment-main-grid grid gap-6 2xl:grid-cols-[1.08fr_0.92fr]">
-        <SurfaceCard className="appointment-form-panel">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+      <section className="appointment-main-grid space-y-6">
+        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>
                 {selectedEntry ? "Edit appointment" : "Schedule appointment"}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              </DrawerTitle>
+              <DrawerDescription>
                 {selectedEntry
                   ? `Update queue slot #${selectedEntry.queueNumber ?? "NA"}`
                   : "Bind patient, doctor, and queue position"}
-              </h2>
-            </div>
+              </DrawerDescription>
+            </DrawerHeader>
 
-            {selectedEntry
-              ? (
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    onClick={() => handleDelete(selectedEntry)}
-                    size="sm"
-                    type="button"
-                    variant="destructive"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    Delete appointment
-                  </Button>
-                  <Button
-                    onClick={clearSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Cancel edit
-                  </Button>
-                </div>
-              )
-              : null}
-          </div>
-
-          {!selectedEntry && drafts.appointmentScheduling
-            ? (
-              <div className="mt-6">
-                <OfflineDraftPanel
-                  description="This queue draft is stored locally so the front desk can restore it after a refresh or temporary outage."
-                  isOnline={isOnline}
-                  onDiscard={discardDraft}
-                  onRestore={restoreDraft}
-                  title="Saved appointment scheduling draft"
-                  updatedAt={drafts.appointmentScheduling.updatedAt}
-                />
+            <div className="p-4 bg-background">
+              <div className="flex items-start justify-between gap-4">
+                <div />
+                {selectedEntry
+                  ? (
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        onClick={() => handleDelete(selectedEntry)}
+                        size="sm"
+                        type="button"
+                        variant="destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete appointment
+                      </Button>
+                      <Button
+                        onClick={clearSelection}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        Cancel edit
+                      </Button>
+                    </div>
+                  )
+                  : null}
               </div>
-            )
-            : null}
 
-          {canManageAppointments
-            ? (
-              <form
-                className="mt-6 space-y-5"
-                onSubmit={form.handleSubmit(handleSubmit)}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Patient
-                    </span>
-                    <ThemedSelect
-                      {...form.register("patientId")}
-                      className="mt-2"
-                    >
-                      <option value="">Select patient</option>
-                      {patientEntries.map((patient) => (
-                        <option key={patient.id} value={patient.id}>
-                          {patient.hospitalNumber} - {patient.fullName}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.patientId?.message}
-                    </p>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Doctor</span>
-                    <ThemedSelect
-                      {...form.register("doctorId")}
-                      className="mt-2"
-                    >
-                      <option value="">Select doctor</option>
-                      {doctorEntries.map((doctor) => (
-                        <option key={doctor.id} value={doctor.id}>
-                          {doctor.fullName}
-                          {doctor.departmentName
-                            ? ` - ${doctor.departmentName}`
-                            : ""}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.doctorId?.message}
-                    </p>
-                  </label>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-3">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Scheduled for
-                    </span>
-                    <Input
-                      {...form.register("scheduledFor")}
-                      className="mt-2"
-                      type="datetime-local"
+              {!selectedEntry && drafts.appointmentScheduling
+                ? (
+                  <div className="mt-2">
+                    <OfflineDraftPanel
+                      description="This queue draft is stored locally so the front desk can restore it after a refresh or temporary outage."
+                      isOnline={isOnline}
+                      onDiscard={discardDraft}
+                      onRestore={restoreDraft}
+                      title="Saved appointment scheduling draft"
+                      updatedAt={drafts.appointmentScheduling.updatedAt}
                     />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.scheduledFor?.message}
-                    </p>
-                  </label>
+                  </div>
+                )
+                : null}
 
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Visit type
-                    </span>
-                    <ThemedSelect
-                      {...form.register("visitType")}
-                      className="mt-2"
-                    >
-                      {APPOINTMENT_VISIT_TYPES.map((visitType) => (
-                        <option key={visitType} value={visitType}>
-                          {visitType.replaceAll("_", " ")}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                  </label>
+              {canManageAppointments
+                ? (
+                  <form
+                    className="mt-4 space-y-5"
+                    onSubmit={form.handleSubmit(handleSubmit)}
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Patient
+                        </span>
+                        <ThemedSelect
+                          {...form.register("patientId")}
+                          className="mt-2"
+                        >
+                          <option value="">Select patient</option>
+                          {patientEntries.map((patient) => (
+                            <option key={patient.id} value={patient.id}>
+                              {patient.hospitalNumber} - {patient.fullName}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.patientId?.message}
+                        </p>
+                      </label>
 
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Status</span>
-                    <ThemedSelect
-                      {...form.register("status")}
-                      className="mt-2"
-                    >
-                      {APPOINTMENT_STATUS.map((status) => (
-                        <option key={status} value={status}>
-                          {status.replaceAll("_", " ")}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                  </label>
-                </div>
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Doctor</span>
+                        <ThemedSelect
+                          {...form.register("doctorId")}
+                          className="mt-2"
+                        >
+                          <option value="">Select doctor</option>
+                          {doctorEntries.map((doctor) => (
+                            <option key={doctor.id} value={doctor.id}>
+                              {doctor.fullName}
+                              {doctor.departmentName
+                                ? ` - ${doctor.departmentName}`
+                                : ""}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.doctorId?.message}
+                        </p>
+                      </label>
+                    </div>
 
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Notes</span>
-                  <Textarea
-                    {...form.register("notes")}
-                    className="mt-2 min-h-28"
-                    placeholder="Walk-in reason, reminder note, or reschedule context."
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Scheduled for
+                        </span>
+                        <Input
+                          {...form.register("scheduledFor")}
+                          className="mt-2"
+                          type="datetime-local"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.scheduledFor?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Visit type
+                        </span>
+                        <ThemedSelect
+                          {...form.register("visitType")}
+                          className="mt-2"
+                        >
+                          {APPOINTMENT_VISIT_TYPES.map((visitType) => (
+                            <option key={visitType} value={visitType}>
+                              {visitType.replaceAll("_", " ")}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Status</span>
+                        <ThemedSelect
+                          {...form.register("status")}
+                          className="mt-2"
+                        >
+                          {APPOINTMENT_STATUS.map((status) => (
+                            <option key={status} value={status}>
+                              {status.replaceAll("_", " ")}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                      </label>
+                    </div>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Notes</span>
+                      <Textarea
+                        {...form.register("notes")}
+                        className="mt-2 min-h-28"
+                        placeholder="Walk-in reason, reminder note, or reschedule context."
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.notes?.message}
+                      </p>
+                    </label>
+
+                    <div className="flex flex-wrap gap-3 pb-6">
+                      <Button
+                        disabled={isSaving ||
+                          patientEntries.length === 0 ||
+                          doctorEntries.length === 0 ||
+                          (!canCreate && !selectedEntry)}
+                        type="submit"
+                      >
+                        {isSaving
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : selectedEntry
+                          ? <UserRoundPen className="h-4 w-4" />
+                          : <CalendarClock className="h-4 w-4" />}
+                        {selectedEntry ? "Save appointment" : "Schedule appointment"}
+                      </Button>
+
+                      <Button
+                        onClick={clearAppointmentForm}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        Clear form
+                      </Button>
+                    </div>
+
+                    {!selectedEntry
+                      ? (
+                        <p className="text-sm leading-6 text-ink-soft pb-6">
+                          {isOnline
+                            ? "New appointments autosave locally and can queue safely on this device if reception loses connectivity."
+                            : "You are offline. New appointments will queue on this device and sync after reconnect."}
+                        </p>
+                      )
+                      : null}
+
+                    {usingCachedLookups
+                      ? (
+                        <p className="text-sm leading-6 text-ink-soft pb-6">
+                          Doctor and patient selectors are using the most recently
+                          synced lookup cache from this browser.
+                        </p>
+                      )
+                      : null}
+                  </form>
+                )
+                : (
+                  <EmptyState
+                    className="mt-6 min-h-56 mb-8"
+                    description="This queue board is visible to appointment viewers, but creating or editing records requires appointments.create or appointments.update."
+                    icon={CalendarClock}
+                    title="Read-only schedule view"
                   />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.notes?.message}
-                  </p>
-                </label>
-
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={isSaving ||
-                      patientEntries.length === 0 ||
-                      doctorEntries.length === 0 ||
-                      (!canCreate && !selectedEntry)}
-                    type="submit"
-                  >
-                    {isSaving
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : selectedEntry
-                      ? <UserRoundPen className="h-4 w-4" />
-                      : <CalendarClock className="h-4 w-4" />}
-                    {selectedEntry ? "Save appointment" : "Schedule appointment"}
-                  </Button>
-
-                  <Button
-                    onClick={clearAppointmentForm}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear form
-                  </Button>
-                </div>
-
-                {!selectedEntry
-                  ? (
-                    <p className="text-sm leading-6 text-ink-soft">
-                      {isOnline
-                        ? "New appointments autosave locally and can queue safely on this device if reception loses connectivity."
-                        : "You are offline. New appointments will queue on this device and sync after reconnect."}
-                    </p>
-                  )
-                  : null}
-
-                {usingCachedLookups
-                  ? (
-                    <p className="text-sm leading-6 text-ink-soft">
-                      Doctor and patient selectors are using the most recently
-                      synced lookup cache from this browser.
-                    </p>
-                  )
-                  : null}
-              </form>
-            )
-            : (
-              <EmptyState
-                className="mt-6 min-h-56"
-                description="This queue board is visible to appointment viewers, but creating or editing records requires appointments.create or appointments.update."
-                icon={CalendarClock}
-                title="Read-only schedule view"
-              />
-            )}
-        </SurfaceCard>
+                )}
+            </div>
+          </DrawerContent>
+        </Drawer>
 
         <div className="space-y-6">
           <SurfaceCard className="appointment-queue-panel">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div className="management-toolbar-shell">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Live queue
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                   Patient-linked appointments
                 </h2>
               </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-                <label className="flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-                  <Search className="h-4 w-4 text-brand" />
+            <div className="management-toolbar-actions">
+                <label className="management-search-shell">
+                  <Search className="h-4 w-4 text-muted-foreground" />
                   <Input
                     className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                     onChange={(event) => setSearch(event.target.value)}
@@ -825,7 +851,7 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
                 </label>
 
                 <ThemedSelect
-                  className="glass-panel-muted rounded-full py-3 font-medium"
+                  className="min-w-40"
                   onChange={(event) =>
                     setStatusFilter(
                       event.target.value as
@@ -945,8 +971,8 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
             <div className="mt-6 space-y-4">
               {appointmentQuery.isLoading
                 ? (
-                  <div className="glass-panel-muted flex items-center gap-3 rounded-3xl px-4 py-5 text-sm text-ink-soft">
-                    <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                  <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                     Loading appointment queue
                   </div>
                 )
@@ -965,34 +991,33 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
               {entries.map((entry) => (
                 <article
                   key={entry.id}
-                  className="glass-panel-muted rounded-[28px] p-5"
+                  className="management-record-shell p-5"
                 >
                   <div className="flex flex-col gap-4">
                     <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                       <div>
                         <div className="flex flex-wrap items-center gap-3">
-                          <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 text-xs font-medium text-ink-soft">
+                          <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-muted-foreground">
                             <Checkbox
                               checked={selectedIds.includes(entry.id)}
                               onChange={() => toggleSelection(entry.id)}
                             />
                             Select
                           </label>
-                          <h3 className="text-xl font-semibold text-ink">
+                          <h3 className="text-xl font-semibold text-foreground">
                             {entry.patientName}
                           </h3>
-                          <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                          <Badge variant="outline">
                             {entry.patientHospitalNumber}
-                          </span>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-                              statusToneMap[entry.status] ?? "glass-chip text-ink"
-                            }`}
+                          </Badge>
+                          <Badge
+                            className={statusToneMap[entry.status] ?? "border-transparent bg-muted text-foreground"}
+                            variant="outline"
                           >
                             {entry.status.replaceAll("_", " ")}
-                          </span>
+                          </Badge>
                         </div>
-                        <p className="mt-3 text-sm text-ink-soft">
+                        <p className="mt-3 text-sm text-muted-foreground">
                           {entry.doctorName}
                           {entry.doctorDepartment
                             ? ` / ${entry.doctorDepartment}`
@@ -1001,19 +1026,19 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
                       </div>
 
                       <div className="flex flex-wrap gap-3">
-                        <div className="metric-tile rounded-[22px] px-4 py-3 text-center">
-                          <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                        <div className="management-metric px-4 py-3 text-center">
+                          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                             Queue
                           </p>
-                          <p className="mt-1 text-lg font-semibold text-ink">
+                          <p className="mt-1 text-lg font-semibold text-foreground">
                             #{entry.queueNumber ?? "--"}
                           </p>
                         </div>
-                        <div className="metric-tile rounded-[22px] px-4 py-3 text-center">
-                          <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                        <div className="management-metric px-4 py-3 text-center">
+                          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                             Visit
                           </p>
-                          <p className="mt-1 text-lg font-semibold text-ink">
+                          <p className="mt-1 text-lg font-semibold text-foreground">
                             {entry.visitType.replaceAll("_", " ")}
                           </p>
                         </div>
@@ -1021,25 +1046,25 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
                     </div>
 
                     <div className="grid gap-3 md:grid-cols-2">
-                      <div className="metric-tile rounded-[22px] px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      <div className="management-metric px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Slot
                         </p>
-                        <p className="mt-2 text-sm font-medium text-ink">
+                        <p className="mt-2 text-sm font-medium text-foreground">
                           {formatDateTime(entry.scheduledFor)}
                         </p>
-                        <p className="mt-1 text-sm text-ink-soft">
+                        <p className="mt-1 text-sm text-muted-foreground">
                           {entry.checkedInAt
                             ? `Checked in ${formatDateTime(entry.checkedInAt)}`
                             : "Not checked in yet"}
                         </p>
                       </div>
 
-                      <div className="metric-tile rounded-[22px] px-4 py-3">
-                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      <div className="management-metric px-4 py-3">
+                        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Notes
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-ink-soft">
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
                           {entry.notes || "No scheduling note added."}
                         </p>
                       </div>
@@ -1060,31 +1085,27 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
                         )
                         : null}
 
-                      {canUpdate
+                      {canUpdate || canCheckIn
                         ? (
-                          <Button
-                            onClick={() => handleDelete(entry)}
-                            size="sm"
-                            type="button"
-                            variant="destructive"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                            Delete
-                          </Button>
-                        )
-                        : null}
-
-                      {canUpdate
-                        ? (
-                          <Button
-                            onClick={() => beginEditing(entry)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            <UserRoundPen className="h-4 w-4" />
-                            Edit appointment
-                          </Button>
+                          <OptionsMenu
+                            items={[
+                              ...(canUpdate
+                                ? [{
+                                    icon: UserRoundPen,
+                                    label: "Edit appointment",
+                                    onSelect: () => beginEditing(entry),
+                                  }]
+                                : []),
+                              ...(canUpdate
+                                ? [{
+                                    icon: Trash2,
+                                    label: "Delete appointment",
+                                    onSelect: () => handleDelete(entry),
+                                    tone: "danger" as const,
+                                  }]
+                                : []),
+                            ]}
+                          />
                         )
                         : null}
                     </div>
@@ -1096,7 +1117,7 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
             {entries.length > 0
               ? (
                 <div className="mt-4 flex justify-end">
-                  <label className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-2 text-sm text-ink-soft">
+                  <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
                     <Checkbox
                       checked={allVisibleSelected}
                       onChange={toggleAllVisible}
@@ -1110,14 +1131,14 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
 
           <SurfaceCard className="appointment-doctors-panel">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[rgba(15,118,110,0.12)] text-brand">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-foreground">
                 <Stethoscope className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Active doctors
                 </p>
-                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-ink">
+                <h2 className="mt-1 text-2xl font-semibold tracking-tight text-foreground">
                   Lookup for schedule binding
                 </h2>
               </div>
@@ -1127,21 +1148,21 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
               {doctorEntries.map((doctor) => (
                 <div
                   key={doctor.id}
-                  className="glass-panel-muted rounded-[22px] p-4"
+                  className="management-subtle-card p-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-lg font-semibold text-ink">
+                      <p className="text-lg font-semibold text-foreground">
                         {doctor.fullName}
                       </p>
-                      <p className="text-sm text-ink-soft">
+                      <p className="text-sm text-muted-foreground">
                         {doctor.departmentName || "Department pending"}
                         {doctor.specialty ? ` / ${doctor.specialty}` : ""}
                       </p>
                     </div>
-                    <span className="glass-chip rounded-full px-3 py-2 text-sm font-medium text-ink">
+                    <Badge variant="outline">
                       Rs {doctor.consultationFee.toFixed(0)}
-                    </span>
+                    </Badge>
                   </div>
                 </div>
               ))}

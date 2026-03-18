@@ -1,14 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import {
+  Globe,
+  Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings2,
+} from "lucide-react";
 
 import { AuthUserPanel } from "@/components/auth/auth-user-panel";
+import { Badge } from "@/components/ui/badge";
 import { DashboardNavigation } from "@/components/layout/dashboard-navigation";
 import { GlobalSearch } from "@/components/layout/global-search";
 import { OfflineStatusChip } from "@/components/pwa/offline-status-chip";
 import { SyncHealthChip } from "@/components/pwa/sync-health-chip";
-import { Button, buttonVariants } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
+import { OptionsMenu } from "@/components/ui/options-menu";
 import {
   Sheet,
   SheetContent,
@@ -18,18 +26,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { APP_TEXT } from "@/constants/appText";
 import type { PermissionKey } from "@/constants/permissions";
+import { useAppShell } from "@/hooks/useAppShell";
 import { resolveDashboardRouteContext } from "@/lib/dashboard/route-context";
 import type { NavGroup } from "@/lib/module-config";
 import { cn } from "@/lib/utils/cn";
 
 type DashboardTopbarProps = {
-  condensed: boolean;
   navGroups: NavGroup[];
   pathname: string;
   permissions: PermissionKey[];
-  isSidebarCollapsed: boolean;
-  onToggleSidebar: () => void;
 };
 
 function hasAccess(
@@ -52,160 +59,164 @@ function isActiveRoute(pathname: string, href?: string) {
 }
 
 export function DashboardTopbar({
-  condensed,
   navGroups,
   pathname,
   permissions,
-  isSidebarCollapsed,
-  onToggleSidebar,
 }: DashboardTopbarProps) {
+  const {
+    isMobileNavOpen,
+    isSidebarCollapsed,
+    isTopbarCondensed,
+    setMobileNavOpen,
+    toggleSidebar,
+  } = useAppShell();
   const routeContext = resolveDashboardRouteContext(pathname, navGroups, permissions);
   const quickLinks = routeContext.quickLinks.filter((item) =>
     hasAccess(permissions, item.permissions)
   );
+  const commandMenuItems = [
+    {
+      label: isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar",
+      description: "Adjust the navigation density for focused or broad work.",
+      onSelect: toggleSidebar,
+      icon: isSidebarCollapsed ? PanelLeftOpen : PanelLeftClose,
+    },
+    {
+      label: APP_TEXT.SHELL.PUBLIC_SITE,
+      description: "Open the public-facing product and marketing surface.",
+      href: "/",
+      icon: Globe,
+    },
+    {
+      label: "Workspace settings",
+      description: "Hospital profile, feature flags, and print templates.",
+      href: "/dashboard/settings",
+      icon: Settings2,
+    },
+  ];
 
   return (
     <header
       className={cn(
-        "glass-panel-strong z-30 overflow-hidden transition-[padding,border-radius,box-shadow,background-color] duration-200",
-        condensed
-          ? "rounded-[20px] px-4 py-2 shadow-[0_12px_28px_rgba(15,23,42,0.08)] sm:px-4"
-          : "rounded-[24px] px-4 py-3 sm:px-5",
+        "sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-all duration-300",
+        isTopbarCondensed ? "px-4 py-3" : "px-4 py-4 lg:px-6",
       )}
     >
-      <div className={cn("flex flex-col transition-[gap] duration-200", condensed ? "gap-2" : "gap-3")}>
-        <div
-          className={cn(
-            "flex flex-col xl:grid xl:grid-cols-[minmax(12rem,0.9fr)_minmax(18rem,32rem)_auto] xl:items-center transition-[gap] duration-200",
-            condensed ? "gap-2" : "gap-3",
-          )}
-        >
-          <div className="flex min-w-0 items-center gap-3">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
             <Button
-              className="hidden lg:inline-flex"
-              onClick={onToggleSidebar}
+              className="mt-0.5 shrink-0"
+              onClick={toggleSidebar}
               size="icon"
               type="button"
               variant="outline"
             >
               {isSidebarCollapsed
-                ? <PanelLeftOpen className="h-4 w-4" />
-                : <PanelLeftClose className="h-4 w-4" />}
-              <span className="sr-only">Toggle sidebar</span>
+                ? <PanelLeftOpen className="h-5 w-5" />
+                : <PanelLeftClose className="h-5 w-5" />}
             </Button>
 
-            <div className="min-w-0">
-              <p
-                className={cn(
-                  "overflow-hidden text-[10px] font-semibold uppercase tracking-[0.24em] text-primary transition-[max-height,opacity,margin] duration-200",
-                  condensed ? "max-h-0 opacity-0" : "max-h-5 opacity-100",
-                )}
-              >
-                {routeContext.sectionTitle}
-              </p>
+            <div className="min-w-0 flex-1 space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{routeContext.sectionTitle}</Badge>
+                <Badge variant="outline">{APP_TEXT.SHELL.OPERATION_LABEL}</Badge>
+              </div>
               <h2
                 className={cn(
-                  "font-semibold tracking-tight text-foreground transition-[font-size,margin] duration-200",
-                  condensed ? "mt-0 text-[0.95rem]" : "mt-1 text-lg",
+                  "font-semibold tracking-tight text-foreground transition-all",
+                  isTopbarCondensed ? "text-xl" : "text-[1.7rem]",
                 )}
               >
                 {routeContext.title}
               </h2>
-              <p
-                className={cn(
-                  "overflow-hidden text-sm leading-6 text-muted-foreground transition-[max-height,opacity,margin] duration-200",
-                  condensed ? "max-h-0 opacity-0" : "mt-1 max-h-14 opacity-100",
-                )}
-              >
-                {routeContext.detail}
-              </p>
+              {!isTopbarCondensed ? (
+                <p className="max-w-3xl text-sm leading-6 text-muted-foreground">
+                  {routeContext.detail}
+                </p>
+              ) : null}
             </div>
           </div>
 
-          <div className="min-w-0">
-            <GlobalSearch compact={condensed} key={pathname} />
-          </div>
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
+            <Button asChild className="hidden sm:inline-flex" size="sm" variant="ghost">
+              <Link href="/">{APP_TEXT.SHELL.PUBLIC_SITE}</Link>
+            </Button>
 
-          <div className="flex flex-wrap items-center gap-3 xl:justify-end">
-            <div className="hidden items-center gap-2 lg:flex">
-              <OfflineStatusChip />
-              <SyncHealthChip />
-              <ThemeToggle compact={condensed} />
-            </div>
+            <OptionsMenu items={commandMenuItems} key={`${pathname}-commands`} />
 
-            <div className="flex flex-wrap items-center justify-end gap-3">
-              {!condensed
-                ? (
-                  <Link
-                    className={buttonVariants({ size: "sm", variant: "outline" })}
-                    href="/"
-                  >
-                    Public site
-                  </Link>
-                )
-                : null}
-
-              <Sheet>
-                <SheetTrigger asChild>
-                  <Button
-                    className="lg:hidden"
-                    size="icon"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Menu className="h-4 w-4" />
-                    <span className="sr-only">Open navigation</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent className="overflow-y-auto">
-                  <SheetHeader>
-                    <SheetTitle>Dashboard navigation</SheetTitle>
-                    <SheetDescription>
-                      Access-aware module navigation and runtime controls.
-                    </SheetDescription>
-                  </SheetHeader>
-                  <div className="flex items-center gap-3">
-                    <OfflineStatusChip />
-                    <SyncHealthChip />
-                    <ThemeToggle />
+            <Sheet onOpenChange={setMobileNavOpen} open={isMobileNavOpen}>
+              <SheetTrigger asChild>
+                <Button className="lg:hidden" size="icon" variant="outline">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left" className="w-[280px] sm:w-[320px]">
+                <SheetHeader className="text-left">
+                  <SheetTitle className="text-xl font-bold">
+                    {APP_TEXT.SHELL.MENU_TITLE}
+                  </SheetTitle>
+                  <SheetDescription>
+                    {APP_TEXT.SHELL.MENU_DESCRIPTION}
+                  </SheetDescription>
+                </SheetHeader>
+                <div className="mt-6 space-y-4">
+                  <div className="xl:hidden">
+                    <GlobalSearch compact key={`${pathname}-sheet`} />
                   </div>
                   <DashboardNavigation
                     navGroups={navGroups}
                     pathname={pathname}
                     permissions={permissions}
                   />
-                </SheetContent>
-              </Sheet>
+                </div>
+              </SheetContent>
+            </Sheet>
 
-              <AuthUserPanel compact={condensed} />
+            <AuthUserPanel compact={isTopbarCondensed} />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
+          <div className="min-w-0 flex-1 xl:max-w-3xl">
+            <GlobalSearch compact={isTopbarCondensed} key={pathname} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+            <OfflineStatusChip />
+            <SyncHealthChip />
+            <ThemeToggle compact={isTopbarCondensed} />
+          </div>
+        </div>
+
+        {quickLinks.length > 0 ? (
+          <div
+            className={cn(
+              "overflow-hidden transition-all duration-300",
+              isTopbarCondensed ? "max-h-0 opacity-0" : "max-h-14 opacity-100",
+            )}
+          >
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              {quickLinks.map((item) => {
+                const active = isActiveRoute(pathname, item.href);
+
+                return (
+                  <Link
+                    className={cn(
+                      "whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                      active
+                        ? "bg-secondary text-secondary-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                    href={item.href!}
+                    key={item.label}
+                  >
+                    {item.label}
+                  </Link>
+                );
+              })}
             </div>
           </div>
-        </div>
-
-        <div
-          className={cn(
-            "overflow-hidden transition-[max-height,opacity,margin] duration-200",
-            condensed ? "pointer-events-none -mt-1 max-h-0 opacity-0" : "max-h-16 opacity-100",
-          )}
-        >
-          <div className="hidden items-center gap-2 overflow-x-auto xl:flex">
-            {quickLinks.map((item) => {
-              const active = isActiveRoute(pathname, item.href);
-
-              return (
-                <Link
-                    className={active
-                      ? "rounded-full bg-surface-strong px-4 py-2 text-sm font-medium text-white"
-                      : "rounded-full px-4 py-2 text-sm font-medium text-muted-foreground transition hover:bg-white/60 hover:text-foreground dark:hover:bg-white/6"}
-                    href={item.href!}
-                  key={item.label}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+        ) : null}
       </div>
     </header>
   );

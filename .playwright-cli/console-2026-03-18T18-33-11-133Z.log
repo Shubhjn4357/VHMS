@@ -1,0 +1,2 @@
+[      98ms] [ERROR] Refused to apply style from 'http://localhost:3000/_next/static/chunks/5f6e1fd0824155a0.css' because its MIME type ('text/plain') is not a supported stylesheet MIME type, and strict MIME checking is enabled. @ http://localhost:3000/login:0
+[     111ms] [ERROR] Refused to apply style from 'http://localhost:3000/_next/static/chunks/5f6e1fd0824155a0.css' because its MIME type ('text/plain') is not a supported stylesheet MIME type, and strict MIME checking is enabled. @ http://localhost:3000/login:0

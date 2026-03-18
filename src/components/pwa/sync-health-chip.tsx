@@ -36,7 +36,7 @@ export function SyncHealthChip() {
 
   if (pendingCount > 0) {
     return (
-      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-cyan-700">
+      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
         {pendingCount} queued
       </span>
     );

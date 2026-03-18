@@ -1,0 +1,3 @@
+[    1100ms] [ERROR] Refused to apply style from 'http://127.0.0.1:3000/_next/static/chunks/5f6e1fd0824155a0.css' because its MIME type ('text/plain') is not a supported stylesheet MIME type, and strict MIME checking is enabled. @ http://127.0.0.1:3000/dashboard/analytics:0
+[    1113ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://127.0.0.1:3000/_next/static/chunks/aa3779b92ba1ca05.js:0
+[    1113ms] [ERROR] Refused to execute script from 'http://127.0.0.1:3000/_next/static/chunks/aa3779b92ba1ca05.js' because its MIME type ('text/plain') is not executable, and strict MIME type checking is enabled. @ http://127.0.0.1:3000/dashboard/analytics:0

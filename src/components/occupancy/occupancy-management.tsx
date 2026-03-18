@@ -25,6 +25,13 @@ import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+} from "@/components/ui/bottom-drawer";
 import { useAppointmentDirectory } from "@/hooks/useAppointmentsApi";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useDoctorLookup } from "@/hooks/useDoctorsApi";
@@ -50,16 +57,12 @@ const defaultAssignmentValues: AssignmentFormValues = {
 };
 
 const statusToneMap: Record<BedStatus, string> = {
-  FREE: "border-[rgba(21,128,61,0.18)] bg-[rgba(21,128,61,0.10)] text-success",
-  OCCUPIED:
-    "border-[rgba(220,38,38,0.16)] bg-[rgba(220,38,38,0.10)] text-danger",
-  RESERVED:
-    "border-[rgba(21,94,239,0.16)] bg-[rgba(21,94,239,0.10)] text-accent",
-  CLEANING:
-    "border-[rgba(217,119,6,0.18)] bg-[rgba(217,119,6,0.10)] text-warning",
-  MAINTENANCE: "border-[rgba(20,32,51,0.12)] bg-[rgba(20,32,51,0.08)] text-ink",
-  BLOCKED:
-    "border-[rgba(124,58,237,0.16)] bg-[rgba(124,58,237,0.10)] text-[rgb(109,40,217)]",
+  FREE: "border-success/30 bg-success/10 text-success",
+  OCCUPIED: "border-destructive/30 bg-destructive/10 text-destructive",
+  RESERVED: "border-primary/30 bg-primary/10 text-primary",
+  CLEANING: "border-warning/30 bg-warning/10 text-warning",
+  MAINTENANCE: "border-border bg-muted text-foreground",
+  BLOCKED: "border-border bg-accent text-accent-foreground",
 };
 
 const editableBedStatuses = BED_STATUS.filter(
@@ -111,6 +114,7 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
   const [manualStatusBedId, setManualStatusBedId] = useState<string | null>(
     null,
   );
+  const [isAssignDrawerOpen, setIsAssignDrawerOpen] = useState(false);
   const [manualStatus, setManualStatus] = useState<
     Exclude<BedStatus, "OCCUPIED">
   >("FREE");
@@ -182,6 +186,7 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
   useEffect(() => {
     if (selectedBed && isAssignableBed(selectedBed)) {
       form.setValue("bedId", selectedBed.id);
+      setIsAssignDrawerOpen(true);
     }
   }, [form, selectedBed]);
 
@@ -218,6 +223,7 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
           bedId: "",
           attendingDoctorId: values.attendingDoctorId,
         });
+        setIsAssignDrawerOpen(false);
       },
     });
   }
@@ -324,183 +330,184 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
           ],
         ].map(([label, value, detail]) => (
           <SurfaceCard key={label}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
           </SurfaceCard>
         ))}
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[0.92fr_1.08fr]">
-        <div className="space-y-6">
-          <SurfaceCard>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Admission desk
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  Assign a patient to a bed
-                </h2>
-              </div>
-              <div className="rounded-full bg-[rgba(15,118,110,0.12)] px-4 py-2 text-sm font-semibold text-brand">
-                {availableBeds.length} beds open
-              </div>
-            </div>
+      <section className="space-y-6">
+        <Drawer open={isAssignDrawerOpen} onOpenChange={setIsAssignDrawerOpen}>
+          <DrawerContent>
+            <DrawerHeader>
+              <DrawerTitle>
+                Assign a patient to a bed
+              </DrawerTitle>
+              <DrawerDescription>
+                Admission desk - Fill details to formally admit patient
+              </DrawerDescription>
+            </DrawerHeader>
 
-            {canManage
-              ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={form.handleSubmit(handleAssign)}
-                >
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Source OPD appointment
-                    </span>
-                    <ThemedSelect
-                      className="mt-2"
-                      onChange={(event) => setSourceAppointmentId(event.target.value)}
-                      value={sourceAppointmentId}
-                    >
-                      <option value="">Select OPD appointment (optional)</option>
-                      {appointmentEntries.map((entry) => (
-                        <option key={entry.id} value={entry.id}>
-                          {entry.patientHospitalNumber} - {entry.patientName} / {entry.doctorName}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                    <p className="mt-2 text-sm text-ink-soft">
-                      Pick a booked OPD patient to prefill the IPD admission details.
-                    </p>
-                  </label>
-
-                  {selectedSourceAppointment
-                    ? (
-                      <div className="glass-panel-muted rounded-[22px] p-4 text-sm text-ink-soft">
-                        <p className="font-semibold text-ink">
-                          {selectedSourceAppointment.patientName}
-                        </p>
-                        <p className="mt-2">
-                          {selectedSourceAppointment.patientHospitalNumber} / {selectedSourceAppointment.doctorName}
-                        </p>
-                        <p className="mt-2">
-                          Scheduled {formatDateTime(selectedSourceAppointment.scheduledFor)}
-                        </p>
-                      </div>
-                    )
-                    : null}
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Patient
-                      </span>
-                      <ThemedSelect
-                        {...form.register("patientId")}
-                        className="mt-2"
-                      >
-                        <option value="">Select patient</option>
-                        {patients.map((patient) => (
-                          <option key={patient.id} value={patient.id}>
-                            {patient.hospitalNumber} - {patient.fullName}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.patientId?.message}
-                      </p>
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Attending doctor
-                      </span>
-                      <ThemedSelect
-                        {...form.register("attendingDoctorId")}
-                        className="mt-2"
-                      >
-                        <option value="">Select doctor</option>
-                        {doctors.map((doctor) => (
-                          <option key={doctor.id} value={doctor.id}>
-                            {doctor.fullName}
-                            {doctor.departmentName
-                              ? ` - ${doctor.departmentName}`
-                              : ""}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.attendingDoctorId?.message}
-                      </p>
-                    </label>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">Bed</span>
-                      <ThemedSelect
-                        {...form.register("bedId")}
-                        className="mt-2"
-                      >
-                        <option value="">Select bed</option>
-                        {availableBeds.map((bed) => (
-                          <option key={bed.id} value={bed.id}>
-                            {bed.bedNumber} - {bed.wardName}
-                            {bed.roomNumber ? ` / ${bed.roomNumber}` : ""}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.bedId?.message}
-                      </p>
-                    </label>
-
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Admitted at
-                      </span>
-                      <Input
-                        {...form.register("admittedAt")}
-                        className="mt-2"
-                        type="datetime-local"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.admittedAt?.message}
-                      </p>
-                    </label>
-                  </div>
-
-                  <Button
-                    disabled={isMutating || patients.length === 0 ||
-                      doctors.length === 0 || availableBeds.length === 0}
-                    type="submit"
+            <div className="p-4 bg-background">
+              {canManage
+                ? (
+                  <form
+                    className="mt-4 space-y-5"
+                    onSubmit={form.handleSubmit(handleAssign)}
                   >
-                    {assignMutation.isPending
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <ClipboardPlus className="h-4 w-4" />}
-                    Assign bed and admit
-                  </Button>
-                </form>
-              )
-              : (
-                <EmptyState
-                  className="mt-6 min-h-56"
-                  description="The occupancy board remains visible to viewers, but assigning, transferring, discharging, or updating bed states requires occupancy.manage."
-                  icon={BedDouble}
-                  title="Read-only occupancy access"
-                />
-              )}
-          </SurfaceCard>
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Source OPD appointment
+                      </span>
+                      <ThemedSelect
+                        className="mt-2"
+                        onChange={(event) => setSourceAppointmentId(event.target.value)}
+                        value={sourceAppointmentId}
+                      >
+                        <option value="">Select OPD appointment (optional)</option>
+                        {appointmentEntries.map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {entry.patientHospitalNumber} - {entry.patientName} / {entry.doctorName}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                      <p className="mt-2 text-sm text-ink-soft">
+                        Pick a booked OPD patient to prefill the IPD admission details.
+                      </p>
+                    </label>
+
+                    {selectedSourceAppointment
+                      ? (
+                        <div className="management-subtle-card p-4 text-sm text-muted-foreground">
+                          <p className="font-semibold text-foreground">
+                            {selectedSourceAppointment.patientName}
+                          </p>
+                          <p className="mt-2">
+                            {selectedSourceAppointment.patientHospitalNumber} / {selectedSourceAppointment.doctorName}
+                          </p>
+                          <p className="mt-2">
+                            Scheduled {formatDateTime(selectedSourceAppointment.scheduledFor)}
+                          </p>
+                        </div>
+                      )
+                      : null}
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Patient
+                        </span>
+                        <ThemedSelect
+                          {...form.register("patientId")}
+                          className="mt-2"
+                        >
+                          <option value="">Select patient</option>
+                          {patients.map((patient) => (
+                            <option key={patient.id} value={patient.id}>
+                              {patient.hospitalNumber} - {patient.fullName}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.patientId?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Attending doctor
+                        </span>
+                        <ThemedSelect
+                          {...form.register("attendingDoctorId")}
+                          className="mt-2"
+                        >
+                          <option value="">Select doctor</option>
+                          {doctors.map((doctor) => (
+                            <option key={doctor.id} value={doctor.id}>
+                              {doctor.fullName}
+                              {doctor.departmentName
+                                ? ` - ${doctor.departmentName}`
+                                : ""}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.attendingDoctorId?.message}
+                        </p>
+                      </label>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">Bed</span>
+                        <ThemedSelect
+                          {...form.register("bedId")}
+                          className="mt-2"
+                        >
+                          <option value="">Select bed</option>
+                          {availableBeds.map((bed) => (
+                            <option key={bed.id} value={bed.id}>
+                              {bed.bedNumber} - {bed.wardName}
+                              {bed.roomNumber ? ` / ${bed.roomNumber}` : ""}
+                            </option>
+                          ))}
+                        </ThemedSelect>
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.bedId?.message}
+                        </p>
+                      </label>
+
+                      <label className="block">
+                        <span className="text-sm font-medium text-ink">
+                          Admitted at
+                        </span>
+                        <Input
+                          {...form.register("admittedAt")}
+                          className="mt-2"
+                          type="datetime-local"
+                        />
+                        <p className="mt-2 text-sm text-danger">
+                          {form.formState.errors.admittedAt?.message}
+                        </p>
+                      </label>
+                    </div>
+
+                    <div className="pb-6">
+                      <Button
+                        disabled={isMutating || patients.length === 0 ||
+                          doctors.length === 0 || availableBeds.length === 0}
+                        type="submit"
+                      >
+                        {assignMutation.isPending
+                          ? <Loader2 className="h-4 w-4 animate-spin" />
+                          : <ClipboardPlus className="h-4 w-4" />}
+                        Assign bed and admit
+                      </Button>
+                    </div>
+                  </form>
+                )
+                : (
+                  <EmptyState
+                    className="mt-6 min-h-56 mb-8"
+                    description="The occupancy board remains visible to viewers, but assigning requires occupancy.manage."
+                    icon={BedDouble}
+                    title="Read-only occupancy access"
+                  />
+                )}
+            </div>
+          </DrawerContent>
+        </Drawer>
+        <div className="grid gap-6 2xl:grid-cols-2">
           <SurfaceCard>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                   Selected bed
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                   Movement controls and context
                 </h2>
               </div>
@@ -530,62 +537,62 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
               : (
                 <div className="mt-6 space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="glass-panel-muted rounded-[24px] p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-subtle-card p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Bed identity
                       </p>
-                      <h3 className="mt-3 text-xl font-semibold text-ink">
+                      <h3 className="mt-3 text-xl font-semibold text-foreground">
                         {selectedBed.bedNumber}
                       </h3>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {selectedBed.wardName}
                         {selectedBed.roomNumber
                           ? ` / ${selectedBed.roomNumber}`
                           : ""}
                       </p>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {selectedBed.roomType || "Room type pending"}
                       </p>
                     </div>
 
-                    <div className="glass-panel-muted rounded-[24px] p-5">
-                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-subtle-card p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Patient context
                       </p>
-                      <h3 className="mt-3 text-xl font-semibold text-ink">
+                      <h3 className="mt-3 text-xl font-semibold text-foreground">
                         {selectedBed.patientName || "No active admission"}
                       </h3>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {selectedBed.patientHospitalNumber || "UHID pending"}
                       </p>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {selectedBed.doctorName || "No attending doctor"}
                       </p>
                     </div>
                   </div>
 
                   <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="metric-tile rounded-[22px] px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-metric px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Daily charge
                       </p>
-                      <p className="mt-2 text-lg font-semibold text-ink">
+                      <p className="mt-2 text-lg font-semibold text-foreground">
                         {formatCurrency(selectedBed.dailyCharge)}
                       </p>
                     </div>
-                    <div className="metric-tile rounded-[22px] px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-metric px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Admitted at
                       </p>
-                      <p className="mt-2 text-sm font-medium text-ink">
+                      <p className="mt-2 text-sm font-medium text-foreground">
                         {formatDateTime(selectedBed.admittedAt)}
                       </p>
                     </div>
-                    <div className="metric-tile rounded-[22px] px-4 py-4">
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-metric px-4 py-4">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Floor
                       </p>
-                      <p className="mt-2 text-sm font-medium text-ink">
+                      <p className="mt-2 text-sm font-medium text-foreground">
                         {selectedBed.wardFloor || "Not mapped"}
                       </p>
                     </div>
@@ -594,8 +601,8 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                   {selectedBed.admissionId && canManage
                     ? (
                       <div className="grid gap-4 lg:grid-cols-[1fr_auto]">
-                        <div className="glass-panel-muted rounded-[24px] p-5">
-                          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
+                        <div className="management-subtle-card p-5">
+                          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                             Transfer patient
                           </p>
                           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -648,8 +655,8 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
 
                   {!selectedBed.admissionId && canManage
                     ? (
-                      <div className="glass-panel-muted rounded-[24px] p-5">
-                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
+                      <div className="management-subtle-card p-5">
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                           Manual bed status
                         </p>
                         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -694,21 +701,22 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
               )}
           </SurfaceCard>
         </div>
+      </section>
 
         <SurfaceCard>
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="management-toolbar-shell">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Live ward board
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Search, filter, and inspect beds
               </h2>
             </div>
 
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="glass-panel-muted flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink-soft">
-                <Search className="h-4 w-4 text-brand" />
+            <div className="management-toolbar-actions">
+              <label className="management-search-shell">
+                <Search className="h-4 w-4 text-muted-foreground" />
                 <Input
                   className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                   onChange={(event) => setSearch(event.target.value)}
@@ -717,40 +725,55 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                 />
               </label>
 
-              <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
-                onChange={(event) => setWardFilter(event.target.value)}
-                value={wardFilter}
-              >
-                <option value="">All wards</option>
-                {inventoryWards.map((ward) => (
-                  <option key={ward.id} value={ward.id}>
-                    {ward.name}
-                  </option>
-                ))}
-              </ThemedSelect>
+              <div className="flex gap-2">
+                <ThemedSelect
+                  className="min-w-36"
+                  onChange={(event) => setWardFilter(event.target.value)}
+                  value={wardFilter}
+                >
+                  <option value="">All wards</option>
+                  {inventoryWards.map((ward) => (
+                    <option key={ward.id} value={ward.id}>
+                      {ward.name}
+                    </option>
+                  ))}
+                </ThemedSelect>
 
-              <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
-                onChange={(event) =>
-                  setStatusFilter(event.target.value as BedStatus | "ALL")}
-                value={statusFilter}
-              >
-                <option value="ALL">All statuses</option>
-                {BED_STATUS.map((status) => (
-                  <option key={status} value={status}>
-                    {status.replaceAll("_", " ")}
-                  </option>
-                ))}
-              </ThemedSelect>
+                <ThemedSelect
+                  className="min-w-36"
+                  onChange={(event) =>
+                    setStatusFilter(event.target.value as BedStatus | "ALL")}
+                  value={statusFilter}
+                >
+                  <option value="ALL">All statuses</option>
+                  {BED_STATUS.map((status) => (
+                    <option key={status} value={status}>
+                      {status.replaceAll("_", " ")}
+                    </option>
+                  ))}
+                </ThemedSelect>
+
+                {canManage && (
+                  <Button 
+                    className="rounded-full"
+                    onClick={() => {
+                      setSelectedBedId(null);
+                      setIsAssignDrawerOpen(true);
+                    }}
+                  >
+                    <ClipboardPlus className="h-4 w-4 mr-2" />
+                    Admit Patient
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
           <div className="mt-6 space-y-6">
             {occupancyQuery.isLoading
               ? (
-                <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
-                  <Loader2 className="h-4 w-4 animate-spin text-brand" />
+                <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                   Loading occupancy board
                 </div>
               )
@@ -769,38 +792,38 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
             {wards.map((ward) => (
               <article
                 key={ward.id}
-                className="glass-panel-muted rounded-[28px] p-5"
+                className="management-record-shell p-5"
               >
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
-                      <h3 className="text-2xl font-semibold text-ink">
+                      <h3 className="text-2xl font-semibold text-foreground">
                         {ward.name}
                       </h3>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                      <span className="management-selection-pill px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Floor {ward.floor || "NA"}
                       </span>
                     </div>
-                    <p className="mt-3 text-sm text-ink-soft">
+                    <p className="mt-3 text-sm text-muted-foreground">
                       {ward.occupiedBeds} occupied of {ward.totalBeds}{" "}
                       beds available
                     </p>
                   </div>
 
                   <div className="flex gap-3">
-                    <div className="metric-tile rounded-[22px] px-4 py-3 text-center">
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-metric px-4 py-3 text-center">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Occupancy
                       </p>
-                      <p className="mt-1 text-lg font-semibold text-ink">
+                      <p className="mt-1 text-lg font-semibold text-foreground">
                         {getOccupancyPercent(ward.occupiedBeds, ward.totalBeds)}
                       </p>
                     </div>
-                    <div className="metric-tile rounded-[22px] px-4 py-3 text-center">
-                      <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <div className="management-metric px-4 py-3 text-center">
+                      <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                         Free
                       </p>
-                      <p className="mt-1 text-lg font-semibold text-ink">
+                      <p className="mt-1 text-lg font-semibold text-foreground">
                         {ward.availableBeds}
                       </p>
                     </div>
@@ -811,22 +834,22 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                   {ward.rooms.map((room) => (
                     <div
                       key={room.id ?? `${ward.id}-${room.roomNumber ?? "room"}`}
-                      className="glass-panel rounded-[24px] p-4"
+                      className="rounded-xl border bg-background p-4 shadow-sm"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-lg font-semibold text-ink">
+                          <p className="text-lg font-semibold text-foreground">
                             {room.roomNumber || "Room pending"}
                           </p>
-                          <p className="mt-1 text-sm text-ink-soft">
+                          <p className="mt-1 text-sm text-muted-foreground">
                             {room.roomType || "Type pending"}
                           </p>
                         </div>
-                        <div className="metric-tile rounded-[18px] px-3 py-2 text-right">
-                          <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                        <div className="management-metric px-3 py-2 text-right">
+                          <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                             Daily charge
                           </p>
-                          <p className="mt-1 text-sm font-semibold text-ink">
+                          <p className="mt-1 text-sm font-semibold text-foreground">
                             {formatCurrency(room.dailyCharge)}
                           </p>
                         </div>
@@ -836,12 +859,12 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                         {room.beds.map((bed) => (
                           <Button
                             key={bed.id}
-                            className={`h-auto rounded-[22px] border p-4 text-left transition ${
+                            className={`h-auto rounded-lg border p-4 text-left transition ${
                               statusToneMap[bed.status]
                             } ${
                               selectedBedId === bed.id
-                                ? "ring-2 ring-brand ring-offset-2"
-                                : "hover:border-brand"
+                                ? "ring-2 ring-primary ring-offset-2"
+                                : "hover:border-primary"
                             }`}
                             onClick={() => selectBed(bed)}
                             type="button"
@@ -881,7 +904,6 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
             ))}
           </div>
         </SurfaceCard>
-      </section>
     </div>
   );
 }

@@ -64,21 +64,21 @@ export default async function AccessDeniedPage({
   const authError = params?.error;
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-10 sm:px-6">
-      <section className="glass-panel-strong w-full max-w-2xl rounded-[36px] p-8 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4 py-10 sm:px-6">
+      <section className="w-full max-w-2xl rounded-2xl border bg-card p-8 text-center shadow-[var(--shadow-card)]">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-danger">
           Access denied
         </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-ink">
+        <h1 className="mt-4 text-4xl font-semibold tracking-tight text-foreground">
           {content.title}
         </h1>
-        <p className="mt-5 text-base leading-8 text-ink-soft">
+        <p className="mt-5 text-base leading-8 text-muted-foreground">
           {content.description}
         </p>
 
         {attemptedEmail
           ? (
-            <div className="glass-chip mt-6 inline-flex max-w-full items-center justify-center rounded-full px-4 py-2 text-sm text-ink">
+            <div className="management-selection-pill mt-6 inline-flex max-w-full items-center justify-center px-4 py-2 text-sm text-foreground">
               Attempted account: {attemptedEmail}
             </div>
           )
@@ -86,17 +86,17 @@ export default async function AccessDeniedPage({
 
         {authError
           ? (
-            <p className="mt-4 text-sm text-ink-soft">
-              Auth error code: <span className="font-semibold text-ink">{authError}</span>
+            <p className="mt-4 text-sm text-muted-foreground">
+              Auth error code: <span className="font-semibold text-foreground">{authError}</span>
             </p>
           )
           : null}
 
-        <div className="glass-panel-muted mt-8 rounded-[28px] p-5 text-left">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-ink-soft">
+        <div className="management-subtle-card mt-8 p-5 text-left">
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
             Next valid actions
           </p>
-          <ul className="mt-4 space-y-3 text-sm leading-7 text-ink-soft">
+          <ul className="mt-4 space-y-3 text-sm leading-7 text-muted-foreground">
             {content.actions.map((action) => <li key={action}>{action}</li>)}
           </ul>
         </div>
@@ -104,13 +104,13 @@ export default async function AccessDeniedPage({
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Link
             href="/login"
-            className="inline-flex items-center justify-center rounded-full bg-[linear-gradient(180deg,var(--primary)_0%,var(--brand-strong)_100%)] px-5 py-3 text-sm font-semibold text-white shadow-[var(--shadow-button)] transition hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-medium text-primary-foreground shadow-[var(--shadow-button)] transition hover:bg-primary/90"
           >
             Return to login
           </Link>
           <Link
             href="/"
-            className="glass-chip rounded-full px-5 py-3 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand"
+            className="inline-flex items-center justify-center rounded-md border bg-background px-5 py-3 text-sm font-semibold text-foreground transition hover:bg-accent hover:text-accent-foreground"
           >
             Open public site
           </Link>

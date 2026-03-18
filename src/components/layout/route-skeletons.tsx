@@ -8,7 +8,7 @@ type DashboardRouteSkeletonProps = {
 
 function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn("glass-panel rounded-[24px] p-4 sm:p-5", className)}>
+    <div className={cn("rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5", className)}>
       <Skeleton className="h-4 w-24" />
       <Skeleton className="mt-4 h-8 w-28" />
       <Skeleton className="mt-4 h-24 w-full" />
@@ -26,7 +26,7 @@ export function DashboardRouteSkeleton({
 
   return (
     <div className={cn("space-y-6", className)}>
-      <div className="glass-panel-strong rounded-[24px] p-4 sm:p-5">
+      <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
         <Skeleton className="h-3 w-24" />
         <Skeleton className="mt-3 h-10 w-full max-w-[22rem]" />
         <Skeleton className="mt-3 h-4 w-full max-w-3xl" />
@@ -45,14 +45,14 @@ export function DashboardRouteSkeleton({
             ))}
           </section>
           <section className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <div className="flex items-center justify-between gap-4">
                 <Skeleton className="h-6 w-40" />
                 <Skeleton className="h-9 w-28 rounded-full" />
               </div>
               <Skeleton className="mt-5 h-[22rem] w-full" />
             </div>
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <Skeleton className="h-6 w-44" />
               <Skeleton className="mt-5 h-[22rem] w-full" />
             </div>
@@ -68,7 +68,7 @@ export function DashboardRouteSkeleton({
             ))}
           </section>
           <section className="grid gap-4 xl:grid-cols-[1.7fr_1fr]">
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <div className="flex flex-wrap gap-3">
                 <Skeleton className="h-10 min-w-[15rem] flex-1" />
                 <Skeleton className="h-10 w-28" />
@@ -76,7 +76,7 @@ export function DashboardRouteSkeleton({
               </div>
               <Skeleton className="mt-5 h-[28rem] w-full" />
             </div>
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <Skeleton className="h-6 w-40" />
               <Skeleton className="mt-5 h-[28rem] w-full" />
             </div>
@@ -91,7 +91,7 @@ export function DashboardRouteSkeleton({
             isForm ? "xl:grid-cols-[1.45fr_0.95fr]" : "xl:grid-cols-[1.3fr_1fr]",
           )}
         >
-          <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+          <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
             <div className="grid gap-4 md:grid-cols-2">
               {Array.from({ length: isForm ? 8 : 6 }).map((_, index) => (
                 <div key={index}>
@@ -107,11 +107,11 @@ export function DashboardRouteSkeleton({
             </div>
           </div>
           <div className="space-y-4">
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <Skeleton className="h-6 w-40" />
               <Skeleton className="mt-5 h-48 w-full" />
             </div>
-            <div className="glass-panel rounded-[24px] p-4 sm:p-5">
+            <div className="rounded-[var(--radius-panel)] border bg-card p-4 shadow-[var(--shadow-soft)] sm:p-5">
               <Skeleton className="h-6 w-44" />
               <Skeleton className="mt-5 h-56 w-full" />
             </div>

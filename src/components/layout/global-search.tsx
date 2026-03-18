@@ -1,9 +1,16 @@
 "use client";
 
-import { Camera, Loader2, ScanLine, Search, X } from "lucide-react";
+import { Camera, Loader2, Search, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { toast } from "sonner";
 
 import { BarcodeCameraScanner } from "@/components/barcode/barcode-camera-scanner";
@@ -11,6 +18,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { APP_TEXT } from "@/constants/appText";
+import { useAppShell } from "@/hooks/useAppShell";
 import { useBarcodeLookup } from "@/hooks/useBarcodeLookup";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { useScanner } from "@/hooks/useScanner";
@@ -25,10 +34,26 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
   const [scanFeedback, setScanFeedback] = useState<string | null>(null);
+  const deferredQuery = useDeferredValue(query);
   const router = useRouter();
   const pathname = usePathname();
-  const searchQuery = useGlobalSearch(query);
+  const { setGlobalSearchOpen } = useAppShell();
+  const searchQuery = useGlobalSearch(deferredQuery);
   const barcodeLookup = useBarcodeLookup();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+
+  const closeSearch = useCallback(
+    ({ clearQuery = false }: { clearQuery?: boolean } = {}) => {
+      setIsOpen(false);
+      setScanFeedback(null);
+      setGlobalSearchOpen(false);
+
+      if (clearQuery) {
+        setQuery("");
+      }
+    },
+    [setGlobalSearchOpen],
+  );
 
   const handleScannedCode = useCallback(async (value: string) => {
     const normalized = value.trim();
@@ -39,6 +64,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
 
     setQuery(normalized);
     setIsOpen(true);
+    setGlobalSearchOpen(true);
     setScanFeedback(`Captured code ${normalized}. Checking exact barcode matches.`);
     setIsCameraOpen(false);
 
@@ -46,9 +72,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
       const result = await barcodeLookup.mutateAsync(normalized);
 
       if (result.redirectHref) {
-        setQuery("");
-        setIsOpen(false);
-        setScanFeedback(null);
+        closeSearch({ clearQuery: true });
         router.push(result.redirectHref);
         return;
       }
@@ -70,7 +94,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
       setScanFeedback(`Lookup failed for ${normalized}.`);
       toast.error(message);
     }
-  }, [barcodeLookup, router]);
+  }, [barcodeLookup, closeSearch, router, setGlobalSearchOpen]);
 
   useScanner({
     enabled: pathname.startsWith("/dashboard") && !isCameraOpen,
@@ -79,14 +103,12 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
 
   useEffect(() => {
     function handlePointerDown(event: MouseEvent) {
-      const searchRoot = document.getElementById("global-search-root");
-
       if (
-        searchRoot &&
+        rootRef.current &&
         event.target instanceof Node &&
-        !searchRoot.contains(event.target)
+        !rootRef.current.contains(event.target)
       ) {
-        setIsOpen(false);
+        closeSearch();
       }
     }
 
@@ -95,11 +117,11 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
     };
-  }, []);
+  }, [closeSearch]);
 
   const helperText = useMemo(() => {
     if (barcodeLookup.isPending) {
-      return "Resolving exact barcode match.";
+      return APP_TEXT.SHELL.SEARCH_RESOLVING_BARCODE;
     }
 
     if (scanFeedback) {
@@ -107,15 +129,15 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
     }
 
     if (query.length < 2) {
-      return "Search patients, doctors, bills, appointments, wards, rooms, beds, or scan with hardware or camera.";
+      return APP_TEXT.SHELL.SEARCH_IDLE;
     }
 
     if (searchQuery.isFetching) {
-      return "Looking across permitted modules.";
+      return APP_TEXT.SHELL.SEARCH_LOADING;
     }
 
     if (!searchQuery.data || searchQuery.data.total === 0) {
-      return "No results in the modules you can access.";
+      return APP_TEXT.SHELL.SEARCH_EMPTY;
     }
 
     return `${searchQuery.data.total} result${
@@ -134,53 +156,40 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
   return (
     <div
       className={cn(
-        "relative w-full",
-        compact ? "max-w-[31rem]" : "max-w-[36rem]",
+        "relative w-full transition-all duration-300",
+        compact ? "max-w-xl" : "max-w-3xl",
       )}
-      id="global-search-root"
+      ref={rootRef}
     >
       <label
         className={cn(
-          "glass-panel-muted flex items-center gap-3 transition focus-within:border-primary",
-          compact ? "rounded-[20px] px-3.5 py-2.5" : "rounded-[24px] px-4 py-3.5",
+          "flex items-center gap-2 rounded-[var(--radius-control)] border bg-background transition-all duration-300 shadow-[var(--shadow-soft)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20",
+          compact ? "min-h-10 px-3" : "min-h-11 px-4",
         )}
       >
-        <Search className="h-4 w-4 text-primary" />
+        <Search className="h-4 w-4 text-muted-foreground" />
         <Input
-          className="h-auto border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
+          className="h-auto border-0 bg-transparent px-0 py-0 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/60"
           onChange={(event) => {
             setQuery(event.target.value);
             setScanFeedback(null);
             setIsOpen(true);
+            setGlobalSearchOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
-          placeholder={compact
-            ? "Search patients, bills, wards, doctors"
-            : "Search patients, doctors, bills, appointments, wards, rooms, beds"}
+          onFocus={() => {
+            setIsOpen(true);
+            setGlobalSearchOpen(true);
+          }}
+          placeholder={APP_TEXT.SHELL.SEARCH_PLACEHOLDER}
           value={query}
         />
-        <Button
-          className={cn("shrink-0", compact ? "px-2.5" : "px-3")}
-          onClick={() => {
-            setIsCameraOpen(true);
-            setScanFeedback(null);
-            setIsOpen(false);
-          }}
-          size={compact ? "icon" : "sm"}
-          type="button"
-          variant="outline"
-        >
-          <Camera className="h-3.5 w-3.5" />
-          {!compact ? "Camera" : <span className="sr-only">Open camera scanner</span>}
-        </Button>
-        {query
-          ? (
+
+        <div className="flex items-center gap-2">
+          {query ? (
             <Button
-              className="text-muted-foreground hover:text-foreground"
+              className="h-8 w-8 rounded-md text-muted-foreground"
               onClick={() => {
-                setQuery("");
-                setScanFeedback(null);
-                setIsOpen(false);
+                closeSearch({ clearQuery: true });
               }}
               size="icon"
               type="button"
@@ -188,77 +197,82 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
             >
               <X className="h-4 w-4" />
             </Button>
-          )
-          : (
-            <Badge className="hidden shrink-0 sm:inline-flex" variant="outline">
-              <ScanLine className="h-3.5 w-3.5" />
-              Wedge ready
-            </Badge>
+          ) : (
+            <Button
+              className="h-8 w-8 rounded-md text-muted-foreground"
+              onClick={() => {
+                setIsCameraOpen(true);
+                closeSearch();
+              }}
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
           )}
+        </div>
       </label>
 
-      {isOpen
-        ? (
-          <Card className="absolute left-0 right-0 top-[calc(100%+0.9rem)] z-40 overflow-hidden">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground">{helperText}</p>
-                {searchQuery.isFetching || barcodeLookup.isPending
-                  ? <Loader2 className="h-4 w-4 animate-spin text-primary" />
-                  : null}
+      {isOpen ? (
+        <Card className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-40 overflow-hidden rounded-[var(--radius-panel)] border bg-popover shadow-[var(--shadow-card)]">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+              <div>
+                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                  {APP_TEXT.SHELL.SEARCH_LIVE}
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">{helperText}</p>
               </div>
+              {(searchQuery.isFetching || barcodeLookup.isPending) ? (
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
+              ) : null}
+            </div>
 
-              {query.length < 2
-                ? (
-                  <div className="glass-panel-muted mt-4 rounded-[22px] border-dashed p-4 text-sm text-muted-foreground">
-                    Type at least 2 characters. Hardware scanners that behave like
-                    keyboard wedges can send a code plus Enter, and the camera
-                    scanner uses the same barcode lookup route.
-                  </div>
-                )
+            <div className="max-h-[50vh] overflow-y-auto pr-1 scrollbar-none">
+              {query.length < 2 ? (
+                <div className="mt-4 rounded-lg border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
+                  {APP_TEXT.SHELL.SEARCH_TYPING}
+                </div>
+              ) : null}
+
+              {query.length >= 2 && !searchQuery.isFetching
+                ? searchQuery.data?.sections.map((section) => (
+                    <section key={section.kind} className="mt-4 first:mt-2">
+                      <p className="px-2 text-[10px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                        {section.label}
+                      </p>
+                      <div className="mt-2 space-y-1">
+                        {section.results.map((result) => (
+                          <Link
+                            className="flex items-center justify-between gap-4 rounded-md px-3 py-3 transition-colors hover:bg-accent hover:text-accent-foreground"
+                            href={result.href}
+                            key={result.kind + result.id}
+                            onClick={() => {
+                              closeSearch({ clearQuery: true });
+                            }}
+                          >
+                            <div className="min-w-0">
+                              <p className="truncate text-sm font-semibold tracking-tight text-foreground">
+                                {result.title}
+                              </p>
+                              <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                {result.subtitle}
+                              </p>
+                            </div>
+                            <Badge className="h-6 px-2 py-0" variant="outline">
+                              {result.badge}
+                            </Badge>
+                          </Link>
+                        ))}
+                      </div>
+                    </section>
+                  ))
                 : null}
-
-              {query.length >= 2 && !searchQuery.isFetching &&
-                searchQuery.data?.sections.map((section) => (
-                  <section key={section.kind} className="mt-4">
-                    <p className="px-1 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                      {section.label}
-                    </p>
-                    <div className="mt-2 space-y-2">
-                      {section.results.map((result) => (
-                        <Link
-                          className="glass-panel-muted flex items-start justify-between gap-4 rounded-[22px] px-4 py-3.5 transition hover:-translate-y-0.5 hover:border-primary/25"
-                          href={result.href}
-                          key={result.kind + result.id}
-                          onClick={() => {
-                            setIsOpen(false);
-                            setQuery("");
-                            setScanFeedback(null);
-                          }}
-                        >
-                          <div>
-                            <p className="text-sm font-semibold text-foreground">
-                              {result.title}
-                            </p>
-                            <p className="mt-1 text-sm text-muted-foreground">
-                              {result.subtitle}
-                            </p>
-                          </div>
-                          <div className="flex shrink-0 flex-col items-end gap-2">
-                            <Badge variant="outline">{result.badge}</Badge>
-                            {result.exactMatch
-                              ? <Badge variant="success">Exact</Badge>
-                              : null}
-                          </div>
-                        </Link>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-            </CardContent>
-          </Card>
-        )
-        : null}
+            </div>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <BarcodeCameraScanner
         isOpen={isCameraOpen}

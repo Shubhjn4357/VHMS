@@ -25,46 +25,46 @@ export function PublicBlogArticle({
   return (
     <PublicSiteChrome>
       <div className="space-y-6">
-        <SurfaceCard className="overflow-hidden bg-[linear-gradient(135deg,#0b4f56_0%,#12263f_52%,#155eef_100%)] text-white shadow-[var(--shadow-card)]">
+        <SurfaceCard className="overflow-hidden border bg-card shadow-[var(--shadow-card)]">
           <Link
             href="/blog"
-            className="inline-flex items-center gap-2 text-sm font-medium text-white/76 transition hover:text-white"
+            className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to blog
           </Link>
 
           <div className="mt-8 flex flex-wrap gap-3 text-xs font-semibold uppercase tracking-[0.18em]">
-            <span className="rounded-full bg-white/10 px-3 py-1 text-white/84">
+            <span className="rounded-md bg-secondary px-3 py-1 text-secondary-foreground">
               {post.category?.name ?? "Hospital operations"}
             </span>
-            <span className="rounded-full bg-white/10 px-3 py-1 text-white/84">
+            <span className="rounded-md bg-accent px-3 py-1 text-accent-foreground">
               Published article
             </span>
           </div>
 
-          <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl">
+          <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
             {post.title}
           </h1>
-          <p className="mt-5 max-w-3xl text-base leading-8 text-white/76 sm:text-lg">
+          <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
             {post.seoDescription ?? post.excerpt ??
               "A product and workflow note from the VHMS rollout."}
           </p>
 
-          <div className="mt-8 flex flex-wrap gap-5 text-sm text-white/72">
+          <div className="mt-8 flex flex-wrap gap-5 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-white/84" />
+              <CalendarDays className="h-4 w-4 text-primary" />
               {formatPublishDate(post.publishedAt)}
             </span>
             <span className="inline-flex items-center gap-2">
-              <Clock3 className="h-4 w-4 text-white/84" />
+              <Clock3 className="h-4 w-4 text-primary" />
               {post.readingMinutes} min read
             </span>
           </div>
 
           {post.coverImageUrl
             ? (
-              <div className="mt-8 overflow-hidden rounded-[28px] border border-white/12 bg-white/6">
+              <div className="mt-8 overflow-hidden rounded-xl border border-border/70">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   alt={post.title}
@@ -77,7 +77,7 @@ export function PublicBlogArticle({
         </SurfaceCard>
 
         <SurfaceCard className="px-6 py-8 sm:px-10">
-          <div className="mx-auto max-w-3xl space-y-6 text-base leading-8 text-ink-soft">
+          <div className="mx-auto max-w-3xl space-y-6 text-base leading-8 text-muted-foreground">
             {splitParagraphs(post.body).map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}

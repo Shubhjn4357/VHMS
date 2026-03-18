@@ -1,0 +1,456 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e7]:
+          - generic [ref=e8]:
+            - generic [ref=e9]:
+              - paragraph [ref=e10]: Hospital command center
+              - heading "Vahi HMS Enterprise" [level=1] [ref=e11]
+            - generic [ref=e12]: Live operations mesh
+          - generic [ref=e13]:
+            - paragraph [ref=e14]: Operations
+            - heading "Dashboard" [level=2] [ref=e134]
+            - paragraph [ref=e16]: Live operational modules for reception, billing, doctors, and room-linked intake control.
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - generic [ref=e137]:
+              - paragraph [ref=e138]: Operations
+              - generic [ref=e139]: "9"
+            - generic [ref=e140]:
+              - link "Dashboard" [ref=e141] [cursor=pointer]:
+                - /url: /dashboard
+                - img [ref=e142]
+                - generic [ref=e147]: Dashboard
+                - generic [ref=e148]: Live
+              - link "Patients" [ref=e149] [cursor=pointer]:
+                - /url: /dashboard/patients
+                - img [ref=e150]
+                - generic [ref=e155]: Patients
+                - generic [ref=e156]: Live
+              - link "OPD" [ref=e157] [cursor=pointer]:
+                - /url: /dashboard/opd
+                - img [ref=e158]
+                - generic [ref=e160]: OPD
+                - generic [ref=e161]: Flow
+              - link "Doctors" [ref=e162] [cursor=pointer]:
+                - /url: /dashboard/doctors
+                - img [ref=e163]
+                - generic [ref=e167]: Doctors
+                - generic [ref=e168]: Live
+              - link "Appointments" [ref=e169] [cursor=pointer]:
+                - /url: /dashboard/appointments
+                - img [ref=e170]
+                - generic [ref=e172]: Appointments
+                - generic [ref=e173]: Live
+              - link "Billing" [ref=e174] [cursor=pointer]:
+                - /url: /dashboard/billing
+                - img [ref=e175]
+                - generic [ref=e178]: Billing
+                - generic [ref=e179]: Live
+              - link "Charge Master" [ref=e180] [cursor=pointer]:
+                - /url: /dashboard/charge-master
+                - img [ref=e181]
+                - generic [ref=e184]: Charge Master
+                - generic [ref=e185]: Core
+              - link "Rooms" [ref=e186] [cursor=pointer]:
+                - /url: /dashboard/rooms
+                - img [ref=e187]
+                - generic [ref=e190]: Rooms
+                - generic [ref=e191]: Live
+              - link "Wards & Beds" [ref=e192] [cursor=pointer]:
+                - /url: /dashboard/wards
+                - img [ref=e193]
+                - generic [ref=e196]: Wards & Beds
+                - generic [ref=e197]: Live
+          - generic [ref=e198]:
+            - generic [ref=e199]:
+              - paragraph [ref=e200]: Clinical
+              - generic [ref=e201]: "5"
+            - generic [ref=e202]:
+              - link "IPD" [ref=e203] [cursor=pointer]:
+                - /url: /dashboard/ipd
+                - img [ref=e204]
+                - generic [ref=e207]: IPD
+                - generic [ref=e208]: Flow
+              - link "Occupancy" [ref=e209] [cursor=pointer]:
+                - /url: /dashboard/occupancy
+                - img [ref=e210]
+                - generic [ref=e213]: Occupancy
+                - generic [ref=e214]: Live
+              - link "Discharge Summaries" [ref=e215] [cursor=pointer]:
+                - /url: /dashboard/discharge-summaries
+                - img [ref=e216]
+                - generic [ref=e219]: Discharge Summaries
+                - generic [ref=e220]: Live
+              - link "Discharge" [ref=e221] [cursor=pointer]:
+                - /url: /dashboard/discharge
+                - img [ref=e222]
+                - generic [ref=e225]: Discharge
+                - generic [ref=e226]: Live
+              - link "Consents" [ref=e227] [cursor=pointer]:
+                - /url: /dashboard/consents
+                - img [ref=e228]
+                - generic [ref=e232]: Consents
+                - generic [ref=e233]: Live
+          - generic [ref=e234]:
+            - generic [ref=e235]:
+              - paragraph [ref=e236]: Administration
+              - generic [ref=e237]: "12"
+            - generic [ref=e238]:
+              - link "Staff" [ref=e239] [cursor=pointer]:
+                - /url: /dashboard/staff
+                - img [ref=e240]
+                - generic [ref=e252]: Staff
+                - generic [ref=e253]: Live
+              - link "Staff Access" [ref=e254] [cursor=pointer]:
+                - /url: /dashboard/staff-access
+                - img [ref=e255]
+                - generic [ref=e267]: Staff Access
+                - generic [ref=e268]: Invite-only
+              - link "Announcements" [ref=e269] [cursor=pointer]:
+                - /url: /dashboard/announcements
+                - img [ref=e270]
+                - generic [ref=e273]: Announcements
+                - generic [ref=e274]: Live
+              - link "Notifications" [ref=e275] [cursor=pointer]:
+                - /url: /dashboard/notifications
+                - img [ref=e276]
+                - generic [ref=e281]: Notifications
+                - generic [ref=e282]: Live
+              - link "Communications" [ref=e283] [cursor=pointer]:
+                - /url: /dashboard/communications
+                - img [ref=e284]
+                - generic [ref=e286]: Communications
+                - generic [ref=e287]: Live
+              - link "Print Templates" [ref=e288] [cursor=pointer]:
+                - /url: /dashboard/print-templates
+                - img [ref=e289]
+                - generic [ref=e293]: Print Templates
+                - generic [ref=e294]: Live
+              - link "Reports" [ref=e295] [cursor=pointer]:
+                - /url: /dashboard/reports
+                - img [ref=e296]
+                - generic [ref=e299]: Reports
+                - generic [ref=e300]: Live
+              - link "Analytics" [ref=e301] [cursor=pointer]:
+                - /url: /dashboard/analytics
+                - img [ref=e302]
+                - generic [ref=e304]: Analytics
+                - generic [ref=e305]: Live
+              - link "Audit Logs" [ref=e306] [cursor=pointer]:
+                - /url: /dashboard/audit-logs
+                - img [ref=e307]
+                - generic [ref=e309]: Audit Logs
+                - generic [ref=e310]: Live
+              - link "Settings" [ref=e311] [cursor=pointer]:
+                - /url: /dashboard/settings
+                - img [ref=e312]
+                - generic [ref=e315]: Settings
+                - generic [ref=e316]: Live
+              - link "Profile" [ref=e317] [cursor=pointer]:
+                - /url: /dashboard/profile
+                - img [ref=e318]
+                - generic [ref=e330]: Profile
+                - generic [ref=e331]: Account
+              - link "Blog CMS" [ref=e332] [cursor=pointer]:
+                - /url: /dashboard/blog
+                - img [ref=e333]
+                - generic [ref=e336]: Blog CMS
+                - generic [ref=e337]: Live
+        - generic [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e21]:
+              - paragraph [ref=e22]: Occupancy pulse
+              - paragraph [ref=e23]: 2/10
+            - generic [ref=e24]: 20% active
+          - paragraph [ref=e25]: Beds occupied
+          - generic [ref=e27]:
+            - generic [ref=e29]:
+              - generic [ref=e30]:
+                - img [ref=e32]
+                - generic [ref=e34]:
+                  - paragraph [ref=e35]: Pending approvals
+                  - paragraph [ref=e36]: Discharge, consent, and workflow checks
+              - paragraph [ref=e37]: "4"
+            - generic [ref=e39]:
+              - generic [ref=e40]:
+                - img [ref=e42]
+                - generic [ref=e47]:
+                  - paragraph [ref=e48]: Unread alerts
+                  - paragraph [ref=e49]: Review queue and staff notifications
+              - paragraph [ref=e50]: "2"
+          - generic [ref=e51]:
+            - link "Reports" [ref=e52] [cursor=pointer]:
+              - /url: /dashboard/reports
+            - link "Settings" [ref=e53] [cursor=pointer]:
+              - /url: /dashboard/settings
+              - img [ref=e54]
+              - text: Settings
+    - generic [ref=e57]:
+      - banner [ref=e58]:
+        - generic [ref=e59]:
+          - generic [ref=e60]:
+            - generic [ref=e61]:
+              - button [ref=e62]:
+                - img [ref=e63]
+              - generic:
+                - generic:
+                  - generic [ref=e68]: Operations
+                  - generic [ref=e69]: Live operations mesh
+                - heading "Dashboard" [level=2]
+                - paragraph: Live operational modules for reception, billing, doctors, and room-linked intake control.
+            - generic [ref=e74]:
+              - textbox:
+                - /placeholder: Search patients, doctors, bills, appointments, wards, rooms, beds, or scan a barcode
+              - button [ref=e80]:
+                - img [ref=e81]
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - generic [ref=e86]:
+                  - img [ref=e87]
+                  - text: Online
+                - generic [ref=e91]:
+                  - img [ref=e92]
+                  - text: Sync healthy
+                - button "Switch theme. Current theme is system." [ref=e95]:
+                  - img [ref=e96]
+                  - generic [ref=e98]: System
+              - link "Public site" [ref=e99] [cursor=pointer]:
+                - /url: /
+              - button "Options" [ref=e101]:
+                - img [ref=e102]
+                - generic [ref=e106]: Options
+              - generic [ref=e339]:
+                - generic [ref=e340]:
+                  - paragraph [ref=e341]: Shubhamjain Com In
+                  - paragraph [ref=e342]: shubhamjain.com.in@gmail.com
+                  - generic [ref=e343]: Super Admin
+                - button "Options" [ref=e345]:
+                  - img [ref=e346]
+                  - generic [ref=e350]: Options
+          - generic [ref=e352]:
+            - link "Dashboard" [ref=e353] [cursor=pointer]:
+              - /url: /dashboard
+            - link "Patients" [ref=e354] [cursor=pointer]:
+              - /url: /dashboard/patients
+            - link "OPD" [ref=e355] [cursor=pointer]:
+              - /url: /dashboard/opd
+            - link "Doctors" [ref=e356] [cursor=pointer]:
+              - /url: /dashboard/doctors
+            - link "Appointments" [ref=e357] [cursor=pointer]:
+              - /url: /dashboard/appointments
+            - link "Billing" [ref=e358] [cursor=pointer]:
+              - /url: /dashboard/billing
+            - link "Charge Master" [ref=e359] [cursor=pointer]:
+              - /url: /dashboard/charge-master
+            - link "Rooms" [ref=e360] [cursor=pointer]:
+              - /url: /dashboard/rooms
+      - generic [ref=e108]:
+        - main [ref=e109]:
+          - generic [ref=e111]:
+            - generic [ref=e114]:
+              - generic [ref=e115]: Command board
+              - heading "Hospital operations dashboard" [level=1] [ref=e116]
+              - paragraph [ref=e117]: Use the live overview route to monitor appointments, billing, occupancy, communication load, approvals, and saved layout priorities from one operational command board.
+            - generic [ref=e361]:
+              - generic [ref=e363]:
+                - generic [ref=e364]:
+                  - generic [ref=e365]:
+                    - generic [ref=e366]: Dashboard layout
+                    - generic [ref=e367]: Personalized
+                  - heading "Compact hospital command surface" [level=3] [ref=e368]
+                  - paragraph [ref=e369]: The overview stays live, permission-aware, and personalizable without breaking the real operating data underneath it.
+                  - paragraph [ref=e370]: Saved 11 Mar, 11:38 pm
+                - generic [ref=e371]:
+                  - button "Customize layout" [ref=e372]:
+                    - img [ref=e373]
+                    - text: Customize layout
+                  - button "Reset" [ref=e376]:
+                    - img [ref=e377]
+                    - text: Reset
+              - generic [ref=e380]:
+                - generic [ref=e381]:
+                  - generic [ref=e387]: /dashboard
+                  - generic [ref=e388]:
+                    - generic [ref=e389]: ₹0 collected
+                    - generic [ref=e390]: 2/10 beds in use
+                    - generic [ref=e391]: Live sync
+                - generic [ref=e392]:
+                  - generic [ref=e394]:
+                    - generic [ref=e395]:
+                      - generic [ref=e396]:
+                        - paragraph [ref=e397]: Audit and approvals
+                        - paragraph [ref=e398]: Permission, billing, discharge, and communication activity remains visible.
+                      - generic [ref=e399]: 6 recent events
+                    - generic [ref=e401]:
+                      - generic [ref=e402]:
+                        - paragraph [ref=e403]: Collections today
+                        - paragraph [ref=e404]: ₹0
+                        - paragraph [ref=e405]: The summary is using live bill totals instead of decorative placeholder revenue.
+                      - generic [ref=e406]:
+                        - generic [ref=e408]:
+                          - generic [ref=e409]: "1"
+                          - generic [ref=e410]:
+                            - paragraph [ref=e411]: Auth Signin on Staff Access (saf_YdiVlw53BPqA) · shubh.com.in@gmail.com
+                            - paragraph [ref=e412]: 18 Mar, 03:07 pm
+                        - generic [ref=e414]:
+                          - generic [ref=e415]: "2"
+                          - generic [ref=e416]:
+                            - paragraph [ref=e417]: Staffaccess Updated on Staff Access (saf_YdiVlw53BPqA) · shubh.com.in@gmail.com · Billing Staff · Approved
+                            - paragraph [ref=e418]: 18 Mar, 03:07 pm
+                        - generic [ref=e420]:
+                          - generic [ref=e421]: "3"
+                          - generic [ref=e422]:
+                            - paragraph [ref=e423]: Auth Signin on User (usr_N0YbP0C_CgU-) · shubhamjain.com.in@gmail.com
+                            - paragraph [ref=e424]: 18 Mar, 03:05 pm
+                        - generic [ref=e426]:
+                          - generic [ref=e427]: "4"
+                          - generic [ref=e428]:
+                            - paragraph [ref=e429]: Auth Signin Blocked on Auth Session · sinchankibhuribhuri@gmail.com
+                            - paragraph [ref=e430]: 18 Mar, 03:05 pm
+                        - generic [ref=e432]:
+                          - generic [ref=e433]: "5"
+                          - generic [ref=e434]:
+                            - paragraph [ref=e435]: Auth Signin on Staff Access (saf_YdiVlw53BPqA) · shubh.com.in@gmail.com
+                            - paragraph [ref=e436]: 18 Mar, 03:04 pm
+                        - generic [ref=e438]:
+                          - generic [ref=e439]: "6"
+                          - generic [ref=e440]:
+                            - paragraph [ref=e441]: Auth Signin on Staff Access (saf_YdiVlw53BPqA) · shubh.com.in@gmail.com
+                            - paragraph [ref=e442]: 18 Mar, 03:03 pm
+                  - generic [ref=e445]:
+                    - generic [ref=e446]:
+                      - paragraph [ref=e447]: Doctor schedule and queue
+                      - paragraph [ref=e448]: Doctor availability and front-desk progress for today's appointment flow.
+                    - button "Refresh" [ref=e449]:
+                      - img [ref=e450]
+                      - text: Refresh
+                  - generic [ref=e454]:
+                    - generic [ref=e455]:
+                      - generic [ref=e456]:
+                        - paragraph [ref=e457]: Statistical summary
+                        - paragraph [ref=e458]: Patient, appointment, and occupancy signals pulled from the real hospital runtime.
+                      - generic [ref=e459]: Live sync
+                    - generic [ref=e461]:
+                      - generic [ref=e462]:
+                        - generic [ref=e463]:
+                          - paragraph [ref=e464]: Number of patients
+                          - img [ref=e466]
+                        - generic [ref=e469]:
+                          - generic [ref=e470]:
+                            - generic [ref=e471]: Registered
+                            - generic [ref=e472]: "5"
+                          - generic [ref=e474]:
+                            - generic [ref=e475]: Doctors
+                            - generic [ref=e476]: "5"
+                      - generic [ref=e477]:
+                        - generic [ref=e478]:
+                          - paragraph [ref=e479]: Daily visit
+                          - img [ref=e481]
+                        - generic [ref=e484]:
+                          - generic [ref=e485]:
+                            - generic [ref=e486]: Scheduled
+                            - generic [ref=e487]: "0"
+                          - generic [ref=e489]:
+                            - generic [ref=e490]: Checked in
+                            - generic [ref=e491]: "0"
+                      - generic [ref=e492]:
+                        - generic [ref=e493]:
+                          - paragraph [ref=e494]: Room capacity
+                          - img [ref=e496]
+                        - generic [ref=e499]:
+                          - generic [ref=e500]:
+                            - generic [ref=e501]: Beds available
+                            - generic [ref=e502]: "3"
+                          - generic [ref=e504]:
+                            - generic [ref=e505]: Occupied
+                            - generic [ref=e506]: "2"
+                  - generic [ref=e508]:
+                    - generic [ref=e509]:
+                      - generic [ref=e510]:
+                        - paragraph [ref=e511]: Ward capacity
+                        - paragraph [ref=e512]: Ward-level capacity and movement pressure from the live occupancy board.
+                      - generic [ref=e513]: 10 mapped beds
+                    - generic [ref=e515]:
+                      - generic [ref=e516]:
+                        - generic [ref=e517]:
+                          - generic [ref=e518]:
+                            - paragraph [ref=e519]: ICU
+                            - paragraph [ref=e520]: Reserved capacity is waiting for arrival
+                          - generic [ref=e521]: 1/3
+                        - generic [ref=e524]:
+                          - generic [ref=e525]: Available 1
+                          - generic [ref=e526]: Reserved 1
+                          - generic [ref=e527]: Cleaning 0
+                      - generic [ref=e528]:
+                        - generic [ref=e529]:
+                          - generic [ref=e530]:
+                            - paragraph [ref=e531]: Ward A
+                            - paragraph [ref=e532]: Requires cleaning or maintenance follow-up
+                          - generic [ref=e533]: 1/4
+                        - generic [ref=e536]:
+                          - generic [ref=e537]: Available 1
+                          - generic [ref=e538]: Reserved 0
+                          - generic [ref=e539]: Cleaning 1
+                      - generic [ref=e540]:
+                        - generic [ref=e541]:
+                          - generic [ref=e542]:
+                            - paragraph [ref=e543]: Private
+                            - paragraph [ref=e544]: Reserved capacity is waiting for arrival
+                          - generic [ref=e545]: 0/1
+                        - generic [ref=e547]:
+                          - generic [ref=e548]: Available 0
+                          - generic [ref=e549]: Reserved 1
+                          - generic [ref=e550]: Cleaning 0
+                      - generic [ref=e551]:
+                        - generic [ref=e552]:
+                          - generic [ref=e553]:
+                            - paragraph [ref=e554]: Ward B
+                            - paragraph [ref=e555]: Requires cleaning or maintenance follow-up
+                          - generic [ref=e556]: 0/2
+                        - generic [ref=e558]:
+                          - generic [ref=e559]: Available 1
+                          - generic [ref=e560]: Reserved 0
+                          - generic [ref=e561]: Cleaning 0
+                  - generic [ref=e563]:
+                    - generic [ref=e564]:
+                      - generic [ref=e565]:
+                        - paragraph [ref=e566]: Care coordination
+                        - paragraph [ref=e567]: Delivery queue and pending approval pressure across message channels.
+                      - generic [ref=e568]: 4 waiting
+                    - generic [ref=e569]:
+                      - generic [ref=e570]:
+                        - paragraph [ref=e571]: Operational alerts
+                        - paragraph [ref=e572]: 2 unread notifications and 4 approvals still need controlled review.
+                      - generic [ref=e573]:
+                        - generic [ref=e575]:
+                          - generic [ref=e576]:
+                            - paragraph [ref=e577]: EMAIL
+                            - paragraph [ref=e578]: 1 delivered, 0 queued, 0 failed
+                          - generic [ref=e579]: "1"
+                        - generic [ref=e581]:
+                          - generic [ref=e582]:
+                            - paragraph [ref=e583]: SMS
+                            - paragraph [ref=e584]: 0 delivered, 0 queued, 1 failed
+                          - generic [ref=e585]: "1"
+                        - generic [ref=e587]:
+                          - generic [ref=e588]:
+                            - paragraph [ref=e589]: WHATSAPP
+                            - paragraph [ref=e590]: 0 delivered, 1 queued, 0 failed
+                          - generic [ref=e591]: "1"
+                        - generic [ref=e593]:
+                          - generic [ref=e594]:
+                            - paragraph [ref=e595]: IN APP NOTIFICATION
+                            - paragraph [ref=e596]: 1 delivered, 0 queued, 0 failed
+                          - generic [ref=e597]: "1"
+        - contentinfo [ref=e123]:
+          - generic [ref=e124]:
+            - generic [ref=e127]:
+              - paragraph [ref=e128]: VHMS Admin Engine
+              - paragraph [ref=e129]: Patient, finance, ward, and communication workflows stay connected in one system.
+            - generic [ref=e130]:
+              - paragraph [ref=e131]: Invite-only hospital operations workspace.
+              - paragraph [ref=e132]: v4.0.1
+  - region "Notifications alt+T"
+  - alert [ref=e133]

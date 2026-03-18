@@ -23,6 +23,7 @@ import {
   Warehouse,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import type { PermissionKey } from "@/constants/permissions";
 import type { NavGroup } from "@/lib/module-config";
 import { cn } from "@/lib/utils/cn";
@@ -130,21 +131,24 @@ export function DashboardNavigation({
     .filter((group) => group.items.length > 0);
 
   return (
-    <div className={cn("space-y-5", collapsed && "space-y-4")}>
+    <div className="space-y-5">
       {visibleGroups.map((group) => (
-        <section key={group.title}>
-          {!collapsed
-            ? (
-              <p className="px-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+        <section className="space-y-2" key={group.title}>
+          {!collapsed ? (
+            <div className="flex items-center justify-between px-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/50">
                 {group.title}
               </p>
-            )
-            : null}
-          <div className={cn("mt-3 space-y-2", collapsed && "mt-0 space-y-1.5")}>
+              <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/40">
+                {group.items.length}
+              </span>
+            </div>
+          ) : null}
+
+          <div className="space-y-1">
             {group.items.map((item) =>
               item.href
-                ? (
-                  (() => {
+                ? (() => {
                     const Icon = getNavIcon(item.href);
                     const active = isActiveRoute(pathname, item.href);
 
@@ -152,45 +156,47 @@ export function DashboardNavigation({
                       <Link
                         aria-label={item.label}
                         className={cn(
-                          "glass-chip flex items-center gap-3 rounded-[18px] px-3 py-2.5 text-sm font-medium transition",
+                          "group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors",
                           active
-                            ? "border-primary/24 text-primary shadow-[var(--shadow-button)]"
-                            : "text-foreground hover:-translate-y-0.5 hover:border-primary/18 hover:text-primary",
-                          collapsed &&
-                            "justify-center rounded-[16px] px-3 py-2.5",
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
+                          collapsed && "mx-auto h-10 w-10 justify-center px-0",
                         )}
                         href={item.href}
                         key={item.label}
                         title={collapsed ? item.label : undefined}
                       >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {!collapsed
-                          ? (
-                            <>
-                              <span className="min-w-0 flex-1 truncate">
-                                {item.label}
-                              </span>
-                              {item.badge
-                                ? (
-                                  <span
-                                    className={cn(
-                                      "rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.16em]",
-                                      active
-                                        ? "bg-primary text-primary-foreground"
-                                        : "bg-white/50 text-muted-foreground dark:bg-white/6",
-                                    )}
-                                  >
-                                    {item.badge}
-                                  </span>
-                                )
-                                : null}
-                            </>
-                          )
-                          : null}
+                        <Icon
+                          className={cn(
+                            "h-5 w-5 shrink-0",
+                            active
+                              ? "text-sidebar-accent-foreground"
+                              : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground",
+                          )}
+                        />
+
+                        {!collapsed ? (
+                          <>
+                            <span className="min-w-0 flex-1 truncate font-medium">
+                              {item.label}
+                            </span>
+                            {item.badge ? (
+                              <Badge
+                                className={cn(
+                                  active
+                                    ? "border-transparent bg-sidebar text-sidebar-foreground"
+                                    : "border-sidebar-border bg-transparent text-sidebar-foreground/70",
+                                )}
+                                variant="outline"
+                              >
+                                {item.badge}
+                              </Badge>
+                            ) : null}
+                          </>
+                        ) : null}
                       </Link>
                     );
                   })()
-                )
                 : null
             )}
           </div>

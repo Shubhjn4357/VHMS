@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FileText, Loader2, Plus, Wallet } from "lucide-react";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -12,6 +12,7 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { OfflineDraftPanel } from "@/components/pwa/offline-draft-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useAppointmentDirectory } from "@/hooks/useAppointmentsApi";
@@ -140,6 +141,8 @@ export function BillComposerPanel() {
   };
   const billDraftPayloadJson = JSON.stringify(normalizedBillDraftValues);
 
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  
   const watchedAppointmentId = useWatch({
     control: form.control,
     name: "appointmentId",
@@ -386,354 +389,376 @@ export function BillComposerPanel() {
     (!chargeQuery.data?.entries?.length && cachedChargeEntries.length > 0);
 
   return (
-    <SurfaceCard>
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-          OPD billing composer
-        </p>
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-          Draft bill from appointment context
-        </h2>
-      </div>
+    <div className="space-y-6">
+      <SurfaceCard>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              OPD billing composer
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              Draft bill from appointment context
+            </h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              Compose a draft bill manually by selecting an appointment and adding charges from the active charge catalog. Only users with billing.create can perform this action.
+            </p>
+          </div>
+          <Button onClick={() => setIsDrawerOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Compose new draft
+          </Button>
+        </div>
+      </SurfaceCard>
 
-      {canCreateBilling
-        ? (
-          <form
-            className="mt-6 space-y-5"
-            onSubmit={form.handleSubmit(handleSubmit)}
-          >
-            {drafts.billComposer
+      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Compose draft bill</DrawerTitle>
+            <DrawerDescription>Create a draft invoice from an appointment.</DrawerDescription>
+          </DrawerHeader>
+
+          <div className="p-4 bg-background">
+            {canCreateBilling
               ? (
-                <OfflineDraftPanel
-                  description="This bill composition draft is stored locally so billing can recover it after a refresh or network loss."
-                  isOnline={isOnline}
-                  onDiscard={discardDraft}
-                  onRestore={restoreDraft}
-                  title="Saved bill composer draft"
-                  updatedAt={drafts.billComposer.updatedAt}
-                />
-              )
-              : null}
-
-            <label className="block">
-              <span className="text-sm font-medium text-ink">Appointment</span>
-              <ThemedSelect
-                {...form.register("appointmentId")}
-                className="mt-2"
-              >
-                <option value="">Select appointment</option>
-                {appointmentEntries
-                  .filter((entry) =>
-                    !["CANCELLED", "NO_SHOW"].includes(entry.status)
-                  )
-                  .map((entry) => (
-                    <option key={entry.id} value={entry.id}>
-                      {entry.patientHospitalNumber} - {entry.patientName} -{" "}
-                      {entry.doctorName} - {formatDateTime(entry.scheduledFor)}
-                    </option>
-                  ))}
-              </ThemedSelect>
-              <p className="mt-2 text-sm text-danger">
-                {form.formState.errors.appointmentId?.message}
-              </p>
-            </label>
-
-            {selectedAppointment
-              ? (
-                <div className="glass-panel-muted grid gap-3 rounded-[24px] p-4 md:grid-cols-3">
-                  <div className="metric-tile rounded-[20px] px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                      Patient
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-ink">
-                      {selectedAppointment.patientName}
-                    </p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {selectedAppointment.patientHospitalNumber}
-                    </p>
-                  </div>
-                  <div className="metric-tile rounded-[20px] px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                      Doctor
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-ink">
-                      {selectedAppointment.doctorName}
-                    </p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {selectedAppointment.doctorDepartment ||
-                        "Department pending"}
-                    </p>
-                  </div>
-                  <div className="metric-tile rounded-[20px] px-4 py-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                      Queue and status
-                    </p>
-                    <p className="mt-2 text-sm font-medium text-ink">
-                      #{selectedAppointment.queueNumber ?? "--"} /{" "}
-                      {selectedAppointment.visitType.replaceAll("_", " ")}
-                    </p>
-                    <p className="mt-1 text-sm text-ink-soft">
-                      {selectedAppointment.status.replaceAll("_", " ")}
-                    </p>
-                  </div>
-                </div>
-              )
-              : null}
-
-            <div className="grid gap-6 xl:grid-cols-[0.94fr_1.06fr]">
-              <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-                    Active charge catalog
-                  </p>
-                  <p className="mt-2 text-sm text-ink-soft">
-                    Add optional charges on top of the default consultation
-                    line.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  {activeChargeEntries.length === 0
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                >
+                  {drafts.billComposer
                     ? (
-                      <EmptyState
-                        className="min-h-44"
-                        description="No active charges are available yet. Create active charge master entries first."
-                        icon={Wallet}
-                        title="Charge catalog empty"
+                      <OfflineDraftPanel
+                        description="This bill composition draft is stored locally so billing can recover it after a refresh or network loss."
+                        isOnline={isOnline}
+                        onDiscard={discardDraft}
+                        onRestore={restoreDraft}
+                        title="Saved bill composer draft"
+                        updatedAt={drafts.billComposer.updatedAt}
                       />
                     )
                     : null}
 
-                  {activeChargeEntries.map((entry) => (
-                    <div
-                      key={entry.id}
-                      className="glass-chip flex items-center justify-between gap-3 rounded-[20px] px-4 py-3"
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Appointment</span>
+                    <ThemedSelect
+                      {...form.register("appointmentId")}
+                      className="mt-2"
                     >
+                      <option value="">Select appointment</option>
+                      {appointmentEntries
+                        .filter((entry) =>
+                          !["CANCELLED", "NO_SHOW"].includes(entry.status)
+                        )
+                        .map((entry) => (
+                          <option key={entry.id} value={entry.id}>
+                            {entry.patientHospitalNumber} - {entry.patientName} -{" "}
+                            {entry.doctorName} - {formatDateTime(entry.scheduledFor)}
+                          </option>
+                        ))}
+                    </ThemedSelect>
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.appointmentId?.message}
+                    </p>
+                  </label>
+
+                  {selectedAppointment
+                    ? (
+                      <div className="glass-panel-muted grid gap-3 rounded-[24px] p-4 md:grid-cols-3">
+                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                            Patient
+                          </p>
+                          <p className="mt-2 text-sm font-medium text-ink">
+                            {selectedAppointment.patientName}
+                          </p>
+                          <p className="mt-1 text-sm text-ink-soft">
+                            {selectedAppointment.patientHospitalNumber}
+                          </p>
+                        </div>
+                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                            Doctor
+                          </p>
+                          <p className="mt-2 text-sm font-medium text-ink">
+                            {selectedAppointment.doctorName}
+                          </p>
+                          <p className="mt-1 text-sm text-ink-soft">
+                            {selectedAppointment.doctorDepartment ||
+                              "Department pending"}
+                          </p>
+                        </div>
+                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                            Queue and status
+                          </p>
+                          <p className="mt-2 text-sm font-medium text-ink">
+                            #{selectedAppointment.queueNumber ?? "--"} /{" "}
+                            {selectedAppointment.visitType.replaceAll("_", " ")}
+                          </p>
+                          <p className="mt-1 text-sm text-ink-soft">
+                            {selectedAppointment.status.replaceAll("_", " ")}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                    : null}
+
+                  <div className="grid gap-6 xl:grid-cols-[0.94fr_1.06fr]">
+                    <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
                       <div>
-                        <p className="text-sm font-semibold text-ink">
-                          {entry.name}
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
+                          Active charge catalog
                         </p>
-                        <p className="mt-1 text-xs uppercase tracking-[0.16em] text-ink-soft">
-                          {entry.categoryLabel || "Category missing"}
+                        <p className="mt-2 text-sm text-ink-soft">
+                          Add optional charges on top of the default consultation
+                          line.
                         </p>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-ink">
-                          {formatCurrency(entry.unitPrice)}
-                        </span>
-                        <Button
-                          onClick={() => addChargeToBill(entry.id)}
-                          size="sm"
-                          type="button"
-                          variant="outline"
-                        >
-                          <Plus className="h-4 w-4" />
-                          Add
-                        </Button>
+
+                      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+                        {activeChargeEntries.length === 0
+                          ? (
+                            <EmptyState
+                              className="min-h-44"
+                              description="No active charges are available yet. Create active charge master entries first."
+                              icon={Wallet}
+                              title="Charge catalog empty"
+                            />
+                          )
+                          : null}
+
+                        {activeChargeEntries.map((entry) => (
+                          <div
+                            key={entry.id}
+                            className="glass-chip flex items-center justify-between gap-3 rounded-[20px] px-4 py-3"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-ink">
+                                {entry.name}
+                              </p>
+                              <p className="mt-1 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                                {entry.categoryLabel || "Category missing"}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-medium text-ink">
+                                {formatCurrency(entry.unitPrice)}
+                              </span>
+                              <Button
+                                onClick={() => addChargeToBill(entry.id)}
+                                size="sm"
+                                type="button"
+                                variant="outline"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
 
-              <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-                    Bill line items
-                  </p>
-                  <p className="mt-2 text-sm text-ink-soft">
-                    Consultation is loaded from the selected appointment.
-                    Quantities and prices remain editable before saving the
-                    draft.
-                  </p>
-                </div>
+                    <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
+                          Bill line items
+                        </p>
+                        <p className="mt-2 text-sm text-ink-soft">
+                          Consultation is loaded from the selected appointment.
+                          Quantities and prices remain editable before saving the
+                          draft.
+                        </p>
+                      </div>
 
-                {itemsFieldArray.fields.length === 0
-                  ? (
-                    <EmptyState
-                      className="min-h-44"
-                      description="Select an appointment to load consultation context, then add optional charges from the catalog."
-                      icon={FileText}
-                      title="No bill items yet"
-                    />
-                  )
-                  : null}
-
-                <div className="space-y-3">
-                  {itemsFieldArray.fields.map((field, index) => (
-                    <div
-                      key={field.id}
-                      className="glass-panel rounded-[22px] p-4"
-                    >
-                      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.35fr_0.35fr_auto]">
-                        <label className="block">
-                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                            Description
-                          </span>
-                          <Input
-                            {...form.register(`items.${index}.description`)}
-                            className="mt-2 rounded-[18px]"
+                      {itemsFieldArray.fields.length === 0
+                        ? (
+                          <EmptyState
+                            className="min-h-44"
+                            description="Select an appointment to load consultation context, then add optional charges from the catalog."
+                            icon={FileText}
+                            title="No bill items yet"
                           />
-                        </label>
+                        )
+                        : null}
+
+                      <div className="space-y-3">
+                        {itemsFieldArray.fields.map((field, index) => (
+                          <div
+                            key={field.id}
+                            className="glass-panel rounded-[22px] p-4"
+                          >
+                            <div className="grid gap-4 lg:grid-cols-[1.2fr_0.35fr_0.35fr_auto]">
+                              <label className="block">
+                                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                                  Description
+                                </span>
+                                <Input
+                                  {...form.register(`items.${index}.description`)}
+                                  className="mt-2 rounded-[18px]"
+                                />
+                              </label>
+                              <label className="block">
+                                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                                  Qty
+                                </span>
+                                <Input
+                                  {...form.register(`items.${index}.quantity`)}
+                                  className="mt-2 rounded-[18px]"
+                                  min="0.01"
+                                  step="0.01"
+                                  type="number"
+                                />
+                              </label>
+                              <label className="block">
+                                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                                  Rate
+                                </span>
+                                <Input
+                                  {...form.register(`items.${index}.unitPrice`)}
+                                  className="mt-2 rounded-[18px]"
+                                  min="0"
+                                  step="0.01"
+                                  type="number"
+                                />
+                              </label>
+                              <div className="flex items-end">
+                                <Button
+                                  className="hover:border-destructive hover:text-destructive"
+                                  onClick={() => itemsFieldArray.remove(index)}
+                                  size="sm"
+                                  type="button"
+                                  variant="outline"
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            </div>
+
+                            <input
+                              {...form.register(`items.${index}.chargeId`)}
+                              type="hidden"
+                            />
+                            <p className="mt-3 text-sm text-danger">
+                              {form.formState.errors.items?.[index]?.description
+                                ?.message ||
+                                form.formState.errors.items?.[index]?.quantity
+                                  ?.message ||
+                                form.formState.errors.items?.[index]?.unitPrice
+                                  ?.message}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="grid gap-4 sm:grid-cols-2">
                         <label className="block">
-                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                            Qty
+                          <span className="text-sm font-medium text-ink">
+                            Discount
                           </span>
                           <Input
-                            {...form.register(`items.${index}.quantity`)}
-                            className="mt-2 rounded-[18px]"
-                            min="0.01"
-                            step="0.01"
-                            type="number"
-                          />
-                        </label>
-                        <label className="block">
-                          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                            Rate
-                          </span>
-                          <Input
-                            {...form.register(`items.${index}.unitPrice`)}
-                            className="mt-2 rounded-[18px]"
+                            {...form.register("discountAmount")}
+                            className="mt-2 bg-card"
                             min="0"
                             step="0.01"
                             type="number"
                           />
                         </label>
-                        <div className="flex items-end">
-                          <Button
-                            className="hover:border-destructive hover:text-destructive"
-                            onClick={() => itemsFieldArray.remove(index)}
-                            size="sm"
-                            type="button"
-                            variant="outline"
-                          >
-                            Remove
-                          </Button>
+
+                        <label className="block">
+                          <span className="text-sm font-medium text-ink">Tax</span>
+                          <Input
+                            {...form.register("taxAmount")}
+                            className="mt-2 bg-card"
+                            min="0"
+                            step="0.01"
+                            type="number"
+                          />
+                        </label>
+                      </div>
+
+                      <div className="metric-tile rounded-[22px] p-4">
+                        <div className="flex items-center justify-between gap-3 text-sm">
+                          <span className="text-ink-soft">Subtotal</span>
+                          <span className="font-medium text-ink">
+                            {formatCurrency(subtotal)}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-ink-soft">Discount</span>
+                          <span className="font-medium text-ink">
+                            {formatCurrency(Number(watchedDiscountAmount ?? 0))}
+                          </span>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between gap-3 text-sm">
+                          <span className="text-ink-soft">Tax</span>
+                          <span className="font-medium text-ink">
+                            {formatCurrency(Number(watchedTaxAmount ?? 0))}
+                          </span>
+                        </div>
+                        <div className="mt-4 border-t border-line pt-4">
+                          <div className="flex items-center justify-between gap-3">
+                            <span className="text-sm font-semibold text-ink">
+                              Grand total
+                            </span>
+                            <span className="text-xl font-semibold text-ink">
+                              {formatCurrency(totalAmount)}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
-                      <input
-                        {...form.register(`items.${index}.chargeId`)}
-                        type="hidden"
-                      />
-                      <p className="mt-3 text-sm text-danger">
-                        {form.formState.errors.items?.[index]?.description
-                          ?.message ||
-                          form.formState.errors.items?.[index]?.quantity
-                            ?.message ||
-                          form.formState.errors.items?.[index]?.unitPrice
-                            ?.message}
+                      <div className="flex flex-wrap gap-3 pb-6 mt-4">
+                        <Button
+                          disabled={createBillMutation.isPending ||
+                            !selectedAppointment ||
+                            itemsFieldArray.fields.length === 0}
+                          type="submit"
+                        >
+                          {createBillMutation.isPending
+                            ? <Loader2 className="h-4 w-4 animate-spin" />
+                            : <FileText className="h-4 w-4" />}
+                          Create draft bill
+                        </Button>
+
+                        <Button
+                          onClick={clearComposer}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          Clear invoice
+                        </Button>
+                      </div>
+
+                      <p className="text-sm leading-6 text-ink-soft">
+                        {isOnline
+                          ? "Bill drafts autosave locally and can queue on this device if connectivity drops before submit."
+                          : "You are offline. Draft bills will queue on this device and sync after reconnect."}
                       </p>
-                    </div>
-                  ))}
-                </div>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Discount
-                    </span>
-                    <Input
-                      {...form.register("discountAmount")}
-                      className="mt-2 bg-card"
-                      min="0"
-                      step="0.01"
-                      type="number"
-                    />
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Tax</span>
-                    <Input
-                      {...form.register("taxAmount")}
-                      className="mt-2 bg-card"
-                      min="0"
-                      step="0.01"
-                      type="number"
-                    />
-                  </label>
-                </div>
-
-                <div className="metric-tile rounded-[22px] p-4">
-                  <div className="flex items-center justify-between gap-3 text-sm">
-                    <span className="text-ink-soft">Subtotal</span>
-                    <span className="font-medium text-ink">
-                      {formatCurrency(subtotal)}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm">
-                    <span className="text-ink-soft">Discount</span>
-                    <span className="font-medium text-ink">
-                      {formatCurrency(Number(watchedDiscountAmount ?? 0))}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between gap-3 text-sm">
-                    <span className="text-ink-soft">Tax</span>
-                    <span className="font-medium text-ink">
-                      {formatCurrency(Number(watchedTaxAmount ?? 0))}
-                    </span>
-                  </div>
-                  <div className="mt-4 border-t border-line pt-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-semibold text-ink">
-                        Grand total
-                      </span>
-                      <span className="text-xl font-semibold text-ink">
-                        {formatCurrency(totalAmount)}
-                      </span>
+                      {usingCachedLookups
+                        ? (
+                          <p className="text-sm leading-6 text-ink-soft mb-8">
+                            Appointment and charge selectors are using the most
+                            recently synced lookup cache from this browser.
+                          </p>
+                        )
+                        : <div className="mb-8" />}
                     </div>
                   </div>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={createBillMutation.isPending ||
-                      !selectedAppointment ||
-                      itemsFieldArray.fields.length === 0}
-                    type="submit"
-                  >
-                    {createBillMutation.isPending
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : <FileText className="h-4 w-4" />}
-                    Create draft bill
-                  </Button>
-
-                  <Button
-                    onClick={clearComposer}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear invoice
-                  </Button>
-                </div>
-
-                <p className="text-sm leading-6 text-ink-soft">
-                  {isOnline
-                    ? "Bill drafts autosave locally and can queue on this device if connectivity drops before submit."
-                    : "You are offline. Draft bills will queue on this device and sync after reconnect."}
-                </p>
-
-                {usingCachedLookups
-                  ? (
-                    <p className="text-sm leading-6 text-ink-soft">
-                      Appointment and charge selectors are using the most
-                      recently synced lookup cache from this browser.
-                    </p>
-                  )
-                  : null}
-              </div>
-            </div>
-          </form>
-        )
-        : (
-          <EmptyState
-            className="mt-6 min-h-56"
-            description="Draft creation requires the billing.create permission. Billing viewers can still inspect the register below."
-            icon={FileText}
-            title="Billing composer unavailable"
-          />
-        )}
-    </SurfaceCard>
+                </form>
+              )
+              : (
+                <EmptyState
+                  className="mt-6 min-h-56 mb-8"
+                  description="Draft creation requires the billing.create permission. Billing viewers can still inspect the register below."
+                  icon={FileText}
+                  title="Billing composer unavailable"
+                />
+              )}
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </div>
   );
 }

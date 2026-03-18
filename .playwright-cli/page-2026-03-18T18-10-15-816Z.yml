@@ -1,0 +1,78 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - link "VH Hospital operations platform Vahi Hospital" [ref=e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=e7]: VH
+          - generic [ref=e8]:
+            - paragraph [ref=e9]: Hospital operations platform
+            - generic [ref=e10]: Vahi Hospital
+        - generic [ref=e11]:
+          - link "Staff access" [ref=e12] [cursor=pointer]:
+            - /url: /login
+          - link "Open board" [ref=e13] [cursor=pointer]:
+            - /url: /dashboard
+          - button "Options" [ref=e16]:
+            - img [ref=e17]
+            - generic [ref=e21]: Options
+    - main [ref=e22]:
+      - generic [ref=e23]:
+        - generic [ref=e24]:
+          - link "Back to blog" [ref=e25] [cursor=pointer]:
+            - /url: /blog
+            - img [ref=e26]
+            - text: Back to blog
+          - generic [ref=e28]:
+            - generic [ref=e29]: Hospital Operations
+            - generic [ref=e30]: Published article
+          - heading "Designing a queue board for real reception pressure" [level=1] [ref=e31]
+          - paragraph [ref=e32]: A practical front-desk queue board should keep patient identity, appointment state, billing readiness, and admission context in one compact surface.
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - img [ref=e35]
+              - text: 09 Mar 2026
+            - generic [ref=e37]:
+              - img [ref=e38]
+              - text: 1 min read
+        - generic [ref=e42]:
+          - paragraph [ref=e43]: Reception software fails when it optimizes for demos instead of volume. Staff need a queue board that keeps patient identity, appointment status, billing readiness, and admission context visible in one place.
+          - paragraph [ref=e44]: The VHMS dashboard emphasizes short travel distance between actions, live queue signals, and fast context switching. That is why the queue board is tied to the same patient thread used by billing, admissions, communications, and print flows.
+          - paragraph [ref=e45]: The result is less duplicated searching, fewer handoff mistakes, and a clearer operational picture during peak hours.
+    - contentinfo [ref=e46]:
+      - generic [ref=e47]:
+        - generic [ref=e48]:
+          - paragraph [ref=e49]: VHMS Product Journal
+          - heading "Vahi HMS Enterprise" [level=2] [ref=e50]
+          - paragraph [ref=e51]: Production-grade hospital operations platform built for modern reception, billing, occupancy, communications, and clinical administration.
+          - paragraph [ref=e52]: © 2026 Vahi HMS Enterprise. All rights reserved.
+        - generic [ref=e53]:
+          - generic [ref=e54]:
+            - paragraph [ref=e55]: Platform
+            - navigation [ref=e56]:
+              - link "Home" [ref=e57] [cursor=pointer]:
+                - /url: /
+              - link "Features" [ref=e58] [cursor=pointer]:
+                - /url: /features
+              - link "Solutions" [ref=e59] [cursor=pointer]:
+                - /url: /solutions
+              - link "Pricing" [ref=e60] [cursor=pointer]:
+                - /url: /pricing
+          - generic [ref=e61]:
+            - paragraph [ref=e62]: Community
+            - navigation [ref=e63]:
+              - link "About" [ref=e64] [cursor=pointer]:
+                - /url: /about
+              - link "Contact" [ref=e65] [cursor=pointer]:
+                - /url: /contact
+              - link "Blog" [ref=e66] [cursor=pointer]:
+                - /url: /blog
+          - generic [ref=e67]:
+            - paragraph [ref=e68]: Access
+            - navigation [ref=e69]:
+              - link "Staff access" [ref=e70] [cursor=pointer]:
+                - /url: /login
+              - link "Open board" [ref=e71] [cursor=pointer]:
+                - /url: /dashboard
+  - region "Notifications alt+T"
+  - alert [ref=e72]

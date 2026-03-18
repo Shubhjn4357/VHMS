@@ -10,6 +10,7 @@ import {
   Layers3,
   Loader2,
   MapPinned,
+  Plus,
   Printer,
   RefreshCcw,
   Search,
@@ -35,6 +36,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
@@ -148,6 +150,9 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
   const [selectedBed, setSelectedBed] = useState<WardManagementBedRecord | null>(
     null,
   );
+  const [isWardDrawerOpen, setIsWardDrawerOpen] = useState(false);
+  const [isRoomDrawerOpen, setIsRoomDrawerOpen] = useState(false);
+  const [isBedDrawerOpen, setIsBedDrawerOpen] = useState(false);
   const deferredSearch = useDebouncedSearch(search);
 
   const { canAccess: canManage } = useModuleAccess(["wards.manage"]);
@@ -314,16 +319,19 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
   function clearWardSelection() {
     startTransition(() => setSelectedWard(null));
     wardForm.reset(defaultWardValues);
+    setIsWardDrawerOpen(false);
   }
 
   function clearRoomSelection() {
     startTransition(() => setSelectedRoom(null));
     roomForm.reset(defaultRoomValues);
+    setIsRoomDrawerOpen(false);
   }
 
   function clearBedSelection() {
     startTransition(() => setSelectedBed(null));
     bedForm.reset(defaultBedValues);
+    setIsBedDrawerOpen(false);
   }
 
   function editWard(entry: WardManagementWardRecord) {
@@ -332,6 +340,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       setSelectedRoom(null);
       setSelectedBed(null);
     });
+    setIsWardDrawerOpen(true);
   }
 
   function editRoom(entry: WardManagementRoomRecord) {
@@ -340,6 +349,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       setSelectedRoom(entry);
       setSelectedBed(null);
     });
+    setIsRoomDrawerOpen(true);
   }
 
   function editBed(entry: WardManagementBedRecord) {
@@ -348,6 +358,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       setSelectedRoom(null);
       setSelectedBed(entry);
     });
+    setIsBedDrawerOpen(true);
   }
 
   function handleWardSubmit(values: WardUpsertInput) {
@@ -876,410 +887,201 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
         ))}
       </section>
 
-      <section className="grid gap-6 2xl:grid-cols-[0.94fr_1.06fr]">
-        <div className="space-y-6">
-          <SurfaceCard>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Ward master
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  {selectedWard ? `Edit ${selectedWard.name}` : "Add a ward"}
-                </h2>
+      {/* Action buttons + Drawers */}
+      <SurfaceCard>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              Ward, room &amp; bed masters
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              Manage accommodation infrastructure
+            </h2>
+            <p className="mt-2 text-sm text-ink-soft">
+              Add or edit wards, rooms, and beds used across the hospital.
+            </p>
+          </div>
+          {canManage
+            ? (
+              <div className="flex flex-wrap gap-2">
+                <Button onClick={() => { clearWardSelection(); setIsWardDrawerOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ward
+                </Button>
+                <Button variant="outline" onClick={() => { clearRoomSelection(); setIsRoomDrawerOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Room
+                </Button>
+                <Button variant="outline" onClick={() => { clearBedSelection(); setIsBedDrawerOpen(true); }}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Bed
+                </Button>
               </div>
-              {selectedWard
-                ? (
-                  <Button
-                    onClick={clearWardSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear form
-                  </Button>
-                )
-                : null}
-            </div>
+            )
+            : null}
+        </div>
+      </SurfaceCard>
 
+      {/* Ward Drawer */}
+      <Drawer open={isWardDrawerOpen} onOpenChange={(open) => { setIsWardDrawerOpen(open); if (!open) clearWardSelection(); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{selectedWard ? `Edit ${selectedWard.name}` : "Add new ward"}</DrawerTitle>
+            <DrawerDescription>{selectedWard ? "Modify ward details." : "Create a new ward for the hospital."}</DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4 bg-background">
             {canManage
               ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={wardForm.handleSubmit(handleWardSubmit)}
-                >
+                <form className="space-y-5" onSubmit={wardForm.handleSubmit(handleWardSubmit)}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Ward name
-                      </span>
-                      <Input
-                        {...wardForm.register("name")}
-                        className="mt-2"
-                        placeholder="Ward C"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {wardForm.formState.errors.name?.message}
-                      </p>
+                      <span className="text-sm font-medium text-ink">Ward name</span>
+                      <Input {...wardForm.register("name")} className="mt-2" placeholder="Ward C" />
+                      <p className="mt-2 text-sm text-danger">{wardForm.formState.errors.name?.message}</p>
                     </label>
-
                     <label className="block">
                       <span className="text-sm font-medium text-ink">Floor</span>
-                      <Input
-                        {...wardForm.register("floor")}
-                        className="mt-2"
-                        placeholder="5"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {wardForm.formState.errors.floor?.message}
-                      </p>
+                      <Input {...wardForm.register("floor")} className="mt-2" placeholder="5" />
+                      <p className="mt-2 text-sm text-danger">{wardForm.formState.errors.floor?.message}</p>
                     </label>
                   </div>
-
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex justify-end pt-4 pb-8">
                     <Button disabled={isSaving} type="submit">
-                      {isSaving
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : <MapPinned className="h-4 w-4" />}
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <MapPinned className="h-4 w-4 mr-2" />}
                       {selectedWard ? "Save ward" : "Create ward"}
                     </Button>
-                    <Button
-                      onClick={clearWardSelection}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      Reset
-                    </Button>
-                    {selectedWard
-                      ? (
-                        <Button
-                          disabled={deleteWardMutation.isPending}
-                          onClick={() => handleDeleteWard(selectedWard)}
-                          size="sm"
-                          type="button"
-                          variant="destructive"
-                        >
-                          {deleteWardMutation.isPending
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : <Trash2 className="h-4 w-4" />}
-                          Delete ward
-                        </Button>
-                      )
-                      : null}
                   </div>
                 </form>
               )
               : (
-                <EmptyState
-                  className="mt-6 min-h-48"
-                  description="Ward, room, and bed masters are visible to viewers, but editing them requires wards.manage."
-                  icon={Shield}
-                  title="Read-only master access"
-                />
+                <EmptyState className="mt-6 min-h-48 mb-8" description="Editing requires wards.manage." icon={Shield} title="Read-only" />
               )}
-          </SurfaceCard>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-          <SurfaceCard>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Room master
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  {selectedRoom
-                    ? `Edit room ${selectedRoom.roomNumber}`
-                    : "Add a room"}
-                </h2>
-              </div>
-              {selectedRoom
-                ? (
-                  <Button
-                    onClick={clearRoomSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear form
-                  </Button>
-                )
-                : null}
-            </div>
-
+      {/* Room Drawer */}
+      <Drawer open={isRoomDrawerOpen} onOpenChange={(open) => { setIsRoomDrawerOpen(open); if (!open) clearRoomSelection(); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{selectedRoom ? `Edit room ${selectedRoom.roomNumber}` : "Add new room"}</DrawerTitle>
+            <DrawerDescription>{selectedRoom ? "Modify room details." : "Create a new room within a ward."}</DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4 bg-background">
             {canManage
               ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={roomForm.handleSubmit(handleRoomSubmit)}
-                >
+                <form className="space-y-5" onSubmit={roomForm.handleSubmit(handleRoomSubmit)}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block sm:col-span-2">
                       <span className="text-sm font-medium text-ink">Ward</span>
-                      <ThemedSelect
-                        {...roomForm.register("wardId")}
-                        className="mt-2"
-                      >
+                      <ThemedSelect {...roomForm.register("wardId")} className="mt-2">
                         <option value="">Select ward</option>
-                        {wardOptions.map((ward) => (
-                          <option key={ward.id} value={ward.id}>
-                            {ward.name}
-                          </option>
-                        ))}
+                        {wardOptions.map((ward) => (<option key={ward.id} value={ward.id}>{ward.name}</option>))}
                       </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {roomForm.formState.errors.wardId?.message}
-                      </p>
+                      <p className="mt-2 text-sm text-danger">{roomForm.formState.errors.wardId?.message}</p>
                     </label>
-
                     <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Room number
-                      </span>
-                      <Input
-                        {...roomForm.register("roomNumber")}
-                        className="mt-2"
-                        placeholder="C-501"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {roomForm.formState.errors.roomNumber?.message}
-                      </p>
+                      <span className="text-sm font-medium text-ink">Room number</span>
+                      <Input {...roomForm.register("roomNumber")} className="mt-2" placeholder="C-501" />
+                      <p className="mt-2 text-sm text-danger">{roomForm.formState.errors.roomNumber?.message}</p>
                     </label>
-
                     <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Room type
-                      </span>
-                      <Input
-                        {...roomForm.register("roomType")}
-                        className="mt-2"
-                        placeholder="Single Deluxe"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {roomForm.formState.errors.roomType?.message}
-                      </p>
+                      <span className="text-sm font-medium text-ink">Room type</span>
+                      <Input {...roomForm.register("roomType")} className="mt-2" placeholder="Single Deluxe" />
+                      <p className="mt-2 text-sm text-danger">{roomForm.formState.errors.roomType?.message}</p>
                     </label>
                   </div>
-
                   <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Daily charge
-                    </span>
-                    <Input
-                      {...roomForm.register("dailyCharge")}
-                      className="mt-2"
-                      min="0"
-                      step="0.01"
-                      type="number"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {roomForm.formState.errors.dailyCharge?.message}
-                    </p>
+                    <span className="text-sm font-medium text-ink">Daily charge</span>
+                    <Input {...roomForm.register("dailyCharge")} className="mt-2" min="0" step="0.01" type="number" />
+                    <p className="mt-2 text-sm text-danger">{roomForm.formState.errors.dailyCharge?.message}</p>
                   </label>
-
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex justify-end pt-4 pb-8">
                     <Button disabled={isSaving} type="submit">
-                      {isSaving
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : <DoorClosed className="h-4 w-4" />}
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <DoorClosed className="h-4 w-4 mr-2" />}
                       {selectedRoom ? "Save room" : "Create room"}
                     </Button>
-                    <Button
-                      onClick={clearRoomSelection}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      Reset
-                    </Button>
-                    {selectedRoom
-                      ? (
-                        <Button
-                          disabled={deleteRoomMutation.isPending}
-                          onClick={() => handleDeleteRoom(selectedRoom)}
-                          size="sm"
-                          type="button"
-                          variant="destructive"
-                        >
-                          {deleteRoomMutation.isPending
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : <Trash2 className="h-4 w-4" />}
-                          Delete room
-                        </Button>
-                      )
-                      : null}
                   </div>
                 </form>
               )
               : null}
-          </SurfaceCard>
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-          <SurfaceCard>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                  Bed master
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                  {selectedBed
-                    ? `Edit bed ${selectedBed.bedNumber}`
-                    : "Add a bed"}
-                </h2>
-              </div>
-              {selectedBed
-                ? (
-                  <Button
-                    onClick={clearBedSelection}
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    Clear form
-                  </Button>
-                )
-                : null}
-            </div>
-
+      {/* Bed Drawer */}
+      <Drawer open={isBedDrawerOpen} onOpenChange={(open) => { setIsBedDrawerOpen(open); if (!open) clearBedSelection(); }}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>{selectedBed ? `Edit bed ${selectedBed.bedNumber}` : "Add new bed"}</DrawerTitle>
+            <DrawerDescription>{selectedBed ? "Modify bed assignment and status." : "Register a new bed within a room."}</DrawerDescription>
+          </DrawerHeader>
+          <div className="p-4 bg-background">
             {canManage
               ? (
-                <form
-                  className="mt-6 space-y-5"
-                  onSubmit={bedForm.handleSubmit(handleBedSubmit)}
-                >
+                <form className="space-y-5" onSubmit={bedForm.handleSubmit(handleBedSubmit)}>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
                       <span className="text-sm font-medium text-ink">Ward</span>
-                      <ThemedSelect
-                        {...bedForm.register("wardId")}
-                        className="mt-2"
-                        disabled={selectedBed?.hasActiveAdmission}
-                      >
+                      <ThemedSelect {...bedForm.register("wardId")} className="mt-2" disabled={selectedBed?.hasActiveAdmission}>
                         <option value="">Select ward</option>
-                        {wardOptions.map((ward) => (
-                          <option key={ward.id} value={ward.id}>
-                            {ward.name}
-                          </option>
-                        ))}
+                        {wardOptions.map((ward) => (<option key={ward.id} value={ward.id}>{ward.name}</option>))}
                       </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {bedForm.formState.errors.wardId?.message}
-                      </p>
+                      <p className="mt-2 text-sm text-danger">{bedForm.formState.errors.wardId?.message}</p>
                     </label>
-
                     <label className="block">
                       <span className="text-sm font-medium text-ink">Room</span>
-                      <ThemedSelect
-                        {...bedForm.register("roomId")}
-                        className="mt-2"
-                        disabled={selectedBed?.hasActiveAdmission}
-                      >
+                      <ThemedSelect {...bedForm.register("roomId")} className="mt-2" disabled={selectedBed?.hasActiveAdmission}>
                         <option value="">Select room</option>
-                        {roomOptions.map((room) => (
-                          <option key={room.id} value={room.id}>
-                            {room.roomNumber}
-                          </option>
-                        ))}
+                        {roomOptions.map((room) => (<option key={room.id} value={room.id}>{room.roomNumber}</option>))}
                       </ThemedSelect>
-                      <p className="mt-2 text-sm text-danger">
-                        {bedForm.formState.errors.roomId?.message}
-                      </p>
+                      <p className="mt-2 text-sm text-danger">{bedForm.formState.errors.roomId?.message}</p>
                     </label>
                   </div>
-
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Bed number
-                      </span>
-                      <Input
-                        {...bedForm.register("bedNumber")}
-                        className="mt-2"
-                        placeholder="C-501-A"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {bedForm.formState.errors.bedNumber?.message}
-                      </p>
+                      <span className="text-sm font-medium text-ink">Bed number</span>
+                      <Input {...bedForm.register("bedNumber")} className="mt-2" placeholder="C-501-A" />
+                      <p className="mt-2 text-sm text-danger">{bedForm.formState.errors.bedNumber?.message}</p>
                     </label>
-
                     {selectedBed?.hasActiveAdmission
                       ? (
                         <div className="glass-panel-muted rounded-[22px] px-4 py-4">
-                          <p className="text-sm font-medium text-ink">
-                            Live status
-                          </p>
-                          <p className="mt-2 text-sm text-ink-soft">
-                            {selectedBed.status.replaceAll("_", " ")}
-                          </p>
+                          <p className="text-sm font-medium text-ink">Live status</p>
+                          <p className="mt-2 text-sm text-ink-soft">{selectedBed.status.replaceAll("_", " ")}</p>
                         </div>
                       )
                       : (
                         <label className="block">
-                          <span className="text-sm font-medium text-ink">
-                            Initial status
-                          </span>
-                          <ThemedSelect
-                            {...bedForm.register("status")}
-                            className="mt-2"
-                          >
-                            {editableBedStatuses.map((status) => (
-                              <option key={status} value={status}>
-                                {status.replaceAll("_", " ")}
-                              </option>
-                            ))}
+                          <span className="text-sm font-medium text-ink">Initial status</span>
+                          <ThemedSelect {...bedForm.register("status")} className="mt-2">
+                            {editableBedStatuses.map((status) => (<option key={status} value={status}>{status.replaceAll("_", " ")}</option>))}
                           </ThemedSelect>
-                          <p className="mt-2 text-sm text-danger">
-                            {bedForm.formState.errors.status?.message}
-                          </p>
+                          <p className="mt-2 text-sm text-danger">{bedForm.formState.errors.status?.message}</p>
                         </label>
                       )}
                   </div>
-
                   {selectedBed?.hasActiveAdmission
                     ? (
                       <p className="text-sm leading-6 text-warning">
-                        This bed currently has an active admission. The master
-                        allows renaming only; occupancy actions must still run
-                        through the live board.
+                        This bed currently has an active admission. The master allows renaming only; occupancy actions must still run through the live board.
                       </p>
                     )
                     : null}
-
-                  <div className="flex flex-wrap gap-3">
+                  <div className="flex justify-end pt-4 pb-8">
                     <Button disabled={isSaving} type="submit">
-                      {isSaving
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : <BedDouble className="h-4 w-4" />}
+                      {isSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <BedDouble className="h-4 w-4 mr-2" />}
                       {selectedBed ? "Save bed" : "Create bed"}
                     </Button>
-                    <Button
-                      onClick={clearBedSelection}
-                      size="sm"
-                      type="button"
-                      variant="outline"
-                    >
-                      Reset
-                    </Button>
-                    {selectedBed
-                      ? (
-                        <Button
-                          disabled={deleteBedMutation.isPending}
-                          onClick={() => handleDeleteBed(selectedBed)}
-                          size="sm"
-                          type="button"
-                          variant="destructive"
-                        >
-                          {deleteBedMutation.isPending
-                            ? <Loader2 className="h-4 w-4 animate-spin" />
-                            : <Trash2 className="h-4 w-4" />}
-                          Delete bed
-                        </Button>
-                      )
-                      : null}
                   </div>
                 </form>
               )
               : null}
-          </SurfaceCard>
-        </div>
+          </div>
+        </DrawerContent>
+      </Drawer>
+
+      <section>
 
         <SurfaceCard>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -1623,7 +1425,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                     <div className="flex flex-wrap items-center gap-3">
                       {canManage
                         ? (
-                          <label className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft dark:bg-white/8">
+                          <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                             <Checkbox
                               checked={selectedWardIds.includes(ward.id)}
                               onChange={() => toggleWardSelection(ward.id)}
@@ -1686,7 +1488,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                           <div className="flex flex-wrap items-center gap-3">
                             {canManage
                               ? (
-                                <label className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft dark:bg-white/8">
+                                <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                                   <Checkbox
                                     checked={selectedRoomIds.includes(room.id)}
                                     onChange={() => toggleRoomSelection(room.id)}
@@ -1755,7 +1557,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                             >
                               {canManage
                                 ? (
-                                  <label className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft dark:bg-white/8">
+                                  <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                                     <Checkbox
                                       checked={selectedBedIds.includes(bed.id)}
                                       onChange={() => toggleBedSelection(bed.id)}

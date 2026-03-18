@@ -39,7 +39,9 @@ import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { Input } from "@/components/ui/input";
+import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -72,9 +74,9 @@ const defaultFormValues: StaffAccessFormValues = {
 };
 
 const statusToneMap = {
-  APPROVED: "bg-[rgba(21,128,61,0.12)] text-success",
-  PENDING: "bg-[rgba(217,119,6,0.12)] text-warning",
-  REVOKED: "bg-[rgba(220,38,38,0.12)] text-danger",
+  APPROVED: "border-transparent bg-success/15 text-success",
+  PENDING: "border-transparent bg-warning/15 text-warning",
+  REVOKED: "border-transparent bg-destructive/15 text-destructive",
 } as const;
 
 function formatDateTime(value: string | null) {
@@ -98,6 +100,7 @@ export function StaffAccessManagement() {
   const [selectedEntry, setSelectedEntry] = useState<StaffAccessRecord | null>(
     null,
   );
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const deferredSearch = useDebouncedSearch(search);
 
   const { canAccess: canManage } = useModuleAccess(["staffAccess.manage"]);
@@ -210,10 +213,12 @@ export function StaffAccessManagement() {
 
   function beginEditing(entry: StaffAccessRecord) {
     startTransition(() => setSelectedEntry(entry));
+    setIsDrawerOpen(true);
   }
 
   function clearSelection() {
     startTransition(() => setSelectedEntry(null));
+    setIsDrawerOpen(false);
   }
 
   function clearBulkSelection() {
@@ -427,33 +432,30 @@ export function StaffAccessManagement() {
             "Synced user rows in runtime DB",
           ],
         ].map(([label, value, detail]) => (
-          <article
-            key={label}
-            className="metric-tile rounded-[28px] p-5"
-          >
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+          <SurfaceCard key={label}>
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
-            <p className="mt-3 text-sm leading-6 text-ink-soft">{detail}</p>
-          </article>
+            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
+          </SurfaceCard>
         ))}
       </section>
 
-      <section className="glass-panel-strong rounded-[32px] p-5 sm:p-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <SurfaceCard className="space-y-5">
+        <div className="management-toolbar-shell">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Invite-only access control
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
               Manage approved Google identities before sign-in happens
             </h2>
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="glass-panel-muted flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink-soft">
-              <Search className="h-4 w-4 text-brand" />
+          <div className="management-toolbar-actions">
+            <label className="management-search-shell">
+              <Search className="h-4 w-4 text-muted-foreground" />
               <Input
                 className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                 onChange={(event) => setSearch(event.target.value)}
@@ -463,7 +465,7 @@ export function StaffAccessManagement() {
             </label>
 
             <ThemedSelect
-              className="glass-panel-muted rounded-full py-3 font-medium"
+              className="min-w-40"
               onChange={(event) =>
                 setStatusFilter(
                   event.target.value as
@@ -493,226 +495,240 @@ export function StaffAccessManagement() {
             </Button>
           </div>
         </div>
-      </section>
+      </SurfaceCard>
 
-      <section className="grid gap-6 2xl:grid-cols-[0.92fr_1.08fr]">
-        <article className="glass-panel-strong rounded-[32px] p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
+        <SurfaceCard>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
-                {selectedEntry
-                  ? "Edit access profile"
-                  : "Create access profile"}
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                Staff access control
               </p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
-                {selectedEntry
-                  ? `Update ${selectedEntry.displayName}`
-                  : "Pre-approve a staff identity"}
-              </h3>
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
+                Pre-approve staff identities
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                Manage access profiles, roles, and module permissions for hospital staff.
+              </p>
             </div>
-
-            {selectedEntry
-              ? (
-                <Button
-                  onClick={clearSelection}
-                  size="sm"
-                  type="button"
-                  variant="outline"
-                >
-                  Cancel edit
-                </Button>
-              )
-              : null}
-          </div>
-
           {canManage
             ? (
-              <form
-                className="mt-6 space-y-5"
-                onSubmit={form.handleSubmit(handleSubmit)}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Staff email
-                    </span>
-                    <Input
-                      {...form.register("email")}
-                      className="mt-2"
-                      disabled={Boolean(selectedEntry)}
-                      placeholder="billing.kiosk@hospital.in"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.email?.message}
-                    </p>
-                  </label>
+              <Button onClick={() => { clearSelection(); setIsDrawerOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create access profile
+              </Button>
+            )
+            : null}
+        </div>
+      </SurfaceCard>
 
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">
-                      Display name
-                    </span>
-                    <Input
-                      {...form.register("displayName")}
-                      className="mt-2"
-                      placeholder="Billing Kiosk"
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors.displayName?.message}
-                    </p>
-                  </label>
-                </div>
+      <Drawer
+        open={isDrawerOpen}
+        onOpenChange={(open) => {
+          setIsDrawerOpen(open);
+          if (!open) clearSelection();
+        }}
+      >
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>
+              {selectedEntry ? `Edit ${selectedEntry.displayName}` : "Create staff access"}
+            </DrawerTitle>
+            <DrawerDescription>
+              {selectedEntry ? "Update roles and permissions for this identity." : "Pre-approve a Google identity for hospital dashboard sign-in."}
+            </DrawerDescription>
+          </DrawerHeader>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Role</span>
-                    <ThemedSelect
-                      {...form.register("role")}
-                      className="mt-2"
-                    >
-                      {Object.entries(ROLE_LABELS).map(([role, label]) => (
-                        <option key={role} value={role}>
-                          {label}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                  </label>
-
-                  <label className="block">
-                    <span className="text-sm font-medium text-ink">Status</span>
-                    <ThemedSelect
-                      {...form.register("status")}
-                      className="mt-2"
-                    >
-                      {STAFF_ACCESS_STATUS.map((status) => (
-                        <option key={status} value={status}>
-                          {status.replaceAll("_", " ")}
-                        </option>
-                      ))}
-                    </ThemedSelect>
-                  </label>
-                </div>
-
-                <div className="glass-panel-muted rounded-[28px] p-4 sm:p-5">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
-                        Module permissions
+          <div className="p-4 bg-background max-h-[70vh] overflow-y-auto">
+            {canManage
+              ? (
+                <form
+                  className="space-y-5"
+                  onSubmit={form.handleSubmit(handleSubmit)}
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Staff email
+                      </span>
+                      <Input
+                        {...form.register("email")}
+                        className="mt-2"
+                        disabled={Boolean(selectedEntry)}
+                        placeholder="billing.kiosk@hospital.in"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.email?.message}
                       </p>
-                      <p className="mt-2 text-sm leading-6 text-ink-soft">
-                        Role presets are a starting point. Use overrides only
-                        where there is a real operational need.
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Display name
+                      </span>
+                      <Input
+                        {...form.register("displayName")}
+                        className="mt-2"
+                        placeholder="Billing Kiosk"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.displayName?.message}
                       </p>
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Role</span>
+                      <ThemedSelect
+                        {...form.register("role")}
+                        className="mt-2"
+                      >
+                        {Object.entries(ROLE_LABELS).map(([role, label]) => (
+                          <option key={role} value={role}>
+                            {label}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Status</span>
+                      <ThemedSelect
+                        {...form.register("status")}
+                        className="mt-2"
+                      >
+                        {STAFF_ACCESS_STATUS.map((status) => (
+                          <option key={status} value={status}>
+                            {status.replaceAll("_", " ")}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                    </label>
+                  </div>
+
+                  <div className="management-subtle-card p-4 sm:p-5">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                          Module permissions
+                        </p>
+                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                          Role presets are a starting point. Use overrides only
+                          where there is a real operational need.
+                        </p>
+                      </div>
+
+                      <Button
+                        onClick={resetToRolePreset}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <ShieldCheck className="h-4 w-4" />
+                        Apply {ROLE_LABELS[currentRole]} preset
+                      </Button>
                     </div>
 
+                    <div className="mt-5 space-y-4">
+                      {Object.entries(PERMISSION_GROUPS).map((
+                        [groupKey, permissions],
+                      ) => (
+                        <section
+                          key={groupKey}
+                          className="rounded-xl border bg-card p-4 shadow-sm"
+                        >
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-foreground">
+                              {groupKey}
+                            </p>
+                            <Badge variant="outline">
+                              {permissions.filter((permission) =>
+                                currentPermissions.includes(permission)
+                              ).length}
+                              /{permissions.length}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                            {permissions.map((permission) => {
+                              const checked = currentPermissions.includes(
+                                permission,
+                              );
+
+                              return (
+                                <label
+                                  key={permission}
+                                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition ${
+                                    checked
+                                      ? "border-primary bg-primary/5"
+                                      : "border-border bg-background"
+                                  }`}
+                                >
+                                  <Checkbox
+                                    checked={checked}
+                                    onChange={() => togglePermission(permission)}
+                                  />
+                                  <span className="text-sm text-foreground">
+                                    {permissionLabel(permission)}
+                                  </span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </section>
+                      ))}
+                    </div>
+                    <p className="mt-3 text-sm text-danger">
+                      {form.formState.errors.defaultPermissions?.message}
+                    </p>
+                  </div>
+
+                  <div className="flex justify-end gap-3 pt-4 pb-8">
                     <Button
-                      onClick={resetToRolePreset}
-                      size="sm"
-                      type="button"
-                      variant="outline"
+                      disabled={isSaving}
+                      type="submit"
                     >
-                      <ShieldCheck className="h-4 w-4" />
-                      Apply {ROLE_LABELS[currentRole]} preset
+                      {isSaving
+                        ? <Loader2 className="h-4 w-4 animate-spin" />
+                        : selectedEntry
+                        ? <UserRoundPen className="h-4 w-4 mr-2" />
+                        : <Plus className="h-4 w-4 mr-2" />}
+                      {selectedEntry
+                        ? "Save access changes"
+                        : "Create staff access"}
                     </Button>
+
+                    <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
+                      {currentPermissions.length} permissions selected
+                    </div>
                   </div>
-
-                  <div className="mt-5 space-y-4">
-                    {Object.entries(PERMISSION_GROUPS).map((
-                      [groupKey, permissions],
-                    ) => (
-                      <section
-                        key={groupKey}
-                        className="glass-panel rounded-[24px] p-4"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-sm font-semibold uppercase tracking-[0.16em] text-ink">
-                            {groupKey}
-                          </p>
-                          <Badge variant="outline">
-                            {permissions.filter((permission) =>
-                              currentPermissions.includes(permission)
-                            ).length}
-                            /{permissions.length}
-                          </Badge>
-                        </div>
-
-                        <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                          {permissions.map((permission) => {
-                            const checked = currentPermissions.includes(
-                              permission,
-                            );
-
-                            return (
-                              <label
-                                key={permission}
-                                className={`flex cursor-pointer items-center gap-3 rounded-[20px] border px-4 py-3 transition ${
-                                  checked
-                                    ? "border-brand bg-[rgba(15,118,110,0.08)]"
-                                    : "border-line bg-white/40 dark:bg-white/6"
-                                }`}
-                              >
-                                <Checkbox
-                                  checked={checked}
-                                  onChange={() => togglePermission(permission)}
-                                />
-                                <span className="text-sm text-ink">
-                                  {permissionLabel(permission)}
-                                </span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </section>
-                    ))}
-                  </div>
-                  <p className="mt-3 text-sm text-danger">
-                    {form.formState.errors.defaultPermissions?.message}
-                  </p>
+                </form>
+              )
+              : (
+                <div className="management-subtle-card mt-6 mb-8 p-5 text-sm leading-7 text-muted-foreground">
+                  You can review invite-only access records, but permission
+                  changes require the{" "}
+                  <span className="font-semibold text-foreground">
+                    staffAccess.manage
+                  </span>{" "}
+                  capability.
                 </div>
+              )}
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-                <div className="flex flex-wrap gap-3">
-                  <Button
-                    disabled={isSaving}
-                    type="submit"
-                  >
-                    {isSaving
-                      ? <Loader2 className="h-4 w-4 animate-spin" />
-                      : selectedEntry
-                      ? <UserRoundPen className="h-4 w-4" />
-                      : <Plus className="h-4 w-4" />}
-                    {selectedEntry
-                      ? "Save access changes"
-                      : "Create staff access"}
-                  </Button>
-
-                  <div className="glass-chip rounded-full px-4 py-3 text-sm text-ink-soft">
-                    {currentPermissions.length} permissions selected
-                  </div>
-                </div>
-              </form>
-            )
-            : (
-              <div className="glass-panel-muted mt-6 rounded-[28px] p-5 text-sm leading-7 text-ink-soft">
-                You can review invite-only access records, but permission
-                changes require the{" "}
-                <span className="font-semibold text-ink">
-                  staffAccess.manage
-                </span>{" "}
-                capability.
-              </div>
-            )}
-        </article>
-
-        <article className="glass-panel-strong rounded-[32px] p-5 sm:p-6">
+      <section>
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                 Directory
               </p>
-              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h3 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Approved, pending, and revoked access records
               </h3>
             </div>
-            <div className="glass-chip rounded-full px-4 py-3 text-sm text-ink-soft">
+            <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
               {entries.length} visible rows
             </div>
           </div>
@@ -721,7 +737,7 @@ export function StaffAccessManagement() {
             ? (
               <div className="mt-6 space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="glass-chip rounded-full px-4 py-3 text-sm text-ink-soft">
+                  <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
                     Use bulk actions for approval, revocation, export, and cleanup.
                   </div>
 
@@ -830,14 +846,14 @@ export function StaffAccessManagement() {
 
           {directoryQuery.isLoading
             ? (
-              <div className="glass-panel-muted mt-6 flex min-h-80 items-center justify-center rounded-[28px] border-dashed text-sm text-ink-soft">
+              <div className="management-subtle-card mt-6 flex min-h-80 items-center justify-center border-dashed text-sm text-muted-foreground">
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Loading staff access records
               </div>
             )
             : directoryQuery.error
             ? (
-              <div className="mt-6 flex min-h-80 items-center justify-center rounded-[28px] border border-dashed border-danger/30 bg-[rgba(220,38,38,0.05)] px-6 text-center text-sm text-danger">
+              <div className="alert-surface-danger mt-6 flex min-h-80 items-center justify-center rounded-xl border border-dashed px-6 text-center text-sm text-danger">
                 <AlertCircle className="mr-2 h-4 w-4" />
                 {directoryQuery.error.message}
               </div>
@@ -848,10 +864,10 @@ export function StaffAccessManagement() {
                 {entries.map((entry) => (
                   <article
                     key={entry.id}
-                    className={`rounded-[28px] border p-5 transition ${
+                    className={`rounded-xl border bg-card p-5 shadow-sm transition ${
                       selectedEntry?.id === entry.id
-                        ? "border-brand bg-[rgba(15,118,110,0.05)]"
-                        : "border-line bg-white/40 dark:bg-white/6"
+                        ? "border-primary bg-primary/5"
+                        : "border-border"
                     }`}
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
@@ -859,7 +875,7 @@ export function StaffAccessManagement() {
                         <div className="flex flex-wrap items-center gap-3">
                           {canManage
                             ? (
-                              <label className="inline-flex items-center gap-2 rounded-full bg-white/60 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft dark:bg-white/8">
+                              <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                                 <Checkbox
                                   checked={selectedIds.includes(entry.id)}
                                   onChange={() => toggleSelection(entry.id)}
@@ -868,62 +884,58 @@ export function StaffAccessManagement() {
                               </label>
                             )
                             : null}
-                          <h4 className="text-xl font-semibold text-ink">
+                          <h4 className="text-xl font-semibold text-foreground">
                             {entry.displayName}
                           </h4>
-                          <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
-                              statusToneMap[entry.status]
-                            }`}
-                          >
+                          <Badge className={statusToneMap[entry.status]} variant="outline">
                             {entry.status}
-                          </span>
-                          <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                          </Badge>
+                          <Badge variant="secondary">
                             {ROLE_LABELS[entry.role]}
-                          </span>
+                          </Badge>
                           {entry.userStatus === "ACTIVE"
                             ? (
-                              <span className="rounded-full bg-[rgba(21,128,61,0.12)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-success">
+                              <Badge variant="success">
                                 Runtime user active
-                              </span>
+                              </Badge>
                             )
                             : (
-                              <span className="rounded-full bg-[rgba(20,32,51,0.08)] px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                              <Badge variant="outline">
                                 No active session user
-                              </span>
+                              </Badge>
                             )}
                         </div>
 
                         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Google identity
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {entry.email}
                             </p>
                           </div>
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Last approval
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {formatDateTime(entry.approvedAt)}
                             </p>
                           </div>
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Last login
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {formatDateTime(entry.lastLoginAt)}
                             </p>
                           </div>
-                          <div className="metric-tile rounded-[20px] px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                          <div className="management-metric px-4 py-3">
+                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Permission count
                             </p>
-                            <p className="mt-2 text-sm font-medium text-ink">
+                            <p className="mt-2 text-sm font-medium text-foreground">
                               {entry.defaultPermissions.length} granted modules
                             </p>
                           </div>
@@ -931,12 +943,12 @@ export function StaffAccessManagement() {
 
                         <div className="flex flex-wrap gap-2">
                           {entry.defaultPermissions.map((permission) => (
-                            <span
+                            <Badge
                               key={permission}
-                              className="glass-chip rounded-full px-3 py-2 text-xs font-medium text-ink-soft"
+                              variant="outline"
                             >
                               {permissionLabel(permission)}
-                            </span>
+                            </Badge>
                           ))}
                         </div>
                       </div>
@@ -999,20 +1011,19 @@ export function StaffAccessManagement() {
               </div>
             )
             : (
-              <div className="glass-panel-muted mt-6 flex min-h-80 flex-col items-center justify-center rounded-[28px] border-dashed px-6 text-center">
-                <CheckCircle2 className="h-8 w-8 text-brand" />
-                <h4 className="mt-4 text-xl font-semibold text-ink">
+              <div className="management-subtle-card mt-6 flex min-h-80 flex-col items-center justify-center border-dashed px-6 text-center">
+                <CheckCircle2 className="h-8 w-8 text-muted-foreground" />
+                <h4 className="mt-4 text-xl font-semibold text-foreground">
                   No staff access records matched
                 </h4>
-                <p className="mt-3 max-w-md text-sm leading-7 text-ink-soft">
+                <p className="mt-3 max-w-md text-sm leading-7 text-muted-foreground">
                   Adjust the search or status filter, or create the first
                   approved staff profile so Google sign-in can be resolved
                   before access is granted.
                 </p>
               </div>
             )}
-        </article>
-      </section>
+        </section>
     </div>
   );
 }
