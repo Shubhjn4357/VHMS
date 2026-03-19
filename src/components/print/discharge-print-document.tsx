@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { NativeImage } from "@/components/ui/native-image";
 import type { DischargePrintPayload } from "@/types/print";
 
 function formatTimestamp(value: string | null) {
@@ -28,7 +29,7 @@ function Section({
   }
 
   return (
-    <section className="space-y-2 rounded-[22px] border border-line p-5">
+    <section className="space-y-2 rounded-[var(--radius-panel)] border border-line p-5">
       <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
         {title}
       </h2>
@@ -56,15 +57,15 @@ export function DischargePrintDocument({
             <p className="mt-1 text-sm text-ink-soft">{branding.address}</p>
           </div>
           <div className="text-right">
-            {branding.logoUrl
-              ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt={branding.displayName}
-                  className="ml-auto mb-3 h-14 w-14 rounded-[16px] border border-line object-cover"
-                  src={branding.logoUrl}
-                />
-              )
+              {branding.logoUrl
+                ? (
+                <NativeImage
+                    alt={branding.displayName}
+                    className="ml-auto mb-3 h-14 w-14 rounded-[var(--radius-control)] border border-line object-cover"
+                    eager
+                    src={branding.logoUrl}
+                  />
+                )
               : null}
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
               Discharge summary
@@ -80,7 +81,7 @@ export function DischargePrintDocument({
       </header>
     ),
     admission: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Admission details
         </p>
@@ -117,7 +118,7 @@ export function DischargePrintDocument({
       </section>
     ),
     documentStatus: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Document status
         </p>

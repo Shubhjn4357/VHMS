@@ -106,7 +106,7 @@ function SortableTemplateSection({
   return (
     <div
       className={cn(
-        "flex items-start justify-between gap-4 rounded-[22px] border border-line bg-surface-alt px-4 py-3 transition",
+        "management-subtle-card flex items-start justify-between gap-4 px-4 py-3 transition",
         isDragging ? "border-brand bg-surface shadow-[var(--shadow-soft)]" : "",
       )}
       ref={setNodeRef}
@@ -130,8 +130,8 @@ function SortableTemplateSection({
         </Button>
 
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-ink">{section.label}</p>
-          <p className="mt-1 text-sm text-ink-soft">{section.description}</p>
+          <p className="text-sm font-semibold text-foreground">{section.label}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{section.description}</p>
         </div>
       </div>
 
@@ -316,8 +316,8 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
           ["Sections", templatesQuery.data.summary.sections],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -333,10 +333,10 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
             {templatesQuery.data.templates.map((template) => (
               <Button
                 className={cn(
-                  "h-auto w-full rounded-[24px] px-4 py-4 text-left transition",
+                  "h-auto w-full rounded-[var(--radius-panel)] px-4 py-4 text-left transition",
                   selectedKey === template.key
-                    ? "border-brand bg-surface shadow-[var(--shadow-soft)]"
-                    : "border-line bg-surface-alt hover:border-brand",
+                    ? "border-brand bg-card shadow-[var(--shadow-soft)]"
+                    : "border-border bg-muted/30 hover:border-brand",
                 )}
                 key={template.key}
                 onClick={() => handleSelectTemplate(template.key)}
@@ -345,10 +345,10 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
               >
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <p className="text-lg font-semibold text-ink">
+                    <p className="text-lg font-semibold text-foreground">
                       {template.label}
                     </p>
-                    <p className="mt-2 text-sm leading-7 text-ink-soft">
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
                       {template.description}
                     </p>
                   </div>
@@ -385,13 +385,13 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
                           : "Default order"}
                       </Badge>
                     </div>
-                    <h3 className="mt-3 text-2xl font-semibold tracking-tight text-ink">
+                    <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
                       {selectedTemplate.label}
                     </h3>
-                    <p className="mt-2 text-sm leading-7 text-ink-soft">
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
                       {selectedTemplate.description}
                     </p>
-                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                    <p className="mt-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                       Updated {formatTimestamp(selectedTemplate.updatedAt)}
                       {selectedTemplate.updatedByName
                         ? ` by ${selectedTemplate.updatedByName}`
@@ -472,13 +472,13 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
                   </div>
                 </div>
 
-                <div className="mt-6 rounded-[28px] border border-line bg-page p-5">
+                <div className="management-record-shell mt-6 p-5">
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
                         Section order
                       </p>
-                      <p className="mt-2 text-sm leading-7 text-ink-soft">
+                      <p className="mt-2 text-sm leading-7 text-muted-foreground">
                         Drag sections to change the rendered print order. The
                         document routes use the last saved order.
                       </p>
@@ -519,7 +519,7 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
                   <div className="mt-3 flex flex-wrap gap-3">
                     {orderedSections.map((section) => (
                       <span
-                        className="rounded-full border border-line bg-surface-alt px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-ink"
+                        className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground"
                         key={section.key}
                       >
                         #{section.displayOrder + 1} {section.label}
@@ -530,7 +530,7 @@ export function PrintTemplateManagement({ hideHeader = false }: PrintTemplateMan
 
                 {!canManage
                   ? (
-                    <p className="mt-6 text-sm text-ink-soft">
+                    <p className="mt-6 text-sm text-muted-foreground">
                       Your role can review print template order but cannot
                       change it.
                     </p>

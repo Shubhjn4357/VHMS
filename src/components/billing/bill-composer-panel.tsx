@@ -462,8 +462,8 @@ export function BillComposerPanel() {
 
                   {selectedAppointment
                     ? (
-                      <div className="glass-panel-muted grid gap-3 rounded-[24px] p-4 md:grid-cols-3">
-                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                      <div className="management-subtle-card grid gap-3 p-4 md:grid-cols-3">
+                        <div className="management-metric px-4 py-3">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
                             Patient
                           </p>
@@ -474,7 +474,7 @@ export function BillComposerPanel() {
                             {selectedAppointment.patientHospitalNumber}
                           </p>
                         </div>
-                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                        <div className="management-metric px-4 py-3">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
                             Doctor
                           </p>
@@ -486,7 +486,7 @@ export function BillComposerPanel() {
                               "Department pending"}
                           </p>
                         </div>
-                        <div className="metric-tile rounded-[20px] px-4 py-3">
+                        <div className="management-metric px-4 py-3">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
                             Queue and status
                           </p>
@@ -503,7 +503,7 @@ export function BillComposerPanel() {
                     : null}
 
                   <div className="grid gap-6 xl:grid-cols-[0.94fr_1.06fr]">
-                    <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
+                    <div className="management-subtle-card space-y-4 p-4">
                       <div>
                         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
                           Active charge catalog
@@ -529,7 +529,7 @@ export function BillComposerPanel() {
                         {activeChargeEntries.map((entry) => (
                           <div
                             key={entry.id}
-                            className="glass-chip flex items-center justify-between gap-3 rounded-[20px] px-4 py-3"
+                            className="management-subtle-card flex items-center justify-between gap-3 px-4 py-3"
                           >
                             <div>
                               <p className="text-sm font-semibold text-ink">
@@ -558,7 +558,7 @@ export function BillComposerPanel() {
                       </div>
                     </div>
 
-                    <div className="glass-panel-muted space-y-4 rounded-[28px] p-4">
+                    <div className="management-subtle-card space-y-4 p-4">
                       <div>
                         <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand">
                           Bill line items
@@ -585,7 +585,7 @@ export function BillComposerPanel() {
                         {itemsFieldArray.fields.map((field, index) => (
                           <div
                             key={field.id}
-                            className="glass-panel rounded-[22px] p-4"
+                            className="management-subtle-card p-4"
                           >
                             <div className="grid gap-4 lg:grid-cols-[1.2fr_0.35fr_0.35fr_auto]">
                               <label className="block">
@@ -594,7 +594,7 @@ export function BillComposerPanel() {
                                 </span>
                                 <Input
                                   {...form.register(`items.${index}.description`)}
-                                  className="mt-2 rounded-[18px]"
+                                  className="mt-2"
                                 />
                               </label>
                               <label className="block">
@@ -603,7 +603,7 @@ export function BillComposerPanel() {
                                 </span>
                                 <Input
                                   {...form.register(`items.${index}.quantity`)}
-                                  className="mt-2 rounded-[18px]"
+                                  className="mt-2"
                                   min="0.01"
                                   step="0.01"
                                   type="number"
@@ -615,7 +615,7 @@ export function BillComposerPanel() {
                                 </span>
                                 <Input
                                   {...form.register(`items.${index}.unitPrice`)}
-                                  className="mt-2 rounded-[18px]"
+                                  className="mt-2"
                                   min="0"
                                   step="0.01"
                                   type="number"
@@ -676,7 +676,7 @@ export function BillComposerPanel() {
                         </label>
                       </div>
 
-                      <div className="metric-tile rounded-[22px] p-4">
+                      <div className="management-metric p-4">
                         <div className="flex items-center justify-between gap-3 text-sm">
                           <span className="text-ink-soft">Subtotal</span>
                           <span className="font-medium text-ink">

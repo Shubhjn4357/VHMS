@@ -82,8 +82,8 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
           ["Last 24 hours", auditQuery.data.summary.last24Hours],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -93,9 +93,9 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
       <SurfaceCard>
         <div className="grid gap-4 lg:grid-cols-[1.2fr_0.4fr_0.4fr]">
           <label className="block">
-            <span className="text-sm font-medium text-ink">Search</span>
-            <div className="glass-panel-muted mt-2 flex items-center gap-3 rounded-[22px] px-4 py-3">
-              <Search className="h-4 w-4 text-ink-soft" />
+            <span className="text-sm font-medium text-foreground">Search</span>
+            <div className="management-search-shell mt-2">
+              <Search className="h-4 w-4 text-muted-foreground" />
               <Input
                 className="h-auto border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
                 onChange={(event) => setSearch(event.target.value)}
@@ -106,7 +106,7 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-ink">Action</span>
+            <span className="text-sm font-medium text-foreground">Action</span>
             <ThemedSelect
               className="mt-2"
               onChange={(event) => setAction(event.target.value)}
@@ -122,7 +122,7 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
           </label>
 
           <label className="block">
-            <span className="text-sm font-medium text-ink">Entity</span>
+            <span className="text-sm font-medium text-foreground">Entity</span>
             <ThemedSelect
               className="mt-2"
               onChange={(event) => setEntityType(event.target.value)}
@@ -150,19 +150,19 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
                   >
                     {entry.severity}
                   </Badge>
-                  <span className="text-xs uppercase tracking-[0.16em] text-ink-soft">
+                  <span className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                     {entry.action}
                   </span>
                 </div>
-                <p className="mt-3 text-lg font-semibold text-ink">
+                <p className="mt-3 text-lg font-semibold text-foreground">
                   {entry.summary}
                 </p>
-                <p className="mt-2 text-sm text-ink-soft">
+                <p className="mt-2 text-sm text-muted-foreground">
                   Actor: {entry.actorName ?? entry.actorEmail ?? "System"}
                 </p>
               </div>
 
-              <div className="text-sm text-ink-soft">
+              <div className="text-sm text-muted-foreground">
                 {formatTimestamp(entry.createdAt)}
               </div>
             </div>
@@ -170,9 +170,7 @@ export function AuditLogViewer({ hideHeader = false }: AuditLogViewerProps) {
             {Object.keys(entry.metadata).length > 0
               ? (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {Object.entries(entry.metadata).slice(0, 6).map((
-                    [key, value],
-                  ) => (
+                  {Object.entries(entry.metadata).slice(0, 6).map(([key, value]) => (
                     <Badge key={key} variant="outline">
                       {key}: {String(value)}
                     </Badge>

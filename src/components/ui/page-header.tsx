@@ -21,12 +21,12 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[var(--radius-panel)] border bg-card p-6 text-card-foreground shadow-[var(--shadow-soft)]",
+        "overflow-hidden rounded-[var(--radius-panel)] border bg-card p-5 text-card-foreground shadow-[var(--shadow-soft)] sm:p-6",
         className,
       )}
     >
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-        <div className="max-w-3xl">
+        <div className="min-w-0 max-w-3xl">
           {eyebrow
             ? (
               <Badge className="mb-4 w-fit" variant="secondary">
@@ -46,7 +46,13 @@ export function PageHeader({
             : null}
         </div>
 
-        {actions ? <div className="flex flex-wrap gap-3">{actions}</div> : null}
+        {actions
+          ? (
+            <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:flex-wrap sm:justify-end">
+              {actions}
+            </div>
+          )
+          : null}
       </div>
     </div>
   );

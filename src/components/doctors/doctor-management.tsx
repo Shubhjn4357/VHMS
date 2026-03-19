@@ -31,6 +31,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import {
   useCreateDoctor,
   useDeleteDoctor,
@@ -113,6 +114,7 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
   const createDoctorMutation = useCreateDoctor();
   const updateDoctorMutation = useUpdateDoctor();
   const deleteDoctorMutation = useDeleteDoctor();
+  const confirm = useConfirmationDialog();
   const isSaving = createDoctorMutation.isPending || updateDoctorMutation.isPending;
 
   const form = useForm<DoctorFormInput, unknown, DoctorFormValues>({
@@ -233,12 +235,16 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
     });
   }
 
-  function handleDelete(entry: DoctorManagementRecord) {
-    if (
-      !window.confirm(
+  async function handleDelete(entry: DoctorManagementRecord) {
+    const confirmed = await confirm({
+      title: "Delete doctor profile?",
+      description:
         `Delete ${entry.fullName}? Doctors linked to appointments or admissions cannot be deleted.`,
-      )
-    ) {
+      confirmLabel: "Delete doctor",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -312,9 +318,13 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${selectedEntries.length} selected doctors? Doctors linked to appointments or admissions will be skipped.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete selected doctors?",
+      description:
+        `Delete ${selectedEntries.length} selected doctors? Doctors linked to appointments or admissions will be skipped.`,
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;

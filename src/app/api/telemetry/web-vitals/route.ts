@@ -16,7 +16,19 @@ const webVitalsPayloadSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = webVitalsPayloadSchema.parse(await request.json());
+    const rawBody = await request.text();
+    if (!rawBody.trim()) {
+      return new NextResponse(null, { status: 204 });
+    }
+
+    let parsedPayload: unknown;
+    try {
+      parsedPayload = JSON.parse(rawBody);
+    } catch {
+      return new NextResponse(null, { status: 204 });
+    }
+
+    const payload = webVitalsPayloadSchema.parse(parsedPayload);
 
     logInfo("web_vital.recorded", {
       ...payload,

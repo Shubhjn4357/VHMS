@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { NativeImage } from "@/components/ui/native-image";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { APP_TEXT } from "@/constants/appText";
 import { moduleCards, workflowSteps } from "@/lib/module-config";
@@ -99,7 +100,7 @@ export async function PublicHome() {
 
         <main className="mt-8 space-y-12">
           <section
-            className="glass-panel-strong overflow-hidden rounded-[40px] px-6 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10"
+            className="overflow-hidden rounded-[var(--radius-panel)] border bg-card px-6 py-7 shadow-[var(--shadow-soft)] sm:px-8 sm:py-9 lg:px-10 lg:py-10"
             id="product"
           >
             <div className="grid gap-8 xl:grid-cols-[0.92fr_1.08fr]">
@@ -136,7 +137,7 @@ export async function PublicHome() {
                     `${snapshot.metrics.activeDoctors} doctors on live schedule`,
                     `${snapshot.operations.summary.unreadNotifications} unread operational alerts`,
                   ].map((item) => (
-                    <span className="glass-chip rounded-full px-4 py-2" key={item}>
+                    <span className="management-selection-pill px-4 py-2" key={item}>
                       {item}
                     </span>
                   ))}
@@ -161,28 +162,28 @@ export async function PublicHome() {
                   ))}
                 </div>
 
-                <div className="glass-hero rounded-[30px] p-5">
+                <div className="rounded-[var(--radius-panel)] border bg-primary/[0.06] p-5">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <p className="hero-kicker text-xs font-semibold uppercase tracking-[0.2em]">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/70">
                         Hospital identity
                       </p>
                       <h2 className="mt-3 text-2xl font-semibold tracking-tight">
                         {snapshot.hospital.legalName}
                       </h2>
                     </div>
-                    <Sparkles className="hero-copy h-5 w-5" />
+                    <Sparkles className="h-5 w-5 text-primary" />
                   </div>
-                  <div className="hero-copy mt-6 grid gap-3 text-sm sm:grid-cols-2">
-                    <div className="hero-panel rounded-[20px] px-4 py-3">
-                      <p className="hero-kicker">Contact</p>
-                      <p className="mt-1 font-medium text-[color:var(--hero-text)]">
+                  <div className="mt-6 grid gap-3 text-sm text-foreground sm:grid-cols-2">
+                    <div className="management-subtle-card px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/70">Contact</p>
+                      <p className="mt-1 font-medium text-foreground">
                         {snapshot.hospital.contactPhone ?? "Configured in admin"}
                       </p>
                     </div>
-                    <div className="hero-panel rounded-[20px] px-4 py-3">
-                      <p className="hero-kicker">Address</p>
-                      <p className="mt-1 font-medium text-[color:var(--hero-text)]">
+                    <div className="management-subtle-card px-4 py-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-primary/70">Address</p>
+                      <p className="mt-1 font-medium text-foreground">
                         {snapshot.hospital.address ?? "Hospital address ready for branding setup"}
                       </p>
                     </div>
@@ -200,7 +201,7 @@ export async function PublicHome() {
                       <span className="signal-dot signal-dot-warning h-3 w-3 rounded-full" />
                       <span className="signal-dot signal-dot-success h-3 w-3 rounded-full" />
                     </div>
-                    <div className="glass-chip rounded-full px-4 py-2 text-xs font-medium text-muted-foreground">
+                    <div className="management-selection-pill px-4 py-2 text-xs font-medium text-muted-foreground">
                       https://ops.{snapshot.hospital.displayName.toLowerCase().replaceAll(" ", "")}.in
                     </div>
                   </div>
@@ -208,7 +209,7 @@ export async function PublicHome() {
                     {["Dashboard", "Patient", "Doctors and Staff", "Room", "Occupancy", "Analytics"].map((tab, index) => (
                       <span
                         className={index === 0
-                          ? "surface-tab-active rounded-full px-4 py-2 font-medium"
+                          ? "management-selection-pill bg-secondary px-4 py-2 font-medium text-secondary-foreground"
                           : "rounded-full px-3 py-2 text-muted-foreground"}
                         key={tab}
                       >
@@ -220,7 +221,7 @@ export async function PublicHome() {
 
                 <div className="mt-5 grid gap-5 xl:grid-cols-[1.22fr_0.78fr]">
                   <div className="space-y-5">
-                    <section className="surface-section rounded-[28px] p-5">
+                    <section className="rounded-[var(--radius-panel)] border bg-card p-5 shadow-[var(--shadow-soft)]">
                       <div className="flex items-center justify-between gap-3">
                         <div>
                           <p className="text-lg font-semibold text-foreground">Statistical summary</p>
@@ -228,7 +229,7 @@ export async function PublicHome() {
                             Live hospital counts from patients, appointments, and occupancy.
                           </p>
                         </div>
-                        <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                        <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                           Live sync
                         </span>
                       </div>
@@ -238,14 +239,14 @@ export async function PublicHome() {
                           ["Daily visit", `${snapshot.operations.summary.appointmentsToday}`, "Scheduled", `${snapshot.operations.summary.appointmentsCheckedIn}`, "Checked in"],
                           ["Room capacity", `${snapshot.metrics.availableBeds}`, "Beds available", `${snapshot.metrics.occupiedBeds}`, "Occupied"],
                         ].map(([label, top, topLabel, bottom, bottomLabel]) => (
-                          <div className="metric-tile rounded-[24px] p-4" key={label}>
+                          <div className="management-metric p-4" key={label}>
                             <div className="flex items-center justify-between gap-3">
                               <p className="text-sm font-medium text-foreground">{label}</p>
                               <span className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/16 text-primary">
                                 <ArrowRight className="h-4 w-4" />
                               </span>
                             </div>
-                            <div className="surface-card-muted mt-4 space-y-3 rounded-[20px] p-3">
+                            <div className="management-subtle-card mt-4 space-y-3 p-3">
                               <div className="flex items-center justify-between gap-3">
                                 <span className="text-sm text-muted-foreground">{topLabel}</span>
                                 <span className="text-2xl font-semibold text-foreground">{top}</span>
@@ -262,7 +263,7 @@ export async function PublicHome() {
                     </section>
 
                     <div className="grid gap-5 lg:grid-cols-2">
-                      <section className="surface-section rounded-[28px] p-5">
+                      <section className="rounded-[var(--radius-panel)] border bg-card p-5 shadow-[var(--shadow-soft)]">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-lg font-semibold text-foreground">Ward capacity</p>
@@ -270,7 +271,7 @@ export async function PublicHome() {
                               Occupancy lanes and discharge-ready movement.
                             </p>
                           </div>
-                          <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+                          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
                             {snapshot.metrics.totalBeds} beds
                           </span>
                         </div>
@@ -280,7 +281,7 @@ export async function PublicHome() {
 
                             return (
                               <div
-                                className="surface-card-muted rounded-[20px] p-4"
+                                className="management-subtle-card p-4"
                                 key={ward.wardId}
                               >
                                 <div className="flex items-center justify-between gap-3">
@@ -304,7 +305,7 @@ export async function PublicHome() {
                         </div>
                       </section>
 
-                      <section className="surface-section rounded-[28px] p-5">
+                      <section className="rounded-[var(--radius-panel)] border bg-card p-5 shadow-[var(--shadow-soft)]">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <p className="text-lg font-semibold text-foreground">Doctor roster</p>
@@ -312,14 +313,14 @@ export async function PublicHome() {
                               Real appointment load grouped from today&apos;s schedule.
                             </p>
                           </div>
-                          <span className="glass-chip rounded-full px-3 py-2 text-xs text-muted-foreground">
+                          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
                             Today
                           </span>
                         </div>
                         <div className="mt-5 space-y-3">
                           {snapshot.doctorLoad.map((entry) => (
                             <div
-                              className="surface-card-muted rounded-[20px] p-4"
+                              className="management-subtle-card p-4"
                               key={entry.doctorName}
                             >
                               <div className="flex items-start justify-between gap-3">
@@ -346,7 +347,7 @@ export async function PublicHome() {
                     </div>
                   </div>
 
-                  <aside className="surface-section rounded-[30px] p-5">
+                  <aside className="rounded-[var(--radius-panel)] border bg-card p-5 shadow-[var(--shadow-soft)]">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-lg font-semibold text-foreground">Care coordination</p>
@@ -354,12 +355,12 @@ export async function PublicHome() {
                           Communication and approval pressure from the live queue.
                         </p>
                       </div>
-                      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground">
+                      <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-foreground">
                         {snapshot.operations.summary.pendingApprovals} waiting
                       </span>
                     </div>
 
-                    <div className="alert-surface-danger mt-5 rounded-[22px] p-4">
+                    <div className="alert-surface-danger mt-5 rounded-[var(--radius-panel)] p-4">
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <p className="font-medium text-foreground">Operational alerts</p>
@@ -377,7 +378,7 @@ export async function PublicHome() {
                     <div className="mt-5 space-y-3">
                       {snapshot.operations.communicationQueue.map((entry) => (
                         <div
-                          className="surface-card-muted rounded-[20px] p-4"
+                          className="management-subtle-card p-4"
                           key={entry.channel}
                         >
                           <div className="flex items-center justify-between gap-3">
@@ -402,7 +403,7 @@ export async function PublicHome() {
                         `${snapshot.metrics.activeStaff} approved operational staff users are represented in the live master data.`,
                       ].map((detail) => (
                         <div
-                          className="surface-card-muted flex gap-3 rounded-[18px] px-4 py-3 text-sm text-muted-foreground"
+                          className="management-subtle-card flex gap-3 px-4 py-3 text-sm text-muted-foreground"
                           key={detail}
                         >
                           <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -417,7 +418,7 @@ export async function PublicHome() {
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]" id="workflow">
-            <SurfaceCard className="rounded-[34px] p-6 sm:p-7">
+            <SurfaceCard className="p-6 sm:p-7">
               <SectionHeading
                 detail="Invite-only access, patient-first workflows, occupancy control, discharge, communications, and audit visibility are built as one operating model."
                 eyebrow="Workflow foundation"
@@ -426,7 +427,7 @@ export async function PublicHome() {
               <div className="mt-6 space-y-4">
                 {workflowSteps.map((step) => (
                   <div
-                    className="surface-card-muted rounded-[24px] p-5"
+                    className="management-subtle-card p-5"
                     key={step.step}
                   >
                     <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
@@ -443,7 +444,7 @@ export async function PublicHome() {
               </div>
             </SurfaceCard>
 
-            <SurfaceCard className="rounded-[34px] p-6 sm:p-7" id="modules">
+            <SurfaceCard className="p-6 sm:p-7" id="modules">
               <SectionHeading
                 detail="The public site can describe the stack, but the real proof is that billing, staff access, communication, print, occupancy, and analytics are already connected in the running app."
                 eyebrow="Live modules"
@@ -452,7 +453,7 @@ export async function PublicHome() {
               <div className="mt-6 grid gap-4 md:grid-cols-2">
                 {moduleCards.map((module) => (
                   <article
-                    className="surface-card-muted rounded-[24px] p-5"
+                    className="management-subtle-card p-5"
                     key={module.name}
                   >
                     <p
@@ -473,7 +474,7 @@ export async function PublicHome() {
           </section>
 
           <section className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]" id="updates">
-            <SurfaceCard className="rounded-[34px] p-6 sm:p-7">
+            <SurfaceCard className="p-6 sm:p-7">
               <SectionHeading
                 detail="The marketing site is not a dead layer. Public posts, titles, publish dates, and excerpts are pulled from the live blog tables."
                 eyebrow="Public updates"
@@ -482,14 +483,13 @@ export async function PublicHome() {
               <div className="mt-6 grid gap-4 md:grid-cols-3">
                 {snapshot.recentPosts.map((post) => (
                   <article
-                    className="surface-card-muted rounded-[24px] p-5"
+                    className="management-subtle-card p-5"
                     key={post.id}
                   >
                     {post.coverImageUrl
                       ? (
-                        <div className="mb-4 overflow-hidden rounded-[18px] border border-border/70">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img
+                        <div className="mb-4 overflow-hidden rounded-[var(--radius-control)] border border-border/70">
+                          <NativeImage
                             alt={post.title}
                             className="h-40 w-full object-cover"
                             src={post.coverImageUrl}
@@ -518,14 +518,14 @@ export async function PublicHome() {
               </div>
             </SurfaceCard>
 
-            <div className="glass-hero rounded-[34px] px-6 py-7 shadow-[var(--shadow-card)] sm:px-7">
-              <p className="hero-kicker text-xs font-semibold uppercase tracking-[0.22em]">
+            <div className="rounded-[var(--radius-panel)] border bg-primary/[0.06] px-6 py-7 shadow-[var(--shadow-soft)] sm:px-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary/70">
                 Public to private continuity
               </p>
               <h2 className="mt-4 text-3xl font-semibold tracking-tight">
                 Marketing, product journal, and the invite-only dashboard all sit on the same hospital system.
               </h2>
-              <p className="hero-copy mt-4 text-base leading-7">
+              <p className="mt-4 text-base leading-7 text-muted-foreground">
                 That keeps the public landing page grounded in real throughput numbers, while the private app
                 continues into staff access, scheduling, billing, occupancy, discharge, and analytics without
                 switching design language or data source.

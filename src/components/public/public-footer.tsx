@@ -5,7 +5,7 @@ import { publicSiteNavigation } from "@/lib/public-site/navigation";
 
 export function PublicFooter() {
   return (
-    <footer className="glass-panel mt-8 rounded-[calc(var(--radius-panel)+6px)] px-8 py-10">
+    <footer className="mt-8 rounded-[var(--radius-panel)] border bg-card px-8 py-10 shadow-[var(--shadow-soft)]">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-md">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">

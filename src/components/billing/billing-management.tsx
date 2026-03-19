@@ -116,10 +116,10 @@ export function BillingManagement({ hideHeader = false }: BillingManagementProps
       <section className="grid gap-6 2xl:grid-cols-[0.92fr_1.08fr]">
         <ChargeMasterPanel />
         <div className="space-y-6">
-          <SurfaceCard className="grid-backdrop overflow-hidden">
+          <SurfaceCard className="overflow-hidden">
             <div className="relative">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-[rgba(21,94,239,0.08)] blur-2xl" />
-              <div className="absolute -bottom-10 right-10 h-28 w-28 rounded-full bg-[rgba(15,118,110,0.1)] blur-2xl" />
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-2xl" />
+              <div className="absolute -bottom-10 right-10 h-28 w-28 rounded-full bg-success/10 blur-2xl" />
               <div className="relative">
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
                   Invoice runtime

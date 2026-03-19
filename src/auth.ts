@@ -12,6 +12,7 @@ import {
   resolveUserAccess,
 } from "@/lib/auth/permissions";
 import { recordAuditLog } from "@/lib/audit/log";
+import { logError } from "@/lib/observability/logger";
 import { touchStaffAccessLogin } from "@/lib/staff-access/service";
 
 function normalizeEmail(email?: string | null) {
@@ -83,7 +84,9 @@ const authConfig = {
             },
           });
         } catch (error) {
-          console.error("Failed to record missing-email sign-in attempt", error);
+          logError("auth.sign_in.audit_log_failed", error, {
+            reason: "missing_email",
+          });
         }
         return buildDeniedRedirect("missing_email");
       }
@@ -101,10 +104,10 @@ const authConfig = {
               },
             });
           } catch (error) {
-            console.error(
-              "Failed to record non-allowlisted sign-in attempt",
-              error,
-            );
+            logError("auth.sign_in.audit_log_failed", error, {
+              email: normalizedEmail,
+              reason: "not_allowlisted",
+            });
           }
         }
 
@@ -112,7 +115,9 @@ const authConfig = {
           ? true
           : buildDeniedRedirect("not_allowlisted", normalizedEmail);
       } catch (error) {
-        console.error("Failed to resolve user access during sign-in", error);
+        logError("auth.sign_in.access_resolution_failed", error, {
+          email: normalizedEmail,
+        });
         if (resolveBootstrapRole(normalizedEmail)) {
           return true;
         }
@@ -149,7 +154,9 @@ const authConfig = {
 
         return token;
       } catch (error) {
-        console.error("Failed to hydrate JWT access payload", error);
+        logError("auth.jwt_hydration_failed", error, {
+          email: normalizedEmail,
+        });
         return applyBootstrapTokenFallback(token, normalizedEmail);
       }
     },
@@ -190,7 +197,9 @@ const authConfig = {
 
         await touchStaffAccessLogin(normalizedEmail);
       } catch (error) {
-        console.error("Failed to finalize sign-in side effects", error);
+        logError("auth.sign_in.side_effects_failed", error, {
+          email: normalizedEmail,
+        });
         return;
       }
     },

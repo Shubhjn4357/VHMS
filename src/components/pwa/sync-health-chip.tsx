@@ -6,6 +6,7 @@ import {
   WifiOff,
 } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { usePwaInstallPrompt } from "@/hooks/usePwaInstallPrompt";
 
@@ -19,42 +20,42 @@ export function SyncHealthChip() {
 
   if (failedCount > 0) {
     return (
-      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-warning">
+      <Badge className="status-pill-warning rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]" variant="outline">
         {failedCount} failed
-      </span>
+      </Badge>
     );
   }
 
   if (isSyncing) {
     return (
-      <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+      <Badge className="status-pill-info rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]" variant="outline">
         <RefreshCcw className="h-3.5 w-3.5 animate-spin" />
         Syncing
-      </span>
+      </Badge>
     );
   }
 
   if (pendingCount > 0) {
     return (
-      <span className="glass-chip rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+      <Badge className="status-pill-info rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]" variant="outline">
         {pendingCount} queued
-      </span>
+      </Badge>
     );
   }
 
   if (!isOnline) {
     return (
-      <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-danger">
+      <Badge className="status-pill-danger rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]" variant="outline">
         <WifiOff className="h-3.5 w-3.5" />
         Waiting reconnect
-      </span>
+      </Badge>
     );
   }
 
   return (
-    <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-success">
+    <Badge className="status-pill-success rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]" variant="outline">
       <CheckCircle2 className="h-3.5 w-3.5" />
       Sync healthy
-    </span>
+    </Badge>
   );
 }

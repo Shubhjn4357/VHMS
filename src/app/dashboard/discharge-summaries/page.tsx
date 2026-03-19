@@ -106,13 +106,13 @@ export default async function DashboardDischargeSummariesPage() {
           <div className="mt-5 grid gap-3">
             {workspace.entries.length > 0
               ? workspace.entries.map((entry) => (
-                <div className="glass-panel-muted rounded-[22px] p-4" key={entry.id}>
+                <div className="management-subtle-card p-4" key={entry.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{entry.patientName}</p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {entry.patientHospitalNumber}
-                        {entry.doctorName ? ` · ${entry.doctorName}` : ""}
+                        {entry.doctorName ? ` / ${entry.doctorName}` : ""}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -168,7 +168,7 @@ export default async function DashboardDischargeSummariesPage() {
           </div>
 
           <div className="mt-5 space-y-3">
-            <div className="glass-panel-muted rounded-[22px] p-4">
+            <div className="management-subtle-card p-4">
               <p className="text-sm font-semibold text-foreground">Finalized records</p>
               <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
                 {workspace.summary.finalized}
@@ -177,7 +177,7 @@ export default async function DashboardDischargeSummariesPage() {
                 Summaries already locked for printing and clinical handoff.
               </p>
             </div>
-            <div className="glass-panel-muted rounded-[22px] p-4">
+            <div className="management-subtle-card p-4">
               <p className="text-sm font-semibold text-foreground">Ready drafts</p>
               <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
                 {readyEntries.length}
@@ -186,7 +186,7 @@ export default async function DashboardDischargeSummariesPage() {
                 Drafts that can move to finalization without missing required fields.
               </p>
             </div>
-            <div className="glass-panel-muted rounded-[22px] p-4">
+            <div className="management-subtle-card p-4">
               <p className="text-sm font-semibold text-foreground">Linked admissions</p>
               <p className="mt-2 text-3xl font-semibold tracking-tight text-foreground">
                 {workspace.admissions.length}

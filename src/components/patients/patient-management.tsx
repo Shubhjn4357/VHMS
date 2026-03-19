@@ -33,6 +33,7 @@ import { OfflineDraftPanel } from "@/components/pwa/offline-draft-panel";
 import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { NativeImage } from "@/components/ui/native-image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { OptionsMenu } from "@/components/ui/options-menu";
@@ -47,6 +48,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/bottom-drawer";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
@@ -121,6 +123,7 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
   const createMutation = useCreatePatient();
   const deleteMutation = useDeletePatient();
   const updateMutation = useUpdatePatient();
+  const confirm = useConfirmationDialog();
   const isSaving = createMutation.isPending || updateMutation.isPending ||
     deleteMutation.isPending;
   const {
@@ -234,14 +237,18 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
     toast.success("Patient form cleared.");
   }
 
-  function handleDelete(entry: PatientRecord) {
+  async function handleDelete(entry: PatientRecord) {
     if (!canUpdate) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${entry.fullName}? Patients linked to appointments, admissions, billing, consents, or communications cannot be deleted.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete patient record?",
+      description:
+        `Delete ${entry.fullName}? Patients linked to appointments, admissions, billing, consents, or communications cannot be deleted.`,
+      confirmLabel: "Delete patient",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;
@@ -284,9 +291,13 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${selectedEntries.length} selected patients? Linked records will be skipped.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete selected patients?",
+      description:
+        `Delete ${selectedEntries.length} selected patients? Linked records will be skipped.`,
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;
@@ -925,15 +936,14 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
                         />
                         Select
                       </label>
-                      {entry.photoUrl
-                        ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            alt={entry.fullName}
-                            className="h-11 w-11 rounded-full border border-border/70 object-cover"
-                            src={entry.photoUrl}
-                          />
-                        )
+                        {entry.photoUrl
+                          ? (
+                          <NativeImage
+                              alt={entry.fullName}
+                              className="h-11 w-11 rounded-full border border-border/70 object-cover"
+                              src={entry.photoUrl}
+                            />
+                          )
                         : (
                           <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border/70 bg-muted text-sm font-semibold text-foreground">
                             {entry.firstName.slice(0, 1)}

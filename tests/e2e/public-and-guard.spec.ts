@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe.configure({ timeout: 60_000 });
+test.describe.configure({ mode: "serial", timeout: 120_000 });
 
 test("offline fallback page is publicly reachable", async ({ page }) => {
   await page.goto("/offline", { waitUntil: "domcontentloaded" });

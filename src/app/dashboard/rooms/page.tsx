@@ -109,7 +109,7 @@ export default async function DashboardRoomsPage() {
           <div className="mt-5 grid gap-3">
             {rooms.length > 0
               ? rooms.map((room) => (
-                <div className="glass-panel-muted rounded-[22px] p-4" key={room.id}>
+                <div className="management-subtle-card p-4" key={room.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">
@@ -117,7 +117,7 @@ export default async function DashboardRoomsPage() {
                       </p>
                       <p className="mt-1 text-sm text-muted-foreground">
                         {room.wardName}
-                        {room.wardFloor ? ` · ${room.wardFloor}` : ""}
+                        {room.wardFloor ? ` / ${room.wardFloor}` : ""}
                       </p>
                     </div>
                     <div className="flex flex-wrap gap-2">
@@ -171,7 +171,7 @@ export default async function DashboardRoomsPage() {
           <div className="mt-5 space-y-3">
             {highUtilizationRooms.length > 0
               ? highUtilizationRooms.map((room) => (
-                <div className="glass-panel-muted rounded-[22px] p-4" key={room.id}>
+                <div className="management-subtle-card p-4" key={room.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">Room {room.roomNumber}</p>

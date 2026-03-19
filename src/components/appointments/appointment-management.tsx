@@ -48,6 +48,7 @@ import {
   DrawerTitle,
   DrawerDescription,
 } from "@/components/ui/bottom-drawer";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import {
   useAppointmentDirectory,
   useCreateAppointment,
@@ -140,6 +141,7 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
   const createMutation = useCreateAppointment();
   const deleteMutation = useDeleteAppointment();
   const updateMutation = useUpdateAppointment();
+  const confirm = useConfirmationDialog();
   const isSaving = createMutation.isPending || updateMutation.isPending ||
     deleteMutation.isPending;
   const {
@@ -272,14 +274,18 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
     toast.success("Appointment form cleared.");
   }
 
-  function handleDelete(entry: AppointmentRecord) {
+  async function handleDelete(entry: AppointmentRecord) {
     if (!canUpdate) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete appointment for ${entry.patientName}? Appointments already linked to billing cannot be deleted.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete appointment?",
+      description:
+        `Delete appointment for ${entry.patientName}? Appointments already linked to billing cannot be deleted.`,
+      confirmLabel: "Delete appointment",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;
@@ -358,9 +364,13 @@ export function AppointmentManagement({ hideHeader = false }: AppointmentManagem
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${selectedEntries.length} selected appointments? Appointments linked to billing will be skipped.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete selected appointments?",
+      description:
+        `Delete ${selectedEntries.length} selected appointments? Appointments linked to billing will be skipped.`,
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;

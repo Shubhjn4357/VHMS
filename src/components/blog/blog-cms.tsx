@@ -23,11 +23,13 @@ import { EmptyState } from "@/components/feedback/empty-state";
 import { UploadField } from "@/components/forms/upload-field";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { NativeImage } from "@/components/ui/native-image";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { Textarea } from "@/components/ui/textarea";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import {
   useBlogDirectory,
   useCreateBlogPost,
@@ -85,6 +87,7 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
   const createMutation = useCreateBlogPost();
   const updateMutation = useUpdateBlogPost();
   const deleteMutation = useDeleteBlogPost();
+  const confirm = useConfirmationDialog();
 
   const form = useForm<BlogEditorInput, unknown, BlogEditorValues>({
     resolver: zodResolver(createBlogPostSchema),
@@ -145,8 +148,15 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
     setSelectedPost(post);
   }
 
-  function handleDelete(post: BlogPostRecord) {
-    if (!window.confirm(`Delete "${post.title}"? This cannot be undone.`)) {
+  async function handleDelete(post: BlogPostRecord) {
+    const confirmed = await confirm({
+      title: "Delete blog post?",
+      description: `Delete "${post.title}"? This cannot be undone.`,
+      confirmLabel: "Delete post",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -503,15 +513,14 @@ export function BlogCms({ hideHeader = false }: BlogCmsProps) {
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="space-y-3">
                     <div className="flex flex-wrap items-center gap-3">
-                      {post.coverImageUrl
-                        ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            alt={post.title}
-                            className="h-14 w-14 rounded-[18px] border border-border/70 object-cover"
-                            src={post.coverImageUrl}
-                          />
-                        )
+                        {post.coverImageUrl
+                          ? (
+                          <NativeImage
+                              alt={post.title}
+                              className="h-14 w-14 rounded-[var(--radius-control)] border border-border/70 object-cover"
+                              src={post.coverImageUrl}
+                            />
+                          )
                         : null}
                       <h3 className="text-xl font-semibold text-foreground">
                         {post.title}

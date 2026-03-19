@@ -166,7 +166,7 @@ export const marketingPages: Record<string, MarketingPageContent> = {
     sections: [
       {
         title: "Core operations package",
-        detail: "The base package should cover the hospital’s live operational backbone.",
+        detail: "The base package should cover the hospital's live operational backbone.",
         points: [
           "Patients, appointments, doctors, billing, wards, occupancy",
           "Consents, discharge, communications, analytics, reports",

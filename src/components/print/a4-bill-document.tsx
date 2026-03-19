@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { NativeImage } from "@/components/ui/native-image";
 import type { BillPrintPayload } from "@/types/print";
 
 function formatCurrency(value: number) {
@@ -40,21 +41,21 @@ export function A4BillDocument({ branding, bill, template }: BillPrintPayload) {
               {branding.contactEmail ? ` | ${branding.contactEmail}` : ""}
             </p>
           </div>
-          {branding.logoUrl
-            ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                alt={branding.displayName}
-                className="h-16 w-16 rounded-[18px] border border-line object-cover"
-                src={branding.logoUrl}
-              />
-            )
+            {branding.logoUrl
+              ? (
+              <NativeImage
+                  alt={branding.displayName}
+                  className="h-16 w-16 rounded-[var(--radius-control)] border border-line object-cover"
+                  eager
+                  src={branding.logoUrl}
+                />
+              )
             : null}
         </div>
       </section>
     ),
     metadata: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Tax invoice
         </p>
@@ -74,7 +75,7 @@ export function A4BillDocument({ branding, bill, template }: BillPrintPayload) {
       </section>
     ),
     patient: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Patient details
         </p>
@@ -105,7 +106,7 @@ export function A4BillDocument({ branding, bill, template }: BillPrintPayload) {
       </section>
     ),
     billingStatus: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Billing status
         </p>
@@ -139,7 +140,7 @@ export function A4BillDocument({ branding, bill, template }: BillPrintPayload) {
     ),
     itemizedTable: (
       <section>
-        <table className="w-full border-collapse overflow-hidden rounded-[22px] border border-line">
+        <table className="w-full border-collapse overflow-hidden rounded-[var(--radius-panel)] border border-line">
           <thead className="bg-surface-alt text-left text-xs uppercase tracking-[0.16em] text-ink-soft">
             <tr>
               <th className="px-4 py-3">Description</th>
@@ -166,7 +167,7 @@ export function A4BillDocument({ branding, bill, template }: BillPrintPayload) {
       </section>
     ),
     financialSummary: (
-      <section className="ml-auto grid max-w-sm gap-3 rounded-[22px] border border-line p-5">
+      <section className="ml-auto grid max-w-sm gap-3 rounded-[var(--radius-panel)] border border-line p-5">
         {[
           ["Subtotal", bill.subtotal],
           ["Discount", bill.discountAmount],

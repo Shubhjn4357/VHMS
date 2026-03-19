@@ -31,18 +31,18 @@ export function OfflineDraftPanel({
   updatedAt,
 }: OfflineDraftPanelProps) {
   return (
-    <div className="glass-panel-muted rounded-[24px] p-4">
+    <div className="management-subtle-card p-4">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <div className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.18em] text-brand">
             <CloudOff className="h-4 w-4" />
             Saved local draft
           </div>
-          <h3 className="mt-2 text-lg font-semibold text-ink">{title}</h3>
-          <p className="mt-2 text-sm leading-6 text-ink-soft">
+          <h3 className="mt-2 text-lg font-semibold text-foreground">{title}</h3>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
             {description}
           </p>
-          <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-ink-soft">
+          <p className="mt-3 text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">
             Updated {formatDraftUpdatedAt(updatedAt)} / {isOnline ? "ready to restore" : "stays on this device until reconnect"}
           </p>
         </div>

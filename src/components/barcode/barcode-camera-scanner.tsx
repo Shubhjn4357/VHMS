@@ -279,7 +279,7 @@ export function BarcodeCameraScanner({
 
         <div className="mt-5 grid gap-5 xl:grid-cols-[1.12fr_0.88fr]">
           <div>
-            <div className="barcode-camera-shell min-h-[340px] overflow-hidden rounded-[28px] border border-border bg-surface-strong">
+            <div className="barcode-camera-shell min-h-[340px] overflow-hidden rounded-[var(--radius-panel)] border border-border bg-surface-strong">
               <div className="h-[340px] w-full" id={scannerElementId} />
             </div>
 

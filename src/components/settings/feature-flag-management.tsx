@@ -113,8 +113,8 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
           ["Role targeted", flagsQuery.data.summary.roleTargeted],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -149,22 +149,22 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                       ? <Badge variant="outline">Role targeted</Badge>
                       : null}
                   </div>
-                  <p className="mt-3 text-lg font-semibold text-ink">
+                  <p className="mt-3 text-lg font-semibold text-foreground">
                     {flag.description}
                   </p>
-                  <p className="mt-2 text-sm text-ink-soft">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     Default {flag.defaultEnabled ? "enabled" : "disabled"} / DB
                     {" "}
                     {flag.dbEnabled ? "enabled" : "disabled"} / Resolved{" "}
                     {flag.resolvedEnabled ? "enabled" : "disabled"}
                   </p>
-                  <p className="mt-2 text-sm text-ink-soft">
+                  <p className="mt-2 text-sm text-muted-foreground">
                     Rollout {flag.rolloutPercentage}% / Target roles{" "}
                     {flag.targetRoles.length > 0
                       ? flag.targetRoles.map((role) => ROLE_LABELS[role]).join(", ")
                       : "All roles"}
                   </p>
-                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-ink-soft">
+                  <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                     Updated {formatTimestamp(flag.updatedAt)}
                     {flag.updatedByName ? ` by ${flag.updatedByName}` : ""}
                   </p>
@@ -180,8 +180,8 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                     : null}
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <label className="glass-panel-muted rounded-[20px] p-4">
-                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                    <label className="management-subtle-card p-4">
+                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         DB enabled
                       </span>
                       <div className="mt-3 flex items-center gap-3">
@@ -193,14 +193,14 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                               enabled: event.target.checked,
                             })}
                         />
-                        <span className="text-sm text-ink">
+                        <span className="text-sm text-foreground">
                           Keep this module enabled at the DB layer
                         </span>
                       </div>
                     </label>
 
-                    <label className="glass-panel-muted rounded-[20px] p-4">
-                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                    <label className="management-subtle-card p-4">
+                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Rollout percentage
                       </span>
                       <Input
@@ -218,8 +218,8 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                     </label>
                   </div>
 
-                  <div className="glass-panel-muted rounded-[20px] p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                  <div className="management-subtle-card p-4">
+                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                       Role targeting
                     </p>
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
@@ -227,10 +227,7 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                         const checked = draft.targetRoles.includes(role);
 
                         return (
-                          <label
-                            className="glass-chip flex items-center gap-3 rounded-[18px] px-3 py-2"
-                            key={role}
-                          >
+                          <label className="management-selection-pill flex items-center gap-3 px-3 py-2" key={role}>
                             <Checkbox
                               checked={checked}
                               disabled={!canManage || flag.lockedByEnv}
@@ -241,14 +238,14 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                                     : draft.targetRoles.filter((item) => item !== role),
                                 })}
                             />
-                            <span className="text-sm text-ink">
+                            <span className="text-sm text-foreground">
                               {ROLE_LABELS[role]}
                             </span>
                           </label>
                         );
                       })}
                     </div>
-                    <p className="mt-3 text-sm text-ink-soft">
+                    <p className="mt-3 text-sm text-muted-foreground">
                       Leave all roles unchecked to allow the flag for every role.
                     </p>
                   </div>

@@ -1,3 +1,5 @@
+import { APP_EXPORT_COLORS } from "@/constants/appBrand";
+
 export type ExportColumn<T> = {
   key: string;
   label: string;
@@ -89,7 +91,7 @@ function buildTabularHtml<T>(
       body {
         font-family: Arial, sans-serif;
         margin: 24px;
-        color: #111827;
+        color: ${APP_EXPORT_COLORS.text};
       }
       h1 {
         font-size: 20px;
@@ -100,14 +102,14 @@ function buildTabularHtml<T>(
         border-collapse: collapse;
       }
       th, td {
-        border: 1px solid #d1d5db;
+        border: 1px solid ${APP_EXPORT_COLORS.border};
         padding: 8px 10px;
         text-align: left;
         font-size: 13px;
         vertical-align: top;
       }
       th {
-        background: #f3f4f6;
+        background: ${APP_EXPORT_COLORS.surface};
         font-weight: 700;
       }
       @media print {

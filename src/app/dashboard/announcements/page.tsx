@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Megaphone } from "lucide-react";
 
 import { dashboardAnnouncementsMetadata as metadata } from "@/app/dashboard/page-metadata";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -55,42 +58,56 @@ export default async function DashboardAnnouncementsPage() {
       </section>
 
       <section className="grid gap-4">
-        {workspace.announcements.map((announcement) => (
-          <SurfaceCard key={announcement.id}>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                {announcement.status}
-              </span>
-              <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                {announcement.priority}
-              </span>
-              {announcement.pinned
-                ? (
-                  <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-warning">
-                    Pinned
-                  </span>
-                )
-                : null}
-            </div>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
-              {announcement.title}
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {announcement.body}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {announcement.targets.map((target) => (
-                <span
-                  className="glass-chip rounded-full px-3 py-2 text-xs font-medium text-ink-soft"
-                  key={target.id}
+        {workspace.announcements.length > 0
+          ? workspace.announcements.map((announcement) => (
+            <SurfaceCard key={announcement.id}>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={announcement.status === "PUBLISHED" ? "success" : "outline"}>
+                  {announcement.status}
+                </Badge>
+                <Badge
+                  className={announcement.priority === "URGENT"
+                    ? "status-pill-warning border-transparent"
+                    : undefined}
+                  variant="outline"
                 >
-                  {target.targetType}
-                  {target.targetValue ? `: ${target.targetValue}` : ""}
-                </span>
-              ))}
-            </div>
-          </SurfaceCard>
-        ))}
+                  {announcement.priority}
+                </Badge>
+                {announcement.pinned
+                  ? (
+                    <Badge className="status-pill-warning border-transparent" variant="outline">
+                      Pinned
+                    </Badge>
+                  )
+                  : null}
+              </div>
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
+                {announcement.title}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                {announcement.body}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {announcement.targets.map((target) => (
+                  <span
+                    className="management-selection-pill px-3 py-2 text-xs font-medium text-muted-foreground"
+                    key={target.id}
+                  >
+                    {target.targetType}
+                    {target.targetValue ? `: ${target.targetValue}` : ""}
+                  </span>
+                ))}
+              </div>
+            </SurfaceCard>
+          ))
+          : (
+            <EmptyState
+              className="min-h-72"
+              description="Published and draft announcements will appear here once broadcasts are created."
+              icon={Megaphone}
+              title="No announcements available"
+            />
+          )}
       </section>
     </div>
   );

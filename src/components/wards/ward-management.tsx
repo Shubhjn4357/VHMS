@@ -39,6 +39,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import {
@@ -101,12 +102,12 @@ const defaultBedValues: BedFormValues = {
 };
 
 const bedStatusToneMap: Record<BedStatus, string> = {
-  FREE: "bg-[rgba(21,128,61,0.1)] text-success",
-  OCCUPIED: "bg-[rgba(220,38,38,0.1)] text-danger",
-  RESERVED: "bg-[rgba(21,94,239,0.1)] text-accent",
-  CLEANING: "bg-[rgba(217,119,6,0.1)] text-warning",
-  MAINTENANCE: "bg-[rgba(20,32,51,0.08)] text-ink",
-  BLOCKED: "bg-[rgba(124,58,237,0.1)] text-[rgb(109,40,217)]",
+  FREE: "status-pill-success",
+  OCCUPIED: "status-pill-danger",
+  RESERVED: "status-pill-info",
+  CLEANING: "status-pill-warning",
+  MAINTENANCE: "status-pill-neutral",
+  BLOCKED: "status-pill-secondary",
 };
 
 const editableBedStatuses = BED_STATUS.filter((status) => status !== "OCCUPIED") as Exclude<
@@ -170,6 +171,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
   const createBedMutation = useCreateBed();
   const deleteBedMutation = useDeleteBed();
   const updateBedMutation = useUpdateBed();
+  const confirm = useConfirmationDialog();
 
   const wardForm = useForm<WardFormValues>({
     resolver: zodResolver(createWardSchema),
@@ -435,12 +437,15 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
     });
   }
 
-  function handleDeleteWard(entry: WardManagementWardRecord) {
-    if (
-      !window.confirm(
-        `Delete ward ${entry.name}? Wards with rooms cannot be deleted.`,
-      )
-    ) {
+  async function handleDeleteWard(entry: WardManagementWardRecord) {
+    const confirmed = await confirm({
+      title: "Delete ward?",
+      description: `Delete ward ${entry.name}? Wards with rooms cannot be deleted.`,
+      confirmLabel: "Delete ward",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -456,12 +461,16 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
     );
   }
 
-  function handleDeleteRoom(entry: WardManagementRoomRecord) {
-    if (
-      !window.confirm(
+  async function handleDeleteRoom(entry: WardManagementRoomRecord) {
+    const confirmed = await confirm({
+      title: "Delete room?",
+      description:
         `Delete room ${entry.roomNumber}? Rooms with beds cannot be deleted.`,
-      )
-    ) {
+      confirmLabel: "Delete room",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -477,12 +486,16 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
     );
   }
 
-  function handleDeleteBed(entry: WardManagementBedRecord) {
-    if (
-      !window.confirm(
+  async function handleDeleteBed(entry: WardManagementBedRecord) {
+    const confirmed = await confirm({
+      title: "Delete bed?",
+      description:
         `Delete bed ${entry.bedNumber}? Beds used in admission history cannot be deleted.`,
-      )
-    ) {
+      confirmLabel: "Delete bed",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -661,11 +674,15 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       return;
     }
 
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      title: "Delete selected wards?",
+      description:
         `Delete ${selectedWardEntries.length} selected wards? Wards that still contain rooms will be skipped.`,
-      )
-    ) {
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -705,11 +722,15 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       return;
     }
 
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      title: "Delete selected rooms?",
+      description:
         `Delete ${selectedRoomEntries.length} selected rooms? Rooms that still contain beds will be skipped.`,
-      )
-    ) {
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -749,11 +770,15 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
       return;
     }
 
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      title: "Delete selected beds?",
+      description:
         `Delete ${selectedBedEntries.length} selected beds? Beds used in admission history will be skipped.`,
-      )
-    ) {
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -1046,9 +1071,9 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                     </label>
                     {selectedBed?.hasActiveAdmission
                       ? (
-                        <div className="glass-panel-muted rounded-[22px] px-4 py-4">
-                          <p className="text-sm font-medium text-ink">Live status</p>
-                          <p className="mt-2 text-sm text-ink-soft">{selectedBed.status.replaceAll("_", " ")}</p>
+                        <div className="management-subtle-card px-4 py-4">
+                          <p className="text-sm font-medium text-foreground">Live status</p>
+                          <p className="mt-2 text-sm text-muted-foreground">{selectedBed.status.replaceAll("_", " ")}</p>
                         </div>
                       )
                       : (
@@ -1095,7 +1120,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row">
-              <label className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-3 text-sm text-ink-soft">
+              <label className="management-search-shell">
                 <Search className="h-4 w-4 text-brand" />
                 <Input
                   className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
@@ -1106,7 +1131,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
               </label>
 
               <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
+                className="rounded-full py-3 font-medium"
                 onChange={(event) => setWardFilter(event.target.value)}
                 value={wardFilter}
               >
@@ -1119,7 +1144,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
               </ThemedSelect>
 
               <ThemedSelect
-                className="glass-panel-muted rounded-full py-3 font-medium"
+                className="rounded-full py-3 font-medium"
                 onChange={(event) =>
                   setStatusFilter(event.target.value as BedStatus | "ALL")}
                 value={statusFilter}
@@ -1398,7 +1423,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
 
             {directoryQuery.isLoading
               ? (
-                <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
+                <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin text-brand" />
                   Loading ward map
                 </div>
@@ -1418,14 +1443,14 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
             {wards.map((ward) => (
               <article
                 key={ward.id}
-                className="glass-panel-muted rounded-[28px] p-5"
+                className="management-record-shell p-5"
               >
                 <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                   <div>
                     <div className="flex flex-wrap items-center gap-3">
                       {canManage
                         ? (
-                          <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
+                          <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                             <Checkbox
                               checked={selectedWardIds.includes(ward.id)}
                               onChange={() => toggleWardSelection(ward.id)}
@@ -1437,10 +1462,10 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                       <h3 className="text-2xl font-semibold text-ink">
                         {ward.name}
                       </h3>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                      <span className="management-selection-pill px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
                         Floor {ward.floor || "NA"}
                       </span>
-                      <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                      <span className="management-selection-pill px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
                         Created {formatDate(ward.createdAt)}
                       </span>
                     </div>
@@ -1481,14 +1506,14 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                   {ward.rooms.map((room) => (
                     <div
                       key={room.id}
-                      className="glass-panel rounded-[24px] p-4"
+                      className="management-subtle-card p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div>
                           <div className="flex flex-wrap items-center gap-3">
                             {canManage
                               ? (
-                                <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
+                                <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                                   <Checkbox
                                     checked={selectedRoomIds.includes(room.id)}
                                     onChange={() => toggleRoomSelection(room.id)}
@@ -1507,7 +1532,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                         </div>
 
                         <div className="flex items-center gap-3">
-                          <div className="metric-tile rounded-[18px] px-3 py-2 text-right">
+                          <div className="management-metric px-3 py-2 text-right">
                             <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                               Charge
                             </p>
@@ -1546,18 +1571,18 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                       <div className="mt-4 grid gap-3 sm:grid-cols-2">
                         {room.beds.length === 0
                           ? (
-                            <div className="glass-panel-muted rounded-[20px] px-4 py-4 text-sm text-ink-soft sm:col-span-2">
+                            <div className="management-subtle-card px-4 py-4 text-sm text-muted-foreground sm:col-span-2">
                               No beds mapped yet.
                             </div>
                           )
                           : room.beds.map((bed) => (
                             <div
-                              className="glass-panel-muted space-y-3 rounded-[20px] p-4"
+                              className="management-subtle-card space-y-3 p-4"
                               key={bed.id}
                             >
                               {canManage
                                 ? (
-                                  <label className="surface-pill-muted inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
+                                  <label className="management-selection-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em]">
                                     <Checkbox
                                       checked={selectedBedIds.includes(bed.id)}
                                       onChange={() => toggleBedSelection(bed.id)}
@@ -1567,7 +1592,7 @@ export function WardManagement({ hideHeader = false }: WardManagementProps) {
                                 )
                                 : null}
                               <Button
-                                className="h-auto w-full flex-col items-start justify-start gap-3 rounded-[16px] p-0 text-left whitespace-normal hover:border-brand"
+                                className="h-auto w-full flex-col items-start justify-start gap-3 rounded-[var(--radius)] p-0 text-left whitespace-normal hover:border-brand"
                                 onClick={() => editBed(bed)}
                                 type="button"
                                 variant="ghost"

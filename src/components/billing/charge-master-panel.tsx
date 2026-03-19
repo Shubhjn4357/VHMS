@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import {
   useChargeDirectory,
   useCreateCharge,
@@ -96,6 +97,7 @@ export function ChargeMasterPanel() {
   const createChargeMutation = useCreateCharge();
   const deleteChargeMutation = useDeleteCharge();
   const updateChargeMutation = useUpdateCharge();
+  const confirm = useConfirmationDialog();
   const form = useForm<ChargeFormInput, unknown, ChargeFormValues>({
     resolver: zodResolver(createChargeSchema),
     defaultValues: chargeDefaultValues,
@@ -167,12 +169,16 @@ export function ChargeMasterPanel() {
     setIsDrawerOpen(false);
   }
 
-  function handleDelete(entry: ChargeRecord) {
-    if (
-      !window.confirm(
+  async function handleDelete(entry: ChargeRecord) {
+    const confirmed = await confirm({
+      title: "Delete charge?",
+      description:
         `Delete ${entry.name}? Charges already used in bills cannot be deleted.`,
-      )
-    ) {
+      confirmLabel: "Delete charge",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -272,9 +278,13 @@ export function ChargeMasterPanel() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Delete ${selectedEntries.length} selected charges? Charges already used in bills will be skipped.`,
-    );
+    const confirmed = await confirm({
+      title: "Delete selected charges?",
+      description:
+        `Delete ${selectedEntries.length} selected charges? Charges already used in bills will be skipped.`,
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;
@@ -448,14 +458,14 @@ export function ChargeMasterPanel() {
                   </div>
 
                   <div className="flex flex-wrap gap-4">
-                    <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
+                    <label className="management-selection-pill inline-flex items-center gap-3 px-4 py-3 text-sm text-foreground">
                       <Checkbox
                         {...form.register("taxable")}
                       />
                       Taxable
                     </label>
 
-                    <label className="glass-panel-muted inline-flex items-center gap-3 rounded-full px-4 py-3 text-sm text-ink">
+                    <label className="management-selection-pill inline-flex items-center gap-3 px-4 py-3 text-sm text-foreground">
                       <Checkbox
                         {...form.register("active")}
                       />
@@ -503,7 +513,7 @@ export function ChargeMasterPanel() {
             </h2>
           </div>
 
-          <label className="flex items-center gap-3 rounded-2xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
+          <label className="management-search-shell">
             <Search className="h-4 w-4 text-brand" />
             <Input
               className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
@@ -515,7 +525,7 @@ export function ChargeMasterPanel() {
 
           <div className="flex flex-col gap-3 sm:flex-row">
             <ThemedSelect
-              className="glass-panel-muted rounded-full py-3 font-medium"
+              className="rounded-full py-3 font-medium"
               onChange={(event) =>
                 setCategoryFilter(
                   event.target.value as (typeof CHARGE_CATEGORIES)[number] | "ALL",
@@ -531,7 +541,7 @@ export function ChargeMasterPanel() {
             </ThemedSelect>
 
             <ThemedSelect
-              className="glass-panel-muted rounded-full py-3 font-medium"
+              className="rounded-full py-3 font-medium"
               onChange={(event) =>
                 setStatusFilter(event.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
               value={statusFilter}
@@ -627,7 +637,7 @@ export function ChargeMasterPanel() {
         <div className="mt-6 space-y-3">
           {chargeQuery.isLoading
             ? (
-              <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
+              <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin text-brand" />
                 Loading charge master
               </div>
@@ -647,7 +657,7 @@ export function ChargeMasterPanel() {
           {filteredChargeEntries.map((entry) => (
             <article
               key={entry.id}
-                className="glass-panel-muted rounded-[24px] p-4"
+                className="management-subtle-card p-4"
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div>
@@ -662,14 +672,14 @@ export function ChargeMasterPanel() {
                     <h3 className="text-lg font-semibold text-ink">
                       {entry.name}
                     </h3>
-                    <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                    <span className="management-selection-pill px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
                       {entry.code}
                     </span>
                     <span
                       className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
                         entry.active
-                          ? "bg-[rgba(21,128,61,0.12)] text-success"
-                          : "bg-[rgba(20,32,51,0.08)] text-ink-soft"
+                          ? "status-pill-success"
+                          : "status-pill-neutral text-muted-foreground"
                       }`}
                     >
                       {entry.active ? "Active" : "Inactive"}
@@ -682,7 +692,7 @@ export function ChargeMasterPanel() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                  <span className="glass-chip rounded-full px-3 py-2 text-sm font-medium text-ink">
+                  <span className="management-selection-pill px-3 py-2 text-sm font-medium text-foreground">
                     {formatCurrency(entry.unitPrice)}
                   </span>
                   {canCreateBilling

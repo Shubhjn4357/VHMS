@@ -40,7 +40,7 @@ export function DashboardSidebar({
 
   return (
     <aside
-      className="hidden h-full shrink-0 transition-[width] duration-300 lg:flex lg:flex-col"
+      className="hidden min-h-0 shrink-0 transition-[width] duration-300 lg:flex lg:flex-col"
       style={{
         width: collapsed
           ? `${APP_THEME.layout.sidebarCollapsedWidth}px`
@@ -49,7 +49,7 @@ export function DashboardSidebar({
     >
       <div
         className={cn(
-          "flex h-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[var(--shadow-card)]",
+          "flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--radius-panel)] border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[var(--shadow-card)]",
           collapsed ? "px-2 py-3" : "px-3 py-3",
         )}
       >
@@ -182,10 +182,10 @@ export function DashboardSidebar({
                 </div>
               </div>
 
-              <div className="mt-5 flex gap-2">
+              <div className="mt-5 grid gap-2 sm:grid-cols-2">
                 <Button
                   asChild
-                  className="flex-1 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
+                  className="min-w-0 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
                   size="sm"
                   variant="outline"
                 >
@@ -193,7 +193,7 @@ export function DashboardSidebar({
                 </Button>
                 <Button
                   asChild
-                  className="flex-1 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
+                  className="min-w-0 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
                   size="sm"
                   variant="outline"
                 >

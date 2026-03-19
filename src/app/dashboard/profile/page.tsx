@@ -71,7 +71,7 @@ export default async function DashboardProfilePage() {
         <div className="mt-5 flex flex-wrap gap-2">
           {permissions.map((permission) => (
             <span
-              className="glass-chip rounded-full px-3 py-2 text-xs font-medium text-ink-soft"
+              className="management-selection-pill px-3 py-2 text-xs font-medium text-muted-foreground"
               key={permission}
             >
               {permission}

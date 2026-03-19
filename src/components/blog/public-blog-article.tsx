@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 
 import { PublicSiteChrome } from "@/components/public/public-site-chrome";
+import { NativeImage } from "@/components/ui/native-image";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import type { BlogPostRecord } from "@/types/blog";
 
@@ -65,10 +66,10 @@ export function PublicBlogArticle({
           {post.coverImageUrl
             ? (
               <div className="mt-8 overflow-hidden rounded-xl border border-border/70">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <NativeImage
                   alt={post.title}
                   className="h-[22rem] w-full object-cover"
+                  eager
                   src={post.coverImageUrl}
                 />
               </div>

@@ -4,6 +4,7 @@ export const APP_THEME = {
   },
   layout: {
     shellMaxWidth: 1600,
+    desktopBreakpoint: 1024,
     sidebarExpandedWidth: 304,
     sidebarCollapsedWidth: 92,
     topbarCondenseOffset: 20,

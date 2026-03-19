@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Toaster } from "sonner";
 
 import { AppShellProvider } from "@/components/providers/app-shell-provider";
+import { ConfirmationDialogProvider } from "@/components/providers/confirmation-dialog-provider";
 import { OfflineRuntimeProvider } from "@/components/providers/offline-runtime-provider";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { WebVitalsReporter } from "@/components/providers/web-vitals-reporter";
@@ -22,13 +23,13 @@ function ThemeAwareToaster() {
       toastOptions={{
         classNames: {
           toast:
-            "glass-panel-strong rounded-[var(--radius-panel)] border-0 p-4 text-sm shadow-[var(--shadow-card)]",
+            "rounded-[var(--radius-panel)] border bg-background p-4 text-sm text-foreground shadow-[var(--shadow-card)]",
           title: "text-sm font-semibold tracking-tight text-foreground",
           description: "text-sm leading-6 text-muted-foreground",
           actionButton:
             "rounded-[var(--radius-control)] bg-primary px-3 py-2 text-primary-foreground shadow-[var(--shadow-button)]",
           cancelButton:
-            "glass-chip rounded-[var(--radius-control)] px-3 py-2 text-foreground",
+            "rounded-[var(--radius-control)] border bg-background px-3 py-2 text-foreground shadow-[var(--shadow-soft)]",
         },
       }}
     />
@@ -67,11 +68,13 @@ export function AppProviders({
     >
       <AppShellProvider>
         <SessionProvider>
-          <QueryClientProvider client={queryClient}>
-            <OfflineRuntimeProvider>{children}</OfflineRuntimeProvider>
-            <WebVitalsReporter />
-            <ThemeAwareToaster />
-          </QueryClientProvider>
+          <ConfirmationDialogProvider>
+            <QueryClientProvider client={queryClient}>
+              <OfflineRuntimeProvider>{children}</OfflineRuntimeProvider>
+              <WebVitalsReporter />
+              <ThemeAwareToaster />
+            </QueryClientProvider>
+          </ConfirmationDialogProvider>
         </SessionProvider>
       </AppShellProvider>
     </ThemeProvider>

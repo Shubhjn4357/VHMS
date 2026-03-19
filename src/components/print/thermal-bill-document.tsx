@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { NativeImage } from "@/components/ui/native-image";
 import type { BillPrintPayload } from "@/types/print";
 
 function formatCurrency(value: number) {
@@ -27,15 +28,15 @@ export function ThermalBillDocument({
   const sections = {
     branding: (
       <header className="border-b border-dashed border-line pb-3 text-center">
-        {branding.logoUrl
-          ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              alt={branding.displayName}
-              className="mx-auto mb-2 h-10 w-10 rounded-[12px] object-cover"
-              src={branding.logoUrl}
-            />
-          )
+          {branding.logoUrl
+            ? (
+            <NativeImage
+                alt={branding.displayName}
+                className="mx-auto mb-2 h-10 w-10 rounded-[var(--radius-control)] object-cover"
+                eager
+                src={branding.logoUrl}
+              />
+            )
           : null}
         <p className="text-lg font-semibold">{branding.displayName}</p>
         {branding.address ? <p className="mt-1">{branding.address}</p> : null}

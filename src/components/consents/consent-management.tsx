@@ -560,19 +560,19 @@ export function ConsentManagement({ hideHeader = false }: ConsentManagementProps
                       >
                         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-muted-foreground">Add signature</p>
                         <div className="grid gap-4 sm:grid-cols-3">
-                          <ThemedSelect {...signatureForm.register("signerRole")} className="glass-input">
+                          <ThemedSelect {...signatureForm.register("signerRole")}>
                             {CONSENT_SIGNER_ROLES.map((role) => (
                               <option key={role} value={role}>{role}</option>
                             ))}
                           </ThemedSelect>
-                          <Input {...signatureForm.register("signerName")} className="glass-input" placeholder="Signer name" />
-                          <ThemedSelect {...signatureForm.register("mode")} className="glass-input">
+                          <Input {...signatureForm.register("signerName")} placeholder="Signer name" />
+                          <ThemedSelect {...signatureForm.register("mode")}>
                             {CONSENT_SIGNATURE_MODES.map((mode) => (
                               <option key={mode} value={mode}>{mode.replaceAll("_", " ")}</option>
                             ))}
                           </ThemedSelect>
                         </div>
-                        <Textarea {...signatureForm.register("notes")} className="glass-input min-h-20" placeholder="Optional signature notes" />
+                        <Textarea {...signatureForm.register("notes")} className="min-h-20" placeholder="Optional signature notes" />
                         <Button disabled={createSignatureMutation.isPending} type="submit">
                           {createSignatureMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSignature className="h-4 w-4" />}
                           Sign document

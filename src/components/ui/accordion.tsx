@@ -33,9 +33,9 @@ export function AccordionItem({
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className={cn("glass-panel overflow-hidden rounded-[24px]", className)}>
+    <div className={cn("management-record-shell overflow-hidden", className)}>
       <button
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-muted/20"
         onClick={() => setOpen((current) => !current)}
         type="button"
       >

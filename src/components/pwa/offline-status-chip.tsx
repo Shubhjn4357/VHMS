@@ -2,6 +2,7 @@
 
 import { ArrowUpCircle, Wifi, WifiOff, XCircle } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { usePwaInstallPrompt } from "@/hooks/usePwaInstallPrompt";
 
@@ -14,7 +15,10 @@ export function OfflineStatusChip() {
   }
 
   return (
-    <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-ink">
+    <Badge
+      className={`${isOnline ? "status-pill-success" : "status-pill-danger"} rounded-full border-transparent px-3 py-2 uppercase tracking-[0.16em]`}
+      variant="outline"
+    >
       {isOnline
         ? <Wifi className="h-3.5 w-3.5 text-success" />
         : <WifiOff className="h-3.5 w-3.5 text-danger" />}
@@ -35,6 +39,6 @@ export function OfflineStatusChip() {
           </>
         )
         : null}
-    </span>
+    </Badge>
   );
 }

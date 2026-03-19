@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Bell } from "lucide-react";
 
 import { dashboardNotificationsMetadata as metadata } from "@/app/dashboard/page-metadata";
+import { EmptyState } from "@/components/feedback/empty-state";
+import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -55,38 +58,52 @@ export default async function DashboardNotificationsPage() {
       </section>
 
       <section className="grid gap-4">
-        {workspace.notifications.map((notification) => (
-          <SurfaceCard key={notification.id}>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
-                {notification.priority}
-              </span>
-              <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                {notification.read ? "Read" : "Unread"}
-              </span>
-              {notification.targetRole
-                ? (
-                  <span className="glass-chip rounded-full px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
-                    {notification.targetRole}
-                  </span>
-                )
-                : null}
-            </div>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
-              {notification.title}
-            </h2>
-            <p className="mt-3 text-sm leading-7 text-muted-foreground">
-              {notification.body}
-            </p>
-            <div className="mt-4 flex flex-wrap gap-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
-              <span>Source: {notification.sourceType ?? "System"}</span>
-              <span>Created: {new Date(notification.createdAt).toLocaleString("en-IN")}</span>
-              {notification.acknowledgedAt
-                ? <span>Acknowledged: {new Date(notification.acknowledgedAt).toLocaleString("en-IN")}</span>
-                : null}
-            </div>
-          </SurfaceCard>
-        ))}
+        {workspace.notifications.length > 0
+          ? workspace.notifications.map((notification) => (
+            <SurfaceCard key={notification.id}>
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge
+                  className={notification.priority === "URGENT"
+                    ? "status-pill-warning border-transparent"
+                    : undefined}
+                  variant="outline"
+                >
+                  {notification.priority}
+                </Badge>
+                <Badge variant={notification.read ? "outline" : "success"}>
+                  {notification.read ? "Read" : "Unread"}
+                </Badge>
+                {notification.targetRole
+                  ? (
+                    <Badge variant="outline">
+                      {notification.targetRole}
+                    </Badge>
+                  )
+                  : null}
+              </div>
+              <h2 className="mt-4 text-xl font-semibold tracking-tight text-foreground">
+                {notification.title}
+              </h2>
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
+                {notification.body}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                <span>Source: {notification.sourceType ?? "System"}</span>
+                <span>Created: {new Date(notification.createdAt).toLocaleString("en-IN")}</span>
+                {notification.acknowledgedAt
+                  ? <span>Acknowledged: {new Date(notification.acknowledgedAt).toLocaleString("en-IN")}</span>
+                  : null}
+              </div>
+            </SurfaceCard>
+          ))
+          : (
+            <EmptyState
+              className="min-h-72"
+              description="Operational alerts will appear here when the communication engine raises in-app notifications."
+              icon={Bell}
+              title="No notifications available"
+            />
+          )}
       </section>
     </div>
   );

@@ -36,28 +36,29 @@ export function AuthUserPanel({ compact = false }: AuthUserPanelProps) {
   const initials = userLabel.slice(0, 1).toUpperCase();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex min-w-0 items-center gap-2">
       <div
         className={cn(
-          "min-w-0 border bg-background text-left shadow-[var(--shadow-soft)] transition-[padding,width] duration-200",
-          compact ? "w-[3rem] rounded-lg px-2.5 py-2" : "rounded-xl px-3 py-2.5",
+          "flex min-w-0 items-center gap-3 border bg-background text-left shadow-[var(--shadow-soft)] transition-[padding,width] duration-200",
+          compact ? "rounded-lg px-2 py-2" : "rounded-xl px-3 py-2.5",
         )}
       >
-        <p className="truncate text-sm font-semibold tracking-tight text-ink">
-          {compact
-            ? initials
-            : userLabel}
-        </p>
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border bg-muted text-sm font-semibold text-foreground">
+          {initials}
+        </span>
         {!compact
           ? (
-            <>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold tracking-tight text-ink">
+                {userLabel}
+              </p>
               <p className="mt-1 truncate text-xs text-muted-foreground">
                 {user.email}
               </p>
               <Badge className="mt-2 w-fit" variant="outline">
                 {ROLE_LABELS[user.role]}
               </Badge>
-            </>
+            </div>
           )
           : null}
       </div>

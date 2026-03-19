@@ -29,6 +29,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useBillingDirectory, useSettleBill } from "@/hooks/useBillingApi";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -52,19 +53,19 @@ const settlementDefaultValues: SettlementFormInput = {
 };
 
 const billStatusToneMap: Record<string, string> = {
-  DRAFT: "bg-[rgba(20,32,51,0.08)] text-ink",
-  PENDING: "bg-[rgba(217,119,6,0.12)] text-warning",
-  PARTIALLY_PAID: "bg-[rgba(21,94,239,0.12)] text-accent",
-  PAID: "bg-[rgba(21,128,61,0.12)] text-success",
-  CANCELLED: "bg-[rgba(220,38,38,0.12)] text-danger",
-  REFUNDED: "bg-[rgba(124,58,237,0.12)] text-[rgb(109,40,217)]",
+  DRAFT: "status-pill-neutral",
+  PENDING: "status-pill-warning",
+  PARTIALLY_PAID: "status-pill-info",
+  PAID: "status-pill-success",
+  CANCELLED: "status-pill-danger",
+  REFUNDED: "status-pill-secondary",
 };
 
 const paymentStatusToneMap: Record<string, string> = {
-  UNPAID: "bg-[rgba(217,119,6,0.12)] text-warning",
-  PARTIALLY_PAID: "bg-[rgba(21,94,239,0.12)] text-accent",
-  PAID: "bg-[rgba(21,128,61,0.12)] text-success",
-  REFUNDED: "bg-[rgba(124,58,237,0.12)] text-[rgb(109,40,217)]",
+  UNPAID: "status-pill-warning",
+  PARTIALLY_PAID: "status-pill-info",
+  PAID: "status-pill-success",
+  REFUNDED: "status-pill-secondary",
 };
 
 function formatCurrency(value: number) {
@@ -107,6 +108,7 @@ export function BillingRegisterPanel() {
     status: statusFilter,
   });
   const settleBillMutation = useSettleBill();
+  const confirm = useConfirmationDialog();
   const settlementForm = useForm<
     SettlementFormInput,
     unknown,
@@ -159,8 +161,15 @@ export function BillingRegisterPanel() {
     );
   }
 
-  function handleCancelBill(entry: BillRecord) {
-    if (!window.confirm(`Cancel bill ${entry.billNumber}?`)) {
+  async function handleCancelBill(entry: BillRecord) {
+    const confirmed = await confirm({
+      title: "Cancel bill?",
+      description: `Cancel bill ${entry.billNumber}?`,
+      confirmLabel: "Cancel bill",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -196,9 +205,13 @@ export function BillingRegisterPanel() {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Cancel ${selectedEntries.length} selected bills? Only unpaid bills will be cancelled.`,
-    );
+    const confirmed = await confirm({
+      title: "Cancel selected bills?",
+      description:
+        `Cancel ${selectedEntries.length} selected bills? Only unpaid bills will be cancelled.`,
+      confirmLabel: "Cancel selected",
+      tone: "danger",
+    });
 
     if (!confirmed) {
       return;
@@ -334,7 +347,7 @@ export function BillingRegisterPanel() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row">
-            <label className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-3 text-sm text-muted-foreground">
+            <label className="management-search-shell">
               <Search className="h-4 w-4 text-brand" />
               <Input
                 className="h-auto min-w-44 border-0 bg-transparent px-0 py-0 shadow-none focus-visible:ring-0"
@@ -345,7 +358,7 @@ export function BillingRegisterPanel() {
             </label>
 
             <ThemedSelect
-              className="glass-panel-muted rounded-full py-3 font-medium"
+              className="rounded-full py-3 font-medium"
               onChange={(event) =>
                 setStatusFilter(
                   event.target.value as (typeof BILL_STATUS)[number] | "ALL",
@@ -432,7 +445,7 @@ export function BillingRegisterPanel() {
         <div className="mt-6 space-y-4">
           {billingQuery.isLoading
             ? (
-              <div className="glass-panel-muted flex items-center gap-3 rounded-[24px] px-4 py-5 text-sm text-ink-soft">
+              <div className="management-subtle-card flex items-center gap-3 px-4 py-5 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin text-brand" />
                 Loading bills
               </div>
@@ -452,7 +465,7 @@ export function BillingRegisterPanel() {
           {entries.map((entry) => (
             <article
               key={entry.id}
-              className="glass-panel-muted rounded-[28px] p-5"
+              className="management-record-shell p-5"
             >
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
@@ -471,7 +484,7 @@ export function BillingRegisterPanel() {
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
                           billStatusToneMap[entry.billStatus] ??
-                            "glass-chip text-ink"
+                            "status-pill-neutral text-foreground"
                         }`}
                       >
                         {entry.billStatus.replaceAll("_", " ")}
@@ -479,7 +492,7 @@ export function BillingRegisterPanel() {
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
                           paymentStatusToneMap[entry.paymentStatus] ??
-                            "glass-chip text-ink"
+                            "status-pill-neutral text-foreground"
                         }`}
                       >
                         {entry.paymentStatus.replaceAll("_", " ")}
@@ -497,7 +510,7 @@ export function BillingRegisterPanel() {
                   </div>
 
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="metric-tile rounded-[20px] px-4 py-3 text-center">
+                    <div className="management-metric px-4 py-3 text-center">
                       <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                         Total
                       </p>
@@ -505,7 +518,7 @@ export function BillingRegisterPanel() {
                         {formatCurrency(entry.totalAmount)}
                       </p>
                     </div>
-                    <div className="metric-tile rounded-[20px] px-4 py-3 text-center">
+                    <div className="management-metric px-4 py-3 text-center">
                       <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                         Paid
                       </p>
@@ -513,7 +526,7 @@ export function BillingRegisterPanel() {
                         {formatCurrency(entry.amountPaid)}
                       </p>
                     </div>
-                    <div className="metric-tile rounded-[20px] px-4 py-3 text-center">
+                    <div className="management-metric px-4 py-3 text-center">
                       <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                         Balance
                       </p>
@@ -524,7 +537,7 @@ export function BillingRegisterPanel() {
                   </div>
                 </div>
 
-                <div className="glass-panel rounded-[22px] p-4">
+                <div className="management-subtle-card p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
                     Line items
                   </p>
@@ -637,7 +650,7 @@ export function BillingRegisterPanel() {
               className="mt-6 space-y-5"
               onSubmit={settlementForm.handleSubmit(handleSettlementSubmit)}
             >
-              <div className="glass-panel-muted rounded-[24px] p-4">
+              <div className="management-subtle-card p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-xl font-semibold text-ink">
                     {selectedBill.billNumber}
@@ -645,7 +658,7 @@ export function BillingRegisterPanel() {
                   <span
                     className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
                       billStatusToneMap[selectedBill.billStatus] ??
-                        "glass-chip text-ink"
+                        "status-pill-neutral text-foreground"
                     }`}
                   >
                     {selectedBill.billStatus.replaceAll("_", " ")}
@@ -661,7 +674,7 @@ export function BillingRegisterPanel() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="metric-tile rounded-[22px] px-4 py-4">
+                <div className="management-metric px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                     Total
                   </p>
@@ -669,7 +682,7 @@ export function BillingRegisterPanel() {
                     {formatCurrency(selectedBill.totalAmount)}
                   </p>
                 </div>
-                <div className="metric-tile rounded-[22px] px-4 py-4">
+                <div className="management-metric px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                     Paid so far
                   </p>
@@ -677,7 +690,7 @@ export function BillingRegisterPanel() {
                     {formatCurrency(selectedBill.amountPaid)}
                   </p>
                 </div>
-                <div className="metric-tile rounded-[22px] px-4 py-4">
+                <div className="management-metric px-4 py-4">
                   <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                     Balance
                   </p>

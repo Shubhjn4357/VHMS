@@ -43,8 +43,11 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
 
   return (
     <header className="sticky top-4 z-50 rounded-[var(--radius-panel)] border bg-background/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-7">
-      <div className="flex items-center justify-between gap-8">
-        <Link className="flex items-center gap-4 transition-opacity hover:opacity-90" href="/">
+      <div className="flex flex-wrap items-center justify-between gap-4 xl:gap-6">
+        <Link
+          className="flex min-w-0 items-center gap-4 transition-opacity hover:opacity-90"
+          href="/"
+        >
           {hospital.logoUrl ? (
             <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border bg-muted">
               <Image
@@ -59,17 +62,17 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
               {APP_TEXT.BRAND_SHORT}
             </div>
           )}
-          <div className="hidden sm:block">
+          <div className="hidden min-w-0 sm:block">
             <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-primary/72">
               {APP_TEXT.PUBLIC.NAV_LABEL}
             </p>
-            <span className="mt-1 block text-lg font-semibold tracking-tight text-foreground">
+            <span className="mt-1 block truncate text-lg font-semibold tracking-tight text-foreground">
               {hospital.displayName}
             </span>
           </div>
         </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 2xl:flex">
           {allLinks.map((item) => {
             const isActive = pathname === item.href;
             const isAnchor = item.href.startsWith("#");
@@ -93,7 +96,7 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
+        <div className="ml-auto flex shrink-0 items-center gap-3">
           <Button asChild className="hidden sm:inline-flex" size="sm" variant="ghost">
             <Link href="/login">{APP_TEXT.SHELL.STAFF_ACCESS}</Link>
           </Button>

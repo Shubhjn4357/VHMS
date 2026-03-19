@@ -156,20 +156,20 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
   return (
     <div
       className={cn(
-        "relative w-full transition-all duration-300",
+        "relative w-full min-w-0 transition-all duration-300",
         compact ? "max-w-xl" : "max-w-3xl",
       )}
       ref={rootRef}
     >
       <label
         className={cn(
-          "flex items-center gap-2 rounded-[var(--radius-control)] border bg-background transition-all duration-300 shadow-[var(--shadow-soft)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20",
+          "flex w-full min-w-0 items-center gap-2 rounded-[var(--radius-control)] border bg-background transition-all duration-300 shadow-[var(--shadow-soft)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20",
           compact ? "min-h-10 px-3" : "min-h-11 px-4",
         )}
       >
         <Search className="h-4 w-4 text-muted-foreground" />
         <Input
-          className="h-auto border-0 bg-transparent px-0 py-0 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/60"
+          className="h-auto min-w-0 flex-1 border-0 bg-transparent px-0 py-0 text-sm shadow-none focus-visible:ring-0 placeholder:text-muted-foreground/60"
           onChange={(event) => {
             setQuery(event.target.value);
             setScanFeedback(null);
@@ -229,7 +229,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
               ) : null}
             </div>
 
-            <div className="max-h-[50vh] overflow-y-auto pr-1 scrollbar-none">
+            <div className="max-h-[min(60vh,32rem)] overflow-y-auto pr-1 scrollbar-none">
               {query.length < 2 ? (
                 <div className="mt-4 rounded-lg border border-dashed bg-muted/30 p-4 text-sm text-muted-foreground">
                   {APP_TEXT.SHELL.SEARCH_TYPING}

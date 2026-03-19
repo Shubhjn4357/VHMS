@@ -113,6 +113,7 @@ type DashboardNavigationProps = {
   pathname: string;
   permissions: PermissionKey[];
   collapsed?: boolean;
+  onNavigate?: () => void;
 };
 
 export function DashboardNavigation({
@@ -120,6 +121,7 @@ export function DashboardNavigation({
   pathname,
   permissions,
   collapsed = false,
+  onNavigate,
 }: DashboardNavigationProps) {
   const visibleGroups = navGroups
     .map((group) => ({
@@ -133,7 +135,7 @@ export function DashboardNavigation({
   return (
     <div className="space-y-5">
       {visibleGroups.map((group) => (
-        <section className="space-y-2" key={group.title}>
+        <section className="min-w-0 space-y-2" key={group.title}>
           {!collapsed ? (
             <div className="flex items-center justify-between px-3">
               <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/50">
@@ -156,14 +158,15 @@ export function DashboardNavigation({
                       <Link
                         aria-label={item.label}
                         className={cn(
-                          "group flex items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors",
+                          "group flex min-w-0 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors",
                           active
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
+                            ? "border-sidebar-border/70 bg-sidebar-accent text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/70 hover:border-sidebar-border/60 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
                           collapsed && "mx-auto h-10 w-10 justify-center px-0",
                         )}
                         href={item.href}
                         key={item.label}
+                        onClick={onNavigate}
                         title={collapsed ? item.label : undefined}
                       >
                         <Icon

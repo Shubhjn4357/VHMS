@@ -10,11 +10,12 @@ import {
   X,
   XCircle,
 } from "lucide-react";
+import { useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useOfflineQueue } from "@/hooks/useOfflineQueue";
 import { usePwaInstallPrompt } from "@/hooks/usePwaInstallPrompt";
-import { useState } from "react";
 
 function formatTimestamp(value: string | null) {
   if (!value) {
@@ -57,39 +58,42 @@ export function OfflineBanner() {
   }
 
   return (
-    <div className="glass-panel sticky top-0 z-70 border-b border-line/60">
+    <div className="sticky top-0 z-70 border-b border-border/60 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/90">
       <div className="mx-auto flex max-w-[1600px] flex-col gap-3 px-4 py-3 text-sm sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 font-semibold text-ink">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+          <Badge
+            className={`${isOnline ? "status-pill-success" : "status-pill-danger"} rounded-full border-transparent px-3 py-2`}
+            variant="outline"
+          >
             {isOnline ? <Wifi className="h-4 w-4 text-success" /> : <WifiOff className="h-4 w-4 text-danger" />}
             {isOnline ? "Online" : "Offline mode"}
-          </span>
-          <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-ink-soft">
+          </Badge>
+          <Badge className="status-pill-info rounded-full border-transparent px-3 py-2" variant="outline">
             <ArrowUpCircle className="h-4 w-4 text-brand" />
             {pendingCount} queued
-          </span>
-          <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-ink-soft">
+          </Badge>
+          <Badge className="status-pill-warning rounded-full border-transparent px-3 py-2" variant="outline">
             <XCircle className="h-4 w-4 text-warning" />
             {failedCount} failed
-          </span>
-          <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-ink-soft">
+          </Badge>
+          <Badge className="status-pill-secondary rounded-full border-transparent px-3 py-2" variant="outline">
             <CheckCircle2 className="h-4 w-4 text-accent" />
             {draftCount} drafts
-          </span>
+          </Badge>
           {completedCount > 0
             ? (
-              <span className="glass-chip inline-flex items-center gap-2 rounded-full px-3 py-2 text-ink-soft">
+              <Badge className="status-pill-success rounded-full border-transparent px-3 py-2" variant="outline">
                 <CheckCircle2 className="h-4 w-4 text-success" />
                 {completedCount} synced
-              </span>
+              </Badge>
             )
             : null}
-          <span className="text-ink-soft">
+          <span className="text-muted-foreground">
             Last sync: {formatTimestamp(lastSyncedAt)}
           </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex shrink-0 flex-wrap items-center gap-3">
           {failedCount > 0
             ? (
               <Button
@@ -141,8 +145,15 @@ export function OfflineBanner() {
               </Button>
             )
             : null}
+          <Button
+            onClick={() => setHideBanner(true)}
+            size="icon"
+            type="button"
+            variant="ghost"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setHideBanner(true)}><X className="h-4 w-4" /></Button>
       </div>
     </div>
   );

@@ -34,18 +34,21 @@
   --warning: oklch(0.769 0.188 70.08);
   --danger: var(--destructive);
   --line: var(--border);
-  --glass-panel: var(--card);
-  --glass-panel-strong: var(--card);
-  --glass-panel-muted: color-mix(in srgb, var(--muted) 68%, var(--background) 32%);
-  --glass-chip: color-mix(in srgb, var(--secondary) 82%, var(--background) 18%);
-  --glass-edge: color-mix(in srgb, var(--background) 88%, transparent);
-  --glass-border: var(--border);
-  --glass-backdrop: none;
-  --shadow-soft: 0 1px 2px color-mix(in srgb, var(--foreground) 8%, transparent);
+  --shadow-color-soft: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --shadow-color-card-soft: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --shadow-color-card-deep: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --shadow-color-button: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --shadow-soft: 0 1px 2px var(--shadow-color-soft);
   --shadow-card:
-    0 1px 2px color-mix(in srgb, var(--foreground) 8%, transparent),
-    0 1px 3px color-mix(in srgb, var(--foreground) 5%, transparent);
-  --shadow-button: 0 1px 2px color-mix(in srgb, var(--foreground) 10%, transparent);
+    0 1px 2px var(--shadow-color-card-soft),
+    0 1px 3px var(--shadow-color-card-deep);
+  --shadow-button: 0 1px 2px var(--shadow-color-button);
+  --scrollbar-thumb: color-mix(in srgb, var(--muted-foreground) 26%, transparent);
+  --print-sheet-background: oklch(1 0 0);
+  --print-sheet-border: color-mix(in srgb, var(--foreground) 12%, transparent);
+  --overlay-backdrop: color-mix(in srgb, black 60%, transparent);
+  --glow-pulse-start: color-mix(in srgb, var(--ring) 16%, transparent);
+  --glow-pulse-end: color-mix(in srgb, var(--ring) 0%, transparent);
   --sidebar: oklch(0.145 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.985 0 0);
@@ -54,19 +57,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(0.269 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --hero-start: var(--sidebar);
-  --hero-end: var(--sidebar);
-  --hero-text: var(--sidebar-foreground);
-  --hero-line: color-mix(in srgb, var(--sidebar-foreground) 10%, transparent);
-  --hero-panel: color-mix(in srgb, var(--sidebar-accent) 72%, transparent);
-  --hero-panel-strong: color-mix(in srgb, var(--sidebar-accent) 88%, transparent);
-  --hero-kicker: color-mix(in srgb, var(--sidebar-foreground) 58%, transparent);
-  --hero-copy: color-mix(in srgb, var(--sidebar-foreground) 74%, transparent);
-  --hero-copy-strong: color-mix(in srgb, var(--sidebar-foreground) 88%, transparent);
-  --surface-soft: color-mix(in srgb, var(--card) 92%, var(--background) 8%);
-  --surface-soft-strong: color-mix(in srgb, var(--card) 96%, var(--background) 4%);
-  --surface-soft-muted: color-mix(in srgb, var(--muted) 42%, var(--background) 58%);
-  --surface-soft-line: var(--border);
   --radius-shell: 1.5rem;
   --radius-panel: 1rem;
   --radius-control: 0.625rem;
@@ -111,17 +101,15 @@
   --warning: oklch(0.769 0.188 70.08);
   --danger: var(--destructive);
   --line: var(--border);
-  --glass-panel: var(--card);
-  --glass-panel-strong: var(--card);
-  --glass-panel-muted: color-mix(in srgb, var(--muted) 78%, var(--background) 22%);
-  --glass-chip: color-mix(in srgb, var(--muted) 80%, var(--background) 20%);
-  --glass-edge: color-mix(in srgb, var(--background) 12%, transparent);
-  --glass-border: var(--border);
-  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-color-soft: color-mix(in srgb, black 30%, transparent);
+  --shadow-color-card-soft: color-mix(in srgb, black 35%, transparent);
+  --shadow-color-card-deep: color-mix(in srgb, black 18%, transparent);
+  --shadow-color-button: color-mix(in srgb, black 25%, transparent);
+  --shadow-soft: 0 1px 2px var(--shadow-color-soft);
   --shadow-card:
-    0 1px 2px rgb(0 0 0 / 0.35),
-    0 8px 24px rgb(0 0 0 / 0.18);
-  --shadow-button: 0 1px 2px rgb(0 0 0 / 0.25);
+    0 1px 2px var(--shadow-color-card-soft),
+    0 8px 24px var(--shadow-color-card-deep);
+  --shadow-button: 0 1px 2px var(--shadow-color-button);
   --sidebar: oklch(0.205 0 0);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.985 0 0);
@@ -218,7 +206,7 @@ body::after {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(96, 113, 133, 0.26);
+  background: var(--scrollbar-thumb);
   border-radius: 999px;
 }
 
@@ -237,8 +225,8 @@ body::after {
 
 .print-sheet {
   margin: 0 auto;
-  background: white;
-  border: 1px solid rgba(20, 32, 51, 0.12);
+  background: var(--print-sheet-background);
+  border: 1px solid var(--print-sheet-border);
   box-shadow: var(--shadow-soft);
 }
 
@@ -255,7 +243,7 @@ body::after {
 
 @media print {
   body {
-    background: white !important;
+    background: var(--print-sheet-background) !important;
   }
 
   body::before,
@@ -270,7 +258,7 @@ body::after {
   .print-document-page {
     margin: 0;
     padding: 0;
-    background: white;
+    background: var(--print-sheet-background);
   }
 
   .print-sheet {
@@ -303,120 +291,14 @@ button {
 .app-shell-frame {
   min-height: 100vh;
   padding: 1rem;
-  background: color-mix(in srgb, var(--muted) 38%, transparent);
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--muted) 72%, transparent) 0%, transparent 36%),
+    color-mix(in srgb, var(--muted) 38%, transparent);
 }
 
 .app-shell-max {
   margin: 0 auto;
   max-width: var(--shell-max-width);
-}
-
-.grid-backdrop {
-  position: relative;
-}
-
-.grid-backdrop::before {
-  display: none;
-}
-
-.glass-panel,
-.glass-panel-strong,
-.glass-panel-muted,
-.glass-chip,
-.glass-input {
-  border: 1px solid var(--glass-border);
-}
-
-.glass-panel {
-  background: var(--glass-panel);
-  box-shadow: var(--shadow-soft);
-}
-
-.glass-panel-strong {
-  background: var(--glass-panel-strong);
-  box-shadow: var(--shadow-card);
-}
-
-.glass-panel-muted {
-  background: var(--glass-panel-muted);
-  box-shadow: none;
-}
-
-.glass-chip {
-  background: var(--glass-chip);
-  box-shadow: none;
-}
-
-.glass-input {
-  background: var(--background);
-  box-shadow: var(--shadow-soft);
-}
-
-.glass-hero {
-  background: var(--hero-start);
-  color: var(--hero-text);
-  border: 1px solid var(--hero-line);
-  box-shadow: var(--shadow-card);
-}
-
-.metric-tile {
-  background: var(--background);
-  border: 1px solid var(--border);
-  box-shadow: none;
-}
-
-.dashboard-section {
-  background: var(--sidebar);
-  border: 1px solid var(--sidebar-border);
-  color: var(--sidebar-foreground);
-  box-shadow: var(--shadow-card);
-}
-
-.hero-kicker {
-  color: var(--hero-kicker);
-}
-
-.hero-copy {
-  color: var(--hero-copy);
-}
-
-.hero-copy-strong {
-  color: var(--hero-copy-strong);
-}
-
-.hero-panel,
-.hero-chip {
-  border: 1px solid var(--hero-line);
-  background: var(--hero-panel);
-  box-shadow: none;
-}
-
-.hero-chip {
-  color: var(--hero-text);
-}
-
-.surface-card-strong,
-.surface-section {
-  background: var(--surface-soft-strong);
-  border: 1px solid var(--surface-soft-line);
-  box-shadow: var(--shadow-soft);
-}
-
-.surface-card-muted {
-  background: var(--surface-soft-muted);
-  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-}
-
-.surface-pill-muted {
-  background: color-mix(in srgb, var(--surface) 62%, var(--glass-chip) 38%);
-  border: 1px solid color-mix(in srgb, var(--line) 58%, transparent);
-  color: var(--ink-soft);
-}
-
-.surface-tab-active {
-  background: var(--secondary);
-  color: var(--secondary-foreground);
-  box-shadow: none;
 }
 
 .management-toolbar-shell {
@@ -430,10 +312,22 @@ button {
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  width: 100%;
+}
+
+.management-toolbar-shell > * {
+  min-width: 0;
+}
+
+.management-toolbar-actions > * {
+  min-width: 0;
 }
 
 .management-search-shell {
   display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 28rem;
   height: 2.5rem;
   align-items: center;
   gap: 0.625rem;
@@ -445,11 +339,17 @@ button {
   box-shadow: var(--shadow-soft);
 }
 
+.management-search-shell input {
+  min-width: 0;
+  width: 100%;
+}
+
 .management-record-shell {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: calc(var(--radius-panel) + 0.125rem);
   box-shadow: var(--shadow-soft);
+  overflow: hidden;
 }
 
 .management-subtle-card {
@@ -465,9 +365,23 @@ button {
 }
 
 .management-selection-pill {
+  display: inline-flex;
+  max-width: 100%;
+  min-width: 0;
+  align-items: center;
   background: color-mix(in srgb, var(--background) 84%, var(--muted) 16%);
   border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
   border-radius: 999px;
+}
+
+@media (max-width: 639px) {
+  .management-toolbar-actions > * {
+    width: 100%;
+  }
+
+  .management-search-shell {
+    max-width: none;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -493,6 +407,31 @@ button {
   color: var(--danger);
 }
 
+.status-pill-success {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+
+.status-pill-warning {
+  background: color-mix(in srgb, var(--warning) 12%, transparent);
+  color: var(--warning);
+}
+
+.status-pill-info {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--primary);
+}
+
+.status-pill-neutral {
+  background: color-mix(in srgb, var(--muted) 72%, var(--background) 28%);
+  color: var(--foreground);
+}
+
+.status-pill-secondary {
+  background: color-mix(in srgb, var(--secondary) 84%, var(--background) 16%);
+  color: var(--secondary-foreground);
+}
+
 .signal-dot {
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--background) 48%, transparent);
@@ -511,7 +450,7 @@ button {
 }
 
 .app-overlay {
-  background: rgb(0 0 0 / 0.6);
+  background: var(--overlay-backdrop);
 }
 
 .app-kicker {
@@ -554,7 +493,7 @@ button {
 .barcode-camera-shell video,
 .barcode-camera-shell canvas {
   object-fit: cover;
-  border-radius: 28px;
+  border-radius: calc(var(--radius-shell) + 0.25rem);
 }
 
 @keyframes float-slow {
@@ -571,10 +510,10 @@ button {
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(15, 110, 135, 0.12);
+    box-shadow: 0 0 0 0 var(--glow-pulse-start);
   }
 
   50% {
-    box-shadow: 0 0 0 10px rgba(15, 110, 135, 0);
+    box-shadow: 0 0 0 10px var(--glow-pulse-end);
   }
 }

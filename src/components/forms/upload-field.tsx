@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { UPLOAD_TARGET_RULES } from "@/constants/uploadTargets";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeImage } from "@/components/ui/native-image";
 import { useFileUpload } from "@/hooks/useFileUpload";
 import { cn } from "@/lib/utils/cn";
 import type { UploadAssetTarget } from "@/types/upload";
@@ -63,9 +64,9 @@ export function UploadField({
   return (
     <div className={cn("space-y-3", className)}>
       <div>
-        <span className="text-sm font-medium text-ink">{label}</span>
+        <span className="text-sm font-medium text-foreground">{label}</span>
         {description ? (
-          <p className="mt-1 text-sm leading-6 text-ink-soft">{description}</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
         ) : null}
       </div>
 
@@ -79,18 +80,18 @@ export function UploadField({
         type="file"
       />
 
-      <div className="glass-panel-muted rounded-[24px] border border-dashed px-4 py-4">
+      <div className="management-subtle-card rounded-[var(--radius-panel)] border-dashed px-4 py-4">
         {canPreviewImage ? (
-          <div className="mb-4 overflow-hidden rounded-[20px] border border-border/70 bg-background/80">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+          <div className="mb-4 overflow-hidden rounded-[var(--radius)] border border-border/70 bg-background/80">
+            <NativeImage
               alt={label}
               className="h-40 w-full object-cover"
+              eager
               src={value}
             />
           </div>
         ) : (
-          <div className="mb-4 flex h-28 items-center justify-center rounded-[20px] border border-border/70 bg-background/70 text-sm text-ink-soft">
+          <div className="mb-4 flex h-28 items-center justify-center rounded-[var(--radius)] border border-border/70 bg-background/70 text-sm text-muted-foreground">
             <ImagePlus className="mr-2 h-4 w-4 text-brand" />
             No file uploaded yet
           </div>

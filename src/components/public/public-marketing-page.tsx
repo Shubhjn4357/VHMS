@@ -23,7 +23,7 @@ export async function PublicMarketingPage({
   return (
     <PublicSiteChrome>
       <div className="space-y-6">
-        <section className="glass-panel-strong rounded-[36px] p-6 sm:p-8">
+        <section className="rounded-[var(--radius-panel)] border bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8">
           <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
             <PageHeader
               actions={
@@ -39,7 +39,7 @@ export async function PublicMarketingPage({
 
             <div className="grid gap-4 sm:grid-cols-3">
               {content.metrics.map((metric) => (
-                <SurfaceCard className="rounded-[26px]" key={metric.label}>
+                <SurfaceCard key={metric.label}>
                   <p className="text-sm text-muted-foreground">{metric.label}</p>
                   <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
                     {metric.value}
@@ -56,7 +56,7 @@ export async function PublicMarketingPage({
         <section className="grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
           <div className="space-y-6">
             {content.sections.map((section, index) => (
-              <SurfaceCard className="rounded-[30px]" key={section.title}>
+              <SurfaceCard key={section.title}>
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
@@ -74,7 +74,7 @@ export async function PublicMarketingPage({
                 <div className="mt-5 grid gap-3">
                   {section.points.map((point) => (
                     <div
-                      className="glass-panel-muted flex items-start gap-3 rounded-[22px] px-4 py-4"
+                      className="management-subtle-card flex items-start gap-3 px-4 py-4"
                       key={point}
                     >
                       <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
@@ -87,14 +87,14 @@ export async function PublicMarketingPage({
           </div>
 
           <div className="space-y-6">
-            <SurfaceCard className="rounded-[30px]">
+            <SurfaceCard>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
                 Common questions
               </p>
               <div className="mt-5 space-y-4">
                 {content.faqs.map((faq) => (
                   <div
-                    className="glass-panel-muted rounded-[22px] px-4 py-4"
+                    className="management-subtle-card px-4 py-4"
                     key={faq.question}
                   >
                     <p className="text-sm font-semibold text-foreground">
@@ -110,14 +110,14 @@ export async function PublicMarketingPage({
 
             {supportCards.length > 0
               ? (
-                <SurfaceCard className="rounded-[30px]">
+                <SurfaceCard>
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
                     Live contact data
                   </p>
                   <div className="mt-5 grid gap-3">
                     {supportCards.map((card) => (
                       <div
-                        className="metric-tile rounded-[22px] px-4 py-4"
+                        className="management-metric px-4 py-4"
                         key={card.label}
                       >
                         <p className="text-sm text-muted-foreground">{card.label}</p>
@@ -131,7 +131,7 @@ export async function PublicMarketingPage({
               )
               : null}
 
-            <SurfaceCard className="grid-backdrop rounded-[30px]">
+            <SurfaceCard>
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand">
                 Next step
               </p>

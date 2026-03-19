@@ -114,7 +114,7 @@ export default async function DashboardStaffPage() {
 
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             {roleDistribution.map(([role, count]) => (
-              <div className="glass-panel-muted rounded-[22px] p-4" key={role}>
+              <div className="management-subtle-card p-4" key={role}>
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">
@@ -147,7 +147,7 @@ export default async function DashboardStaffPage() {
           <div className="mt-5 space-y-3">
             {pendingReview.length > 0
               ? pendingReview.slice(0, 5).map((entry) => (
-                <div className="glass-panel-muted rounded-[22px] p-4" key={entry.id}>
+                <div className="management-subtle-card p-4" key={entry.id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-semibold text-foreground">{entry.displayName}</p>
@@ -190,7 +190,7 @@ export default async function DashboardStaffPage() {
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           {recentLogins.length > 0
             ? recentLogins.map((entry) => (
-              <div className="glass-panel-muted rounded-[22px] p-4" key={entry.id}>
+              <div className="management-subtle-card p-4" key={entry.id}>
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{entry.displayName}</p>

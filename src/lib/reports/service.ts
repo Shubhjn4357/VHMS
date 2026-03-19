@@ -1,7 +1,8 @@
 import { asc, eq } from "drizzle-orm";
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb as pdfRgb } from "pdf-lib";
 import * as XLSX from "xlsx";
 
+import { APP_REPORT_COLORS } from "@/constants/appBrand";
 import { getDb } from "@/db/client";
 import {
   admissions,
@@ -361,6 +362,19 @@ function escapeHtml(value: string | number) {
     .replaceAll('"', "&quot;");
 }
 
+function toPdfColor(hex: string) {
+  const normalized = hex.replace("#", "");
+  const expanded = normalized.length === 3
+    ? normalized.split("").map((value) => `${value}${value}`).join("")
+    : normalized;
+
+  const red = Number.parseInt(expanded.slice(0, 2), 16) / 255;
+  const green = Number.parseInt(expanded.slice(2, 4), 16) / 255;
+  const blue = Number.parseInt(expanded.slice(4, 6), 16) / 255;
+
+  return pdfRgb(red, green, blue);
+}
+
 function buildTableHtml(
   title: string,
   headers: string[],
@@ -456,14 +470,14 @@ export function buildReportsPrintHtml(workspace: ReportsWorkspaceResponse) {
     <meta charset="utf-8" />
     <title>VHMS Reports</title>
     <style>
-      body { font-family: Arial, sans-serif; margin: 24px; color: #142033; }
+      body { font-family: Arial, sans-serif; margin: 24px; color: ${APP_REPORT_COLORS.body}; }
       h1 { margin: 0 0 12px; font-size: 24px; }
-      p.meta { margin: 0 0 24px; color: #607487; }
+      p.meta { margin: 0 0 24px; color: ${APP_REPORT_COLORS.meta}; }
       section { margin-bottom: 28px; }
       h2 { margin: 0 0 12px; font-size: 16px; }
       table { width: 100%; border-collapse: collapse; font-size: 12px; }
-      th, td { border: 1px solid #d6dde6; padding: 8px; text-align: left; }
-      th { background: #eef3f8; }
+      th, td { border: 1px solid ${APP_REPORT_COLORS.border}; padding: 8px; text-align: left; }
+      th { background: ${APP_REPORT_COLORS.surface}; }
       @media print {
         body { margin: 12mm; }
       }
@@ -671,7 +685,7 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
   function drawText(value: string, options: {
     size?: number;
     bold?: boolean;
-    color?: ReturnType<typeof rgb>;
+    color?: ReturnType<typeof pdfRgb>;
     indent?: number;
   } = {}) {
     if (y < 44) {
@@ -683,7 +697,7 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
       y,
       size: options.size ?? 10,
       font: options.bold ? boldFont : regularFont,
-      color: options.color ?? rgb(0.08, 0.13, 0.2),
+      color: options.color ?? toPdfColor(APP_REPORT_COLORS.title),
     });
     y -= lineHeight;
   }
@@ -691,11 +705,11 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
   drawText("VHMS Operational Reports", {
     size: 18,
     bold: true,
-    color: rgb(0.04, 0.33, 0.41),
+    color: toPdfColor(APP_REPORT_COLORS.accent),
   });
   drawText(`Generated ${new Date().toLocaleString("en-IN")}`, {
     size: 10,
-    color: rgb(0.39, 0.46, 0.53),
+    color: toPdfColor(APP_REPORT_COLORS.meta),
   });
   y -= 8;
 
@@ -703,7 +717,7 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
     drawText(section.title, {
       size: 13,
       bold: true,
-      color: rgb(0.08, 0.13, 0.2),
+      color: toPdfColor(APP_REPORT_COLORS.title),
     });
 
     for (const row of section.rows) {
@@ -712,7 +726,7 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
         drawText(line.trim(), {
           indent: 10,
           size: 10,
-          color: rgb(0.2, 0.25, 0.31),
+          color: toPdfColor(APP_REPORT_COLORS.body),
         });
       }
     }

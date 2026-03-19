@@ -11,15 +11,15 @@ export const metadata: Metadata = buildPublicMetadata({
 
 export default function OfflineFallbackPage() {
   return (
-    <main className="min-h-screen px-6 py-16 text-ink">
-      <div className="glass-panel-strong mx-auto max-w-3xl rounded-[40px] p-10">
+    <main className="min-h-screen px-6 py-16 text-foreground">
+      <div className="mx-auto max-w-3xl rounded-[var(--radius-panel)] border bg-card p-10 shadow-[var(--shadow-soft)]">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-brand">
           Offline fallback
         </p>
         <h1 className="mt-4 text-4xl font-semibold tracking-tight">
           Connection lost. Local drafts and queued actions stay on this device.
         </h1>
-        <p className="mt-6 text-base leading-8 text-ink-soft">
+        <p className="mt-6 text-base leading-8 text-muted-foreground">
           VHMS keeps unsent patient registrations, appointment schedules, and
           draft bills in the browser until the connection returns. Reopen the
           dashboard when online to continue syncing.
@@ -32,11 +32,11 @@ export default function OfflineFallbackPage() {
             ["PWA", "Install the app for a faster operational shell."],
           ].map(([title, description]) => (
             <div
-              className="glass-panel-muted rounded-[24px] p-5"
+              className="management-subtle-card p-5"
               key={String(title)}
             >
               <p className="text-lg font-semibold">{title}</p>
-              <p className="mt-3 text-sm leading-7 text-ink-soft">
+              <p className="mt-3 text-sm leading-7 text-muted-foreground">
                 {description}
               </p>
             </div>

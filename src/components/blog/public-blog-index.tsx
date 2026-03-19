@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { EmptyState } from "@/components/feedback/empty-state";
 import { PublicSiteChrome } from "@/components/public/public-site-chrome";
+import { NativeImage } from "@/components/ui/native-image";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import type { BlogPostRecord } from "@/types/blog";
@@ -40,13 +41,12 @@ export function PublicBlogIndex({
               {posts.map((post) => (
                 <SurfaceCard
                   key={post.id}
-                  className="surface-card-strong flex h-full flex-col"
+                  className="management-record-shell flex h-full flex-col"
                 >
                   {post.coverImageUrl
                     ? (
                       <div className="mb-5 overflow-hidden rounded-xl border border-border/70">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
+                        <NativeImage
                           alt={post.title}
                           className="h-52 w-full object-cover"
                           src={post.coverImageUrl}

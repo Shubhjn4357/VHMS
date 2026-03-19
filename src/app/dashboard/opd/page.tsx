@@ -1,9 +1,10 @@
 import Link from "next/link";
 
 import { dashboardOpdMetadata as metadata } from "@/app/dashboard/page-metadata";
+import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
-import { buttonVariants } from "@/components/ui/button";
 import { getOpdWorkspace } from "@/lib/workflows/service";
 
 export { metadata };
@@ -37,7 +38,7 @@ export default async function DashboardOpdPage() {
       <PageHeader
         eyebrow="Outpatient workflow"
         title="OPD command board"
-        description="Run appointment intake, live OPD billing, and OPD-to-IPD handoff from one route backed by today’s real appointment and billing data."
+        description="Run appointment intake, live OPD billing, and OPD-to-IPD handoff from one route backed by today's real appointment and billing data."
         actions={(
           <>
             <Link
@@ -65,8 +66,8 @@ export default async function DashboardOpdPage() {
           ["Unpaid OPD bills", workspace.summary.unpaidOpdBills],
         ].map(([label, value]) => (
           <SurfaceCard key={String(label)}>
-            <p className="text-sm text-ink-soft">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-ink">
+            <p className="text-sm text-muted-foreground">{label}</p>
+            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
               {value}
             </p>
           </SurfaceCard>
@@ -80,7 +81,7 @@ export default async function DashboardOpdPage() {
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
                 Today&apos;s OPD queue
               </p>
-              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+              <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
                 Intake, consultation, billing, and handoff
               </h2>
             </div>
@@ -89,33 +90,36 @@ export default async function DashboardOpdPage() {
           <div className="mt-6 space-y-4">
             {workspace.todayVisits.length === 0
               ? (
-                <div className="glass-panel-muted rounded-[24px] px-5 py-6 text-sm text-ink-soft">
+                <div className="management-subtle-card px-5 py-6 text-sm text-muted-foreground">
                   No OPD appointments are scheduled for today yet.
                 </div>
               )
               : workspace.todayVisits.map((visit) => (
                 <article
-                  className="glass-panel-muted rounded-[24px] p-4"
+                  className="management-subtle-card p-4"
                   key={visit.appointmentId}
                 >
                   <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-lg font-semibold text-ink">
+                        <h3 className="text-lg font-semibold text-foreground">
                           {visit.patientName}
                         </h3>
-                        <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-brand">
+                        <Badge className="uppercase tracking-[0.16em]" variant="outline">
                           {visit.patientHospitalNumber}
-                        </span>
-                        <span className="glass-chip rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-ink-soft">
+                        </Badge>
+                        <Badge
+                          className="status-pill-neutral border-transparent uppercase tracking-[0.16em]"
+                          variant="outline"
+                        >
                           {visit.status.replaceAll("_", " ")}
-                        </span>
+                        </Badge>
                       </div>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {formatDateTime(visit.scheduledFor)} / {visit.doctorName}
                         {visit.doctorDepartment ? ` / ${visit.doctorDepartment}` : ""}
                       </p>
-                      <p className="mt-2 text-sm text-ink-soft">
+                      <p className="mt-2 text-sm text-muted-foreground">
                         {visit.billNumber
                           ? `${visit.billNumber} / ${
                             visit.paymentStatus?.replaceAll("_", " ") ?? "No payment state"
@@ -170,19 +174,19 @@ export default async function DashboardOpdPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
               Recent registrations
             </p>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-ink">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
               Fresh patient records available for intake
             </h2>
             <div className="mt-6 space-y-3">
               {workspace.recentPatients.map((patient) => (
                 <div
-                  className="glass-panel-muted rounded-[22px] p-4"
+                  className="management-subtle-card p-4"
                   key={patient.id}
                 >
                   <div className="flex items-center justify-between gap-3">
                     <div>
-                      <p className="font-semibold text-ink">{patient.fullName}</p>
-                      <p className="text-sm text-ink-soft">
+                      <p className="font-semibold text-foreground">{patient.fullName}</p>
+                      <p className="text-sm text-muted-foreground">
                         {patient.hospitalNumber} / Added {formatDateTime(patient.createdAt)}
                       </p>
                     </div>
@@ -209,11 +213,11 @@ export default async function DashboardOpdPage() {
                 ["Analytics", "/dashboard/analytics", "Track outpatient load and revenue on the main dashboard analytics route."],
               ].map(([label, href, detail]) => (
                 <div
-                  className="glass-panel-muted rounded-[22px] p-4"
+                  className="management-subtle-card p-4"
                   key={String(label)}
                 >
-                  <p className="font-semibold text-ink">{label}</p>
-                  <p className="mt-2 text-sm leading-6 text-ink-soft">{detail}</p>
+                  <p className="font-semibold text-foreground">{label}</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{detail}</p>
                   <Link
                     className={`${buttonVariants({ size: "sm", variant: "outline" })} mt-4`}
                     href={String(href)}

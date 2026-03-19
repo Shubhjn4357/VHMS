@@ -607,7 +607,7 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                           </p>
                           <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                             <ThemedSelect
-                              className="glass-input w-full"
+                              className="w-full"
                               onChange={(event) =>
                                 setTransferTargetBedId(event.target.value)}
                               value={transferTargetBedId}
@@ -661,7 +661,7 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
                         </p>
                         <div className="mt-4 flex flex-col gap-3 sm:flex-row">
                           <ThemedSelect
-                            className="glass-input w-full"
+                            className="w-full"
                             onChange={(event) => {
                               setManualStatus(
                                 event.target.value as Exclude<

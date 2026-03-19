@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 
+import { NativeImage } from "@/components/ui/native-image";
 import type { ConsentPrintPayload } from "@/types/print";
 
 function formatTimestamp(value: string | null) {
@@ -33,15 +34,15 @@ export function ConsentPrintDocument({
             <p className="mt-1 text-sm text-ink-soft">{branding.address}</p>
           </div>
           <div className="text-right">
-            {branding.logoUrl
-              ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  alt={branding.displayName}
-                  className="ml-auto mb-3 h-14 w-14 rounded-[16px] border border-line object-cover"
-                  src={branding.logoUrl}
-                />
-              )
+              {branding.logoUrl
+                ? (
+                <NativeImage
+                    alt={branding.displayName}
+                    className="ml-auto mb-3 h-14 w-14 rounded-[var(--radius-control)] border border-line object-cover"
+                    eager
+                    src={branding.logoUrl}
+                  />
+                )
               : null}
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
               Consent document
@@ -57,7 +58,7 @@ export function ConsentPrintDocument({
       </header>
     ),
     documentDetails: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Document details
         </p>
@@ -88,7 +89,7 @@ export function ConsentPrintDocument({
       </section>
     ),
     signatureState: (
-      <section className="rounded-[22px] border border-line p-5">
+      <section className="rounded-[var(--radius-panel)] border border-line p-5">
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand">
           Signature state
         </p>
@@ -121,7 +122,7 @@ export function ConsentPrintDocument({
       </section>
     ),
     content: (
-      <section className="rounded-[22px] border border-line p-6">
+      <section className="rounded-[var(--radius-panel)] border border-line p-6">
         <p className="whitespace-pre-wrap text-sm leading-8 text-ink-soft">
           {document.renderedBody}
         </p>
@@ -136,7 +137,7 @@ export function ConsentPrintDocument({
           {document.signatures.map((signature) => (
             <div
               key={signature.id}
-              className="rounded-[22px] border border-line p-5"
+              className="rounded-[var(--radius-panel)] border border-line p-5"
             >
               <p className="text-xs uppercase tracking-[0.16em] text-ink-soft">
                 {signature.signerRole.replaceAll("_", " ")}

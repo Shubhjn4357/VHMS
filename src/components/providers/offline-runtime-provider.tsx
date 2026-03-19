@@ -17,6 +17,7 @@ import {
   readOfflineQueueSnapshot,
   registerOfflineQueueBackgroundSync,
 } from "@/lib/offline/background-sync";
+import { logError } from "@/lib/observability/logger";
 import { useOfflineStore } from "@/stores/offline-store";
 import type { OfflineQueueItem, OfflineSyncResponse } from "@/types/offline";
 
@@ -206,14 +207,14 @@ export function OfflineRuntimeProvider({
         setLastSyncedAt(snapshot.lastSyncedAt);
       })
       .catch((error) => {
-        console.error("Offline queue snapshot restore failed", error);
+        logError("offline.snapshot_restore_failed", error);
       });
 
     setOnline(window.navigator.onLine);
 
     if ("serviceWorker" in navigator) {
       void navigator.serviceWorker.register("/sw.js").catch((error) => {
-        console.error("Service worker registration failed", error);
+        logError("offline.service_worker_registration_failed", error);
       });
     }
 
@@ -271,7 +272,7 @@ export function OfflineRuntimeProvider({
     }
 
     void registerOfflineQueueBackgroundSync(queue).catch((error) => {
-      console.error("Offline queue background sync registration failed", error);
+      logError("offline.background_sync_registration_failed", error);
     });
   }, [hydrated, queue]);
 

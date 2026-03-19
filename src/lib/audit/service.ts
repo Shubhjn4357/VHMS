@@ -44,7 +44,7 @@ function toSummary(
   const suffix = entityId ? ` (${entityId})` : "";
 
   return metadataBits.length > 0
-    ? `${base}${suffix} · ${metadataBits.join(" · ")}`
+    ? `${base}${suffix} | ${metadataBits.join(" | ")}`
     : `${base}${suffix}`;
 }
 

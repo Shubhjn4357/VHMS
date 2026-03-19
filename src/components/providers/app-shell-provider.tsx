@@ -11,12 +11,15 @@ import {
 import { APP_THEME } from "@/constants/appTheme";
 
 type AppShellContextValue = {
+  isDesktop: boolean;
   isSidebarCollapsed: boolean;
   isMobileNavOpen: boolean;
   isGlobalSearchOpen: boolean;
   isTopbarCondensed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
+  openMobileNav: () => void;
+  closeMobileNav: () => void;
   setMobileNavOpen: (open: boolean) => void;
   setGlobalSearchOpen: (open: boolean) => void;
   setTopbarCondensed: (condensed: boolean) => void;
@@ -25,6 +28,7 @@ type AppShellContextValue = {
 
 const AppShellContext = createContext<AppShellContextValue | null>(null);
 const SIDEBAR_PREF_EVENT = "app-shell:sidebar-collapsed";
+const DESKTOP_MEDIA_QUERY = `(min-width: ${APP_THEME.layout.desktopBreakpoint}px)`;
 
 function getSidebarCollapsedSnapshot() {
   if (typeof window === "undefined") {
@@ -70,46 +74,102 @@ function updateSidebarCollapsedPreference(collapsed: boolean) {
   window.dispatchEvent(new Event(SIDEBAR_PREF_EVENT));
 }
 
+function getDesktopSnapshot() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches;
+}
+
+function subscribeToDesktopViewport(callback: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const mediaQueryList = window.matchMedia(DESKTOP_MEDIA_QUERY);
+  const handleChange = () => {
+    callback();
+  };
+
+  mediaQueryList.addEventListener("change", handleChange);
+
+  return () => {
+    mediaQueryList.removeEventListener("change", handleChange);
+  };
+}
+
 export function AppShellProvider({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isDesktop = useSyncExternalStore(
+    subscribeToDesktopViewport,
+    getDesktopSnapshot,
+    () => false,
+  );
   const isSidebarCollapsed = useSyncExternalStore(
     subscribeToSidebarCollapsed,
     getSidebarCollapsedSnapshot,
     () => false,
   );
-  const [isMobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isMobileNavOpen, setMobileNavOpenState] = useState(false);
   const [isGlobalSearchOpen, setGlobalSearchOpen] = useState(false);
   const [isTopbarCondensed, setTopbarCondensed] = useState(false);
 
   function setSidebarCollapsed(collapsed: boolean) {
+    if (!isDesktop) {
+      return;
+    }
+
     startTransition(() => {
       updateSidebarCollapsedPreference(collapsed);
     });
   }
 
   function toggleSidebar() {
+    if (!isDesktop) {
+      setMobileNavOpenState((current) => !current);
+      return;
+    }
+
     startTransition(() => {
       updateSidebarCollapsedPreference(!isSidebarCollapsed);
     });
   }
 
+  function openMobileNav() {
+    if (!isDesktop) {
+      setMobileNavOpenState(true);
+    }
+  }
+
+  function closeMobileNav() {
+    setMobileNavOpenState(false);
+  }
+
+  function setMobileNavOpen(open: boolean) {
+    setMobileNavOpenState(open);
+  }
+
   function closeTransientUi() {
-    setMobileNavOpen(false);
+    setMobileNavOpenState(false);
     setGlobalSearchOpen(false);
   }
 
   return (
     <AppShellContext.Provider
       value={{
+        isDesktop,
         isSidebarCollapsed,
         isMobileNavOpen,
         isGlobalSearchOpen,
         isTopbarCondensed,
         setSidebarCollapsed,
         toggleSidebar,
+        openMobileNav,
+        closeMobileNav,
         setMobileNavOpen,
         setGlobalSearchOpen,
         setTopbarCondensed,

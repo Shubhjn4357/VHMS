@@ -208,7 +208,7 @@ function OverviewPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="surface-section rounded-[28px] p-5">
+    <section className="management-record-shell p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-lg font-semibold text-foreground">{title}</p>
@@ -427,7 +427,7 @@ function renderOverviewWidget(
         description="Delivery queue and pending approval pressure across message channels."
         title="Care coordination"
       >
-        <div className="alert-surface-danger rounded-[22px] p-4">
+        <div className="alert-surface-danger rounded-[var(--radius-panel)] p-4">
           <p className="font-medium text-foreground">Operational alerts</p>
           <p className="mt-1 text-sm text-muted-foreground">
             {summary.unreadNotifications} unread notifications and {summary.pendingApprovals} approvals still need controlled review.
@@ -633,7 +633,7 @@ export function DashboardOverview() {
 
   return (
     <div className="space-y-5">
-      <SurfaceCard className="rounded-[28px] p-5">
+      <SurfaceCard className="p-5">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
           <div className="max-w-2xl">
             <div className="flex flex-wrap items-center gap-2">
@@ -711,7 +711,7 @@ export function DashboardOverview() {
 
       {canConfigure && isEditing
         ? (
-          <SurfaceCard className="rounded-[28px] p-5">
+          <SurfaceCard className="p-5">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
@@ -757,9 +757,9 @@ export function DashboardOverview() {
         <div className="flex flex-col gap-4 border-b border-border/70 pb-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span className="h-3 w-3 rounded-full bg-[#f97373]" />
-              <span className="h-3 w-3 rounded-full bg-[#fbbf24]" />
-              <span className="h-3 w-3 rounded-full bg-[#34d399]" />
+              <span className="signal-dot signal-dot-danger h-3 w-3 rounded-full" />
+              <span className="signal-dot signal-dot-warning h-3 w-3 rounded-full" />
+              <span className="signal-dot signal-dot-success h-3 w-3 rounded-full" />
             </div>
             <div className="management-selection-pill px-4 py-2 text-xs font-medium text-muted-foreground">
               /dashboard

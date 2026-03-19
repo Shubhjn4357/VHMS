@@ -124,9 +124,9 @@ export function DashboardRouteSkeleton({
 
 export function PublicRouteSkeleton() {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,rgba(56,189,248,0.12),transparent_30%),linear-gradient(180deg,var(--background),color-mix(in_srgb,var(--surface)_70%,white_30%))]">
+    <div className="relative min-h-screen overflow-hidden bg-[radial-gradient(circle_at_top,color-mix(in_srgb,var(--primary)_12%,transparent),transparent_30%),linear-gradient(180deg,var(--background),color-mix(in_srgb,var(--muted)_48%,var(--background)_52%))]">
       <div className="mx-auto flex min-h-screen w-full max-w-[1320px] flex-col gap-8 px-4 py-6 sm:px-6 lg:px-8">
-        <div className="glass-panel-strong flex items-center justify-between rounded-[28px] px-5 py-4">
+        <div className="flex items-center justify-between rounded-[var(--radius-panel)] border bg-card px-5 py-4 shadow-[var(--shadow-soft)]">
           <Skeleton className="h-10 w-40" />
           <div className="hidden items-center gap-3 md:flex">
             <Skeleton className="h-10 w-20 rounded-full" />
@@ -136,7 +136,7 @@ export function PublicRouteSkeleton() {
           <Skeleton className="h-10 w-28 rounded-full" />
         </div>
 
-        <div className="glass-panel rounded-[36px] px-5 py-10 sm:px-8 lg:px-10">
+        <div className="rounded-[var(--radius-panel)] border bg-card px-5 py-10 shadow-[var(--shadow-soft)] sm:px-8 lg:px-10">
           <Skeleton className="mx-auto h-4 w-28" />
           <Skeleton className="mx-auto mt-5 h-14 w-full max-w-[44rem]" />
           <Skeleton className="mx-auto mt-3 h-14 w-full max-w-[36rem]" />
@@ -145,8 +145,8 @@ export function PublicRouteSkeleton() {
             <Skeleton className="h-11 w-36 rounded-full" />
             <Skeleton className="h-11 w-36 rounded-full" />
           </div>
-          <div className="mt-10 rounded-[30px] border border-border/60 bg-surface/72 p-4 sm:p-6">
-            <Skeleton className="h-[28rem] w-full rounded-[24px]" />
+          <div className="mt-10 rounded-[var(--radius-panel)] border border-border/60 bg-muted/20 p-4 sm:p-6">
+            <Skeleton className="h-[28rem] w-full rounded-[var(--radius-panel)]" />
           </div>
         </div>
       </div>

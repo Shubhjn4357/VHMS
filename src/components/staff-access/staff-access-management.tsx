@@ -43,6 +43,7 @@ import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } f
 import { Input } from "@/components/ui/input";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
+import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 import {
@@ -111,6 +112,7 @@ export function StaffAccessManagement() {
   const createMutation = useCreateStaffAccess();
   const updateMutation = useUpdateStaffAccess();
   const deleteMutation = useDeleteStaffAccess();
+  const confirm = useConfirmationDialog();
 
   const form = useForm<StaffAccessFormValues>({
     resolver: zodResolver(createStaffAccessSchema),
@@ -278,12 +280,16 @@ export function StaffAccessManagement() {
     });
   }
 
-  function handleDelete(entry: StaffAccessRecord) {
-    if (
-      !window.confirm(
+  async function handleDelete(entry: StaffAccessRecord) {
+    const confirmed = await confirm({
+      title: "Delete staff access?",
+      description:
         `Delete staff access for ${entry.email}? Existing sessions will lose access on refresh.`,
-      )
-    ) {
+      confirmLabel: "Delete access",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
@@ -344,11 +350,15 @@ export function StaffAccessManagement() {
       return;
     }
 
-    if (
-      !window.confirm(
+    const confirmed = await confirm({
+      title: "Delete selected staff access records?",
+      description:
         `Delete ${selectedEntries.length} selected staff access records? Existing sessions will lose access on refresh.`,
-      )
-    ) {
+      confirmLabel: "Delete selected",
+      tone: "danger",
+    });
+
+    if (!confirmed) {
       return;
     }
 
