@@ -16,9 +16,9 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        eyebrow="Command board"
+        eyebrow="Operations command center"
         title="Hospital operations dashboard"
-        description="Use the live overview route to monitor appointments, billing, occupancy, communication load, approvals, and saved layout priorities from one operational command board."
+        description="Monitor front desk, billing, occupancy, communications, and approvals from one live operational board. The layout stays personalizable, but the data stays tied to real hospital activity."
       />
       <DashboardOverview />
     </div>

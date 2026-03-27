@@ -4,15 +4,15 @@ import { PublicHome } from "@/components/public/public-home";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPublicMetadata({
-  title: "Hospital Management Platform",
+  title: "Hospital Operating System",
   description:
-    "Vahi HMS Enterprise is a connected hospital operations platform for patients, appointments, OPD and IPD billing, occupancy, communications, discharge, and analytics.",
+    "Vahi Hospital OS is a direct-deploy hospital operating system for reception, appointments, OPD and IPD billing, occupancy, communication workflows, discharge, and audit-safe administration.",
   path: "/",
   keywords: [
-    "hospital management platform",
-    "hospital dashboard",
+    "hospital operating system",
+    "hospital management deployment",
     "OPD IPD billing software",
-    "hospital occupancy software",
+    "hospital occupancy system",
   ],
 });
 

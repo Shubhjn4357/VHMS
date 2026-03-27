@@ -5,6 +5,7 @@ const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
 export default defineConfig({
   testDir: "./tests/e2e",
   fullyParallel: true,
+  workers: 2,
   retries: process.env.CI ? 1 : 0,
   use: {
     baseURL,
@@ -27,7 +28,7 @@ export default defineConfig({
       reuseExistingServer: true,
       env: {
         ...process.env,
-        APP_NAME: process.env.APP_NAME ?? "VHMS Enterprise",
+        APP_NAME: process.env.APP_NAME ?? "Vahi Hospital OS",
         GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "test-google-client-id",
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ??
           "test-google-client-secret",

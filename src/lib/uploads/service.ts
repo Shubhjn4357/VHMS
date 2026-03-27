@@ -27,8 +27,50 @@ const MIME_EXTENSION_MAP: Record<string, string> = {
 
 type ResolvedUploadDriver = "local" | "s3" | "r2";
 
+const PROJECT_PUBLIC_DIRECTORY = path.join(process.cwd(), "public");
+
 function normalizeUrlPrefix(value: string) {
   return value.replace(/\/+$/, "");
+}
+
+function resolveLocalUploadBaseSegments() {
+  const normalizedPrefix = normalizeUrlPrefix(env.UPLOAD_PUBLIC_BASE_URL).trim();
+
+  if (!normalizedPrefix.startsWith("/")) {
+    throw new ApiError(
+      500,
+      "UPLOAD_PUBLIC_BASE_URL must start with '/' when local upload storage is enabled.",
+    );
+  }
+
+  const segments = normalizedPrefix
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+
+  if (segments.length === 0) {
+    throw new ApiError(
+      500,
+      "UPLOAD_PUBLIC_BASE_URL must include at least one path segment for local uploads.",
+    );
+  }
+
+  if (segments.some((segment) => segment === "." || segment === "..")) {
+    throw new ApiError(
+      500,
+      "UPLOAD_PUBLIC_BASE_URL cannot contain '.' or '..' path segments.",
+    );
+  }
+
+  return segments;
+}
+
+function normalizeStorageKeySegments(storageKey: string) {
+  return storageKey
+    .replaceAll("\\", "/")
+    .split("/")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
 }
 
 function hasS3Config() {
@@ -106,7 +148,11 @@ function resolvePublicUrl(storageKey: string, driver: ResolvedUploadDriver) {
 }
 
 function resolveLocalUploadPath(storageKey: string) {
-  return path.join(process.cwd(), env.UPLOAD_LOCAL_DIR, storageKey);
+  return path.join(
+    PROJECT_PUBLIC_DIRECTORY,
+    ...resolveLocalUploadBaseSegments(),
+    ...normalizeStorageKeySegments(storageKey),
+  );
 }
 
 function getFileExtension(file: File) {

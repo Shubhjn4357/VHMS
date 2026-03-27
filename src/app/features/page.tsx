@@ -5,12 +5,12 @@ import { marketingPages } from "@/lib/public-site/marketing-pages";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPublicMetadata({
-  title: "Features",
+  title: "Capabilities",
   description:
-    "Explore the feature map of Vahi HMS Enterprise across patients, appointments, billing, occupancy, communications, consent, discharge, analytics, and audit control.",
+    "Explore the operational capability map of Vahi Hospital OS across patients, appointments, billing, occupancy, communications, consent, discharge, analytics, and audit control.",
   path: "/features",
   keywords: [
-    "hospital software features",
+    "hospital software capabilities",
     "hospital management modules",
     "billing occupancy analytics",
   ],

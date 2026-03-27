@@ -7,7 +7,7 @@ import Image from "next/image";
 import { Globe, LayoutDashboard, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { OptionsMenu } from "@/components/ui/options-menu";
+import { OverflowMenu } from "@/components/ui/overflow-menu";
 import { APP_TEXT } from "@/constants/appText";
 import { publicSiteNavigation } from "@/lib/public-site/navigation";
 import { cn } from "@/lib/utils/cn";
@@ -42,14 +42,14 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
   ];
 
   return (
-    <header className="sticky top-4 z-50 rounded-[var(--radius-panel)] border bg-background/95 px-5 py-4 shadow-[var(--shadow-soft)] backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-7">
+    <header className="public-grid-shell sticky top-4 z-50 rounded-[calc(var(--radius-panel)+0.2rem)] px-5 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80 sm:px-7">
       <div className="flex flex-wrap items-center justify-between gap-4 xl:gap-6">
         <Link
           className="flex min-w-0 items-center gap-4 transition-opacity hover:opacity-90"
           href="/"
         >
           {hospital.logoUrl ? (
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-lg border bg-muted">
+            <div className="relative flex h-12 w-12 items-center justify-center overflow-hidden rounded-2xl border bg-muted">
               <Image
                 alt={hospital.displayName}
                 className="object-cover"
@@ -58,7 +58,7 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
               />
             </div>
           ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-lg border bg-muted text-xs font-semibold text-foreground">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl border bg-muted text-xs font-semibold text-foreground">
               {APP_TEXT.BRAND_SHORT}
             </div>
           )}
@@ -82,10 +82,10 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
             return (
               <Comp
                 className={cn(
-                  "rounded-md px-4 py-2 text-sm font-medium transition-colors",
+                  "rounded-full px-4 py-2 text-sm font-semibold transition-all",
                   isActive
-                    ? "bg-secondary text-secondary-foreground"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    ? "bg-primary text-primary-foreground shadow-[var(--shadow-button)]"
+                    : "text-muted-foreground hover:bg-accent/70 hover:text-accent-foreground"
                 )}
                 href={item.href}
                 key={item.label}
@@ -104,7 +104,7 @@ export function PublicNavbar({ hospital, extraLinks = [] }: PublicNavbarProps) {
             <Link href="/dashboard">{APP_TEXT.SHELL.OPEN_BOARD}</Link>
           </Button>
           <div className="xl:hidden">
-            <OptionsMenu items={mobileMenuItems} key={`${pathname}-public-menu`} />
+            <OverflowMenu items={mobileMenuItems} key={`${pathname}-public-menu`} />
           </div>
         </div>
       </div>

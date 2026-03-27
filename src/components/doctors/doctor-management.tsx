@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Download,
+  Eye,
   Loader2,
   Plus,
   Printer,
@@ -25,10 +26,14 @@ import { UploadField } from "@/components/forms/upload-field";
 import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormDrawer, FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
-import { OptionsMenu } from "@/components/ui/options-menu";
 import { PageHeader } from "@/components/ui/page-header";
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
+import {
+  RecordPreviewDialog,
+  RecordPreviewField,
+  RecordPreviewSection,
+} from "@/components/ui/record-preview-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
@@ -66,6 +71,7 @@ const defaultDoctorValues: DoctorFormInput = {
   signatureUrl: "",
   active: true,
 };
+const doctorFormId = "doctor-management-form";
 
 function formatCurrency(value: number) {
   return `Rs ${value.toFixed(0)}`;
@@ -100,6 +106,9 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<DoctorManagementRecord | null>(
+    null,
+  );
+  const [previewDoctor, setPreviewDoctor] = useState<DoctorManagementRecord | null>(
     null,
   );
 
@@ -210,6 +219,14 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
   function clearSelection() {
     startTransition(() => setSelectedDoctor(null));
     setIsDrawerOpen(false);
+  }
+
+  function openPreview(entry: DoctorManagementRecord) {
+    startTransition(() => setPreviewDoctor(entry));
+  }
+
+  function closePreview() {
+    startTransition(() => setPreviewDoctor(null));
   }
 
   function handleSubmit(values: DoctorFormValues) {
@@ -435,6 +452,68 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
       </section>
 
       <div className="space-y-6">
+        <RecordPreviewDialog
+          actions={canManage && previewDoctor
+            ? (
+              <Button
+                onClick={() => {
+                  closePreview();
+                  startTransition(() => setSelectedDoctor(previewDoctor));
+                  setIsDrawerOpen(true);
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <UserRoundPen className="h-4 w-4" />
+                Edit doctor
+              </Button>
+            )
+            : null}
+          description="Review roster details, specialty context, and scheduling readiness before changing the doctor profile."
+          eyebrow="Doctor profile"
+          onOpenChange={(open) => {
+            if (!open) {
+              closePreview();
+            }
+          }}
+          open={Boolean(previewDoctor)}
+          status={previewDoctor
+            ? (
+              <Badge variant={previewDoctor.active ? "success" : "secondary"}>
+                {previewDoctor.active ? "Active roster" : "Inactive roster"}
+              </Badge>
+            )
+            : null}
+          title={previewDoctor?.fullName ?? "Doctor profile"}
+        >
+          {previewDoctor ? (
+            <>
+              <RecordPreviewSection
+                description="Clinical identity and roster placement used by appointments, admissions, and reporting."
+                icon={Stethoscope}
+                title="Roster identity"
+              >
+                <RecordPreviewField label="Designation" value={previewDoctor.designation || "Not captured"} />
+                <RecordPreviewField label="Specialty" value={previewDoctor.specialty || "Not captured"} />
+                <RecordPreviewField label="Department" value={previewDoctor.departmentName || "Not assigned"} />
+                <RecordPreviewField label="Consultation fee" value={formatCurrency(previewDoctor.consultationFee)} />
+              </RecordPreviewSection>
+
+              <RecordPreviewSection
+                description="Communication details and live operational load for this doctor."
+                icon={Search}
+                title="Operational context"
+              >
+                <RecordPreviewField label="Email" value={previewDoctor.email || "Not captured"} />
+                <RecordPreviewField label="Phone" value={previewDoctor.phone || "Not captured"} />
+                <RecordPreviewField label="Appointments today" value={previewDoctor.totalAppointments} />
+                <RecordPreviewField label="Last activity" value={formatDateTime(previewDoctor.lastAppointmentAt)} />
+              </RecordPreviewSection>
+            </>
+          ) : null}
+        </RecordPreviewDialog>
+
         <SurfaceCard>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -459,152 +538,188 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
           </div>
         </SurfaceCard>
 
-        <Drawer
-          open={isDrawerOpen}
+        <FormDrawer
+          contentClassName="pb-0"
+          description={selectedDoctor
+            ? "Modify doctor details and consultation metadata without leaving the master roster."
+            : "Enter doctor details to add them to the operational roster used by scheduling, billing, and admissions."}
+          footer={canManage
+            ? (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="management-selection-pill px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  Doctors marked inactive stay in history but are removed from new scheduling and admission flows.
+                </div>
+                <div className="flex flex-wrap justify-end gap-3">
+                  {selectedDoctor
+                    ? (
+                      <Button
+                        onClick={() => handleDelete(selectedDoctor)}
+                        size="sm"
+                        type="button"
+                        variant="destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Delete doctor
+                      </Button>
+                    )
+                    : null}
+                  <Button
+                    onClick={clearSelection}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    {selectedDoctor ? "Cancel edit" : "Close"}
+                  </Button>
+                  <Button disabled={isSaving} form={doctorFormId} type="submit">
+                    {isSaving
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : selectedDoctor
+                      ? <UserRoundPen className="h-4 w-4 mr-2" />
+                      : <Stethoscope className="h-4 w-4 mr-2" />}
+                    {selectedDoctor ? "Save doctor" : "Create doctor"}
+                  </Button>
+                </div>
+              </div>
+            )
+            : null}
+          mode={selectedDoctor ? "edit" : "create"}
           onOpenChange={(open) => {
             setIsDrawerOpen(open);
             if (!open) clearSelection();
           }}
+          open={isDrawerOpen}
+          statusLabel={selectedDoctor?.active ? "Active roster" : selectedDoctor ? "Inactive roster" : undefined}
+          title={selectedDoctor ? `Edit ${selectedDoctor.fullName}` : "Add new doctor"}
         >
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>
-                {selectedDoctor ? `Edit ${selectedDoctor.fullName}` : "Add new doctor"}
-              </DrawerTitle>
-              <DrawerDescription>
-                {selectedDoctor ? "Modify doctor details below." : "Enter doctor details to add them to the master roster."}
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="p-4 bg-background">
-              {canManage
-                ? (
-                  <form
-                    className="space-y-5"
-                    onSubmit={form.handleSubmit(handleSubmit)}
-                  >
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block sm:col-span-2">
-                        <span className="text-sm font-medium text-ink">Doctor name</span>
-                        <Input
-                          {...form.register("fullName")}
-                          className="mt-2"
-                          placeholder="Dr. Karina Safar"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.fullName?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Designation</span>
-                        <Input
-                          {...form.register("designation")}
-                          className="mt-2"
-                          placeholder="Consultant Physician"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Specialty</span>
-                        <Input
-                          {...form.register("specialty")}
-                          className="mt-2"
-                          placeholder="Cardiology"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Department</span>
-                        <Input
-                          {...form.register("departmentName")}
-                          className="mt-2"
-                          list="doctor-departments"
-                          placeholder="Cardiology"
-                        />
-                        <datalist id="doctor-departments">
-                          {departmentSuggestions.map((departmentName) => (
-                            <option key={departmentName} value={departmentName} />
-                          ))}
-                        </datalist>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Consultation fee</span>
-                        <Input
-                          {...form.register("consultationFee")}
-                          className="mt-2"
-                          min="0"
-                          step="0.01"
-                          type="number"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.consultationFee?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Email</span>
-                        <Input
-                          {...form.register("email")}
-                          className="mt-2"
-                          placeholder="doctor@hospital.test"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.email?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Phone</span>
-                        <Input
-                          {...form.register("phone")}
-                          className="mt-2"
-                          placeholder="+91-9876543210"
-                        />
-                      </label>
-                    </div>
-
-                    <UploadField
-                      description="Used for printed documents and signature-supported clinical workflows."
-                      label="Doctor signature"
-                      onChange={(value) =>
-                        form.setValue("signatureUrl", value, {
-                          shouldDirty: true,
-                          shouldValidate: true,
-                        })}
-                      target="DOCTOR_SIGNATURE"
-                      value={signatureUrlValue ?? ""}
-                    />
-
-                    <label className="management-subtle-card inline-flex items-center gap-3 px-4 py-3 text-sm text-foreground">
-                      <Checkbox {...form.register("active")} />
-                      Available for new appointments and admissions
+          {canManage
+            ? (
+              <form
+                className="space-y-5"
+                id={doctorFormId}
+                onSubmit={form.handleSubmit(handleSubmit)}
+              >
+                <FormDrawerSection
+                  description="Doctor details used by appointments, admission responsibility, and consultation billing."
+                  title="Doctor identity and assignment"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block sm:col-span-2">
+                      <span className="text-sm font-medium text-ink">Doctor name</span>
+                      <Input
+                        {...form.register("fullName")}
+                        className="mt-2"
+                        placeholder="Dr. Karina Safar"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.fullName?.message}
+                      </p>
                     </label>
 
-                    <div className="flex justify-end gap-3 pt-4 pb-8">
-                      <Button disabled={isSaving} type="submit">
-                        {isSaving
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : selectedDoctor
-                          ? <UserRoundPen className="h-4 w-4 mr-2" />
-                          : <Stethoscope className="h-4 w-4 mr-2" />}
-                        {selectedDoctor ? "Save doctor" : "Create doctor"}
-                      </Button>
-                    </div>
-                  </form>
-                )
-                : (
-                  <EmptyState
-                    className="mt-6 min-h-56 mb-8"
-                    description="Viewing doctors requires doctors.view. Editing them requires doctors.manage."
-                    icon={Stethoscope}
-                    title="Doctor master is read-only"
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Designation</span>
+                      <Input
+                        {...form.register("designation")}
+                        className="mt-2"
+                        placeholder="Consultant Physician"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Specialty</span>
+                      <Input
+                        {...form.register("specialty")}
+                        className="mt-2"
+                        placeholder="Cardiology"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Department</span>
+                      <Input
+                        {...form.register("departmentName")}
+                        className="mt-2"
+                        list="doctor-departments"
+                        placeholder="Cardiology"
+                      />
+                      <datalist id="doctor-departments">
+                        {departmentSuggestions.map((departmentName) => (
+                          <option key={departmentName} value={departmentName} />
+                        ))}
+                      </datalist>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Consultation fee</span>
+                      <Input
+                        {...form.register("consultationFee")}
+                        className="mt-2"
+                        min="0"
+                        step="0.01"
+                        type="number"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.consultationFee?.message}
+                      </p>
+                    </label>
+                  </div>
+                </FormDrawerSection>
+
+                <FormDrawerSection
+                  description="Contact details and signature artifacts reused in communication and printed workflows."
+                  title="Contact and workflow readiness"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Email</span>
+                      <Input
+                        {...form.register("email")}
+                        className="mt-2"
+                        placeholder="doctor@hospital.test"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.email?.message}
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Phone</span>
+                      <Input
+                        {...form.register("phone")}
+                        className="mt-2"
+                        placeholder="+91-9876543210"
+                      />
+                    </label>
+                  </div>
+
+                  <UploadField
+                    description="Used for printed documents and signature-supported clinical workflows."
+                    label="Doctor signature"
+                    onChange={(value) =>
+                      form.setValue("signatureUrl", value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })}
+                    target="DOCTOR_SIGNATURE"
+                    value={signatureUrlValue ?? ""}
                   />
-                )}
-            </div>
-          </DrawerContent>
-        </Drawer>
+
+                  <label className="management-subtle-card inline-flex items-center gap-3 px-4 py-3 text-sm text-foreground">
+                    <Checkbox {...form.register("active")} />
+                    Available for new appointments and admissions
+                  </label>
+                </FormDrawerSection>
+              </form>
+            )
+            : (
+              <EmptyState
+                className="min-h-56"
+                description="Viewing doctors requires doctors.view. Editing them requires doctors.manage."
+                icon={Stethoscope}
+                title="Doctor master is read-only"
+              />
+            )}
+        </FormDrawer>
 
         <SurfaceCard>
           <div className="management-toolbar-shell">
@@ -785,28 +900,44 @@ export function DoctorManagement({ hideHeader = false }: DoctorManagementProps) 
                     </p>
                   </div>
 
-                  {canManage
-                    ? (
-                      <OptionsMenu
-                        items={[
-                          {
-                            icon: UserRoundPen,
-                            label: "Edit doctor",
-                            onSelect: () => {
+                  <div className="flex flex-wrap gap-2 lg:justify-end">
+                    <Button
+                      onClick={() => openPreview(entry)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Eye className="h-4 w-4" />
+                      View
+                    </Button>
+                    {canManage
+                      ? (
+                        <>
+                          <Button
+                            onClick={() => {
                               startTransition(() => setSelectedDoctor(entry));
                               setIsDrawerOpen(true);
-                            },
-                          },
-                          {
-                            icon: Trash2,
-                            label: "Delete doctor",
-                            onSelect: () => handleDelete(entry),
-                            tone: "danger",
-                          },
-                        ]}
-                      />
-                    )
-                    : null}
+                            }}
+                            size="sm"
+                            type="button"
+                            variant="outline"
+                          >
+                            <UserRoundPen className="h-4 w-4" />
+                            Edit
+                          </Button>
+                          <Button
+                            onClick={() => void handleDelete(entry)}
+                            size="sm"
+                            type="button"
+                            variant="destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                            Delete
+                          </Button>
+                        </>
+                      )
+                      : null}
+                  </div>
                 </div>
               </article>
             ))}

@@ -64,7 +64,7 @@ export default async function AccessDeniedPage({
   const authError = params?.error;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4 py-10 sm:px-6">
+    <div className="flex min-h-screen items-start justify-center bg-muted/20 px-4 py-10 sm:px-6 lg:items-center">
       <section className="w-full max-w-2xl rounded-2xl border bg-card p-8 text-center shadow-[var(--shadow-card)]">
         <p className="text-xs font-semibold uppercase tracking-[0.24em] text-danger">
           Access denied

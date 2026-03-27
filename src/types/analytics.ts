@@ -76,6 +76,23 @@ export type AnalyticsChannelPerformance = {
   deliveryRate: number;
 };
 
+export type CommunicationWorkflowKey =
+  | "appointment_reminders"
+  | "discharge_instructions"
+  | "staff_notifications";
+
+export type CommunicationWorkflowInsight = {
+  workflow: CommunicationWorkflowKey;
+  label: string;
+  messageCount: number;
+  delivered: number;
+  queued: number;
+  failed: number;
+  notificationCount: number;
+  unreadNotifications: number;
+  deliveryRate: number;
+};
+
 export type AnalyticsRoleDistribution = {
   role: AppRole;
   total: number;
@@ -109,6 +126,7 @@ export type AnalyticsSnapshotResponse = {
   moduleUsage: AnalyticsModuleUsage[];
   signInActivity: AnalyticsSignInActivity[];
   channelPerformance: AnalyticsChannelPerformance[];
+  communicationWorkflows: CommunicationWorkflowInsight[];
   roleDistribution: AnalyticsRoleDistribution[];
   occupancyBreakdown: {
     label: string;
@@ -178,6 +196,7 @@ export type ReportsWorkspaceResponse = {
   revenueByDoctor: RevenueByDoctorRow[];
   appointmentStatus: AppointmentStatusRow[];
   communicationByChannel: CommunicationChannelRow[];
+  communicationWorkflows: CommunicationWorkflowInsight[];
   occupancyByWard: OccupancyByWardRow[];
   staffAccessByRole: StaffAccessByRoleRow[];
   outstandingBills: OutstandingBillRow[];

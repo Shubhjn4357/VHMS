@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = buildPublicMetadata({
   title: "Blog",
   description:
-    "Public updates from Vahi HMS Enterprise covering workflow design, security, operations, hospital rollout, and product thinking.",
+    "Public updates from Vahi Hospital OS covering workflow design, security, operations, hospital rollout, and deployment thinking.",
   path: "/blog",
   keywords: [
     "hospital operations blog",

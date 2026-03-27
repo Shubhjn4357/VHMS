@@ -21,17 +21,11 @@ import { z } from "zod";
 import { BED_STATUS, type BedStatus } from "@/constants/bedStatus";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Button } from "@/components/ui/button";
+import { FormDrawer, FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/bottom-drawer";
 import { useAppointmentDirectory } from "@/hooks/useAppointmentsApi";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useDoctorLookup } from "@/hooks/useDoctorsApi";
@@ -55,6 +49,7 @@ const defaultAssignmentValues: AssignmentFormValues = {
   attendingDoctorId: "",
   admittedAt: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
 };
+const occupancyAssignmentFormId = "occupancy-assignment-form";
 
 const statusToneMap: Record<BedStatus, string> = {
   FREE: "border-success/30 bg-success/10 text-success",
@@ -340,166 +335,189 @@ export function OccupancyManagement({ hideHeader = false }: OccupancyManagementP
       </section>
 
       <section className="space-y-6">
-        <Drawer open={isAssignDrawerOpen} onOpenChange={setIsAssignDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>
-                Assign a patient to a bed
-              </DrawerTitle>
-              <DrawerDescription>
-                Admission desk - Fill details to formally admit patient
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="p-4 bg-background">
-              {canManage
-                ? (
-                  <form
-                    className="mt-4 space-y-5"
-                    onSubmit={form.handleSubmit(handleAssign)}
+        <FormDrawer
+          contentClassName="pb-0"
+          description="Admission desk workspace for bed allocation, doctor assignment, and formal IPD admission capture."
+          footer={canManage
+            ? (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="management-selection-pill px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  Assignable beds are restricted to free or reserved inventory so the occupancy board stays consistent with live admission state.
+                </div>
+                <div className="flex flex-wrap justify-end gap-3">
+                  <Button
+                    onClick={() => setIsAssignDrawerOpen(false)}
+                    size="sm"
+                    type="button"
+                    variant="outline"
                   >
+                    Close
+                  </Button>
+                  <Button
+                    disabled={isMutating || patients.length === 0 ||
+                      doctors.length === 0 || availableBeds.length === 0}
+                    form={occupancyAssignmentFormId}
+                    type="submit"
+                  >
+                    {assignMutation.isPending
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : <ClipboardPlus className="h-4 w-4" />}
+                    Assign bed and admit
+                  </Button>
+                </div>
+              </div>
+            )
+            : null}
+          mode="create"
+          onOpenChange={setIsAssignDrawerOpen}
+          open={isAssignDrawerOpen}
+          statusLabel={selectedBed?.bedNumber}
+          title="Assign a patient to a bed"
+        >
+          {canManage
+            ? (
+              <form
+                className="space-y-5"
+                id={occupancyAssignmentFormId}
+                onSubmit={form.handleSubmit(handleAssign)}
+              >
+                <FormDrawerSection
+                  description="Use a booked OPD visit to prefill the admission context where available."
+                  title="Source appointment"
+                >
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">
+                      Source OPD appointment
+                    </span>
+                    <ThemedSelect
+                      className="mt-2"
+                      onChange={(event) => setSourceAppointmentId(event.target.value)}
+                      value={sourceAppointmentId}
+                    >
+                      <option value="">Select OPD appointment (optional)</option>
+                      {appointmentEntries.map((entry) => (
+                        <option key={entry.id} value={entry.id}>
+                          {entry.patientHospitalNumber} - {entry.patientName} / {entry.doctorName}
+                        </option>
+                      ))}
+                    </ThemedSelect>
+                    <p className="mt-2 text-sm text-ink-soft">
+                      Pick a booked OPD patient to prefill the IPD admission details.
+                    </p>
+                  </label>
+
+                  {selectedSourceAppointment
+                    ? (
+                      <div className="management-subtle-card p-4 text-sm text-muted-foreground">
+                        <p className="font-semibold text-foreground">
+                          {selectedSourceAppointment.patientName}
+                        </p>
+                        <p className="mt-2">
+                          {selectedSourceAppointment.patientHospitalNumber} / {selectedSourceAppointment.doctorName}
+                        </p>
+                        <p className="mt-2">
+                          Scheduled {formatDateTime(selectedSourceAppointment.scheduledFor)}
+                        </p>
+                      </div>
+                    )
+                    : null}
+                </FormDrawerSection>
+
+                <FormDrawerSection
+                  description="Bind the admission to a patient, attending doctor, and valid target bed."
+                  title="Admission assignment"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
                       <span className="text-sm font-medium text-ink">
-                        Source OPD appointment
+                        Patient
                       </span>
                       <ThemedSelect
+                        {...form.register("patientId")}
                         className="mt-2"
-                        onChange={(event) => setSourceAppointmentId(event.target.value)}
-                        value={sourceAppointmentId}
                       >
-                        <option value="">Select OPD appointment (optional)</option>
-                        {appointmentEntries.map((entry) => (
-                          <option key={entry.id} value={entry.id}>
-                            {entry.patientHospitalNumber} - {entry.patientName} / {entry.doctorName}
+                        <option value="">Select patient</option>
+                        {patients.map((patient) => (
+                          <option key={patient.id} value={patient.id}>
+                            {patient.hospitalNumber} - {patient.fullName}
                           </option>
                         ))}
                       </ThemedSelect>
-                      <p className="mt-2 text-sm text-ink-soft">
-                        Pick a booked OPD patient to prefill the IPD admission details.
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.patientId?.message}
                       </p>
                     </label>
 
-                    {selectedSourceAppointment
-                      ? (
-                        <div className="management-subtle-card p-4 text-sm text-muted-foreground">
-                          <p className="font-semibold text-foreground">
-                            {selectedSourceAppointment.patientName}
-                          </p>
-                          <p className="mt-2">
-                            {selectedSourceAppointment.patientHospitalNumber} / {selectedSourceAppointment.doctorName}
-                          </p>
-                          <p className="mt-2">
-                            Scheduled {formatDateTime(selectedSourceAppointment.scheduledFor)}
-                          </p>
-                        </div>
-                      )
-                      : null}
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Patient
-                        </span>
-                        <ThemedSelect
-                          {...form.register("patientId")}
-                          className="mt-2"
-                        >
-                          <option value="">Select patient</option>
-                          {patients.map((patient) => (
-                            <option key={patient.id} value={patient.id}>
-                              {patient.hospitalNumber} - {patient.fullName}
-                            </option>
-                          ))}
-                        </ThemedSelect>
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.patientId?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Attending doctor
-                        </span>
-                        <ThemedSelect
-                          {...form.register("attendingDoctorId")}
-                          className="mt-2"
-                        >
-                          <option value="">Select doctor</option>
-                          {doctors.map((doctor) => (
-                            <option key={doctor.id} value={doctor.id}>
-                              {doctor.fullName}
-                              {doctor.departmentName
-                                ? ` - ${doctor.departmentName}`
-                                : ""}
-                            </option>
-                          ))}
-                        </ThemedSelect>
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.attendingDoctorId?.message}
-                        </p>
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Bed</span>
-                        <ThemedSelect
-                          {...form.register("bedId")}
-                          className="mt-2"
-                        >
-                          <option value="">Select bed</option>
-                          {availableBeds.map((bed) => (
-                            <option key={bed.id} value={bed.id}>
-                              {bed.bedNumber} - {bed.wardName}
-                              {bed.roomNumber ? ` / ${bed.roomNumber}` : ""}
-                            </option>
-                          ))}
-                        </ThemedSelect>
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.bedId?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Admitted at
-                        </span>
-                        <Input
-                          {...form.register("admittedAt")}
-                          className="mt-2"
-                          type="datetime-local"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.admittedAt?.message}
-                        </p>
-                      </label>
-                    </div>
-
-                    <div className="pb-6">
-                      <Button
-                        disabled={isMutating || patients.length === 0 ||
-                          doctors.length === 0 || availableBeds.length === 0}
-                        type="submit"
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Attending doctor
+                      </span>
+                      <ThemedSelect
+                        {...form.register("attendingDoctorId")}
+                        className="mt-2"
                       >
-                        {assignMutation.isPending
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : <ClipboardPlus className="h-4 w-4" />}
-                        Assign bed and admit
-                      </Button>
-                    </div>
-                  </form>
-                )
-                : (
-                  <EmptyState
-                    className="mt-6 min-h-56 mb-8"
-                    description="The occupancy board remains visible to viewers, but assigning requires occupancy.manage."
-                    icon={BedDouble}
-                    title="Read-only occupancy access"
-                  />
-                )}
-            </div>
-          </DrawerContent>
-        </Drawer>
+                        <option value="">Select doctor</option>
+                        {doctors.map((doctor) => (
+                          <option key={doctor.id} value={doctor.id}>
+                            {doctor.fullName}
+                            {doctor.departmentName
+                              ? ` - ${doctor.departmentName}`
+                              : ""}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.attendingDoctorId?.message}
+                      </p>
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Bed</span>
+                      <ThemedSelect
+                        {...form.register("bedId")}
+                        className="mt-2"
+                      >
+                        <option value="">Select bed</option>
+                        {availableBeds.map((bed) => (
+                          <option key={bed.id} value={bed.id}>
+                            {bed.bedNumber} - {bed.wardName}
+                            {bed.roomNumber ? ` / ${bed.roomNumber}` : ""}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.bedId?.message}
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Admitted at
+                      </span>
+                      <Input
+                        {...form.register("admittedAt")}
+                        className="mt-2"
+                        type="datetime-local"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.admittedAt?.message}
+                      </p>
+                    </label>
+                  </div>
+                </FormDrawerSection>
+              </form>
+            )
+            : (
+              <EmptyState
+                className="min-h-56"
+                description="The occupancy board remains visible to viewers, but assigning requires occupancy.manage."
+                icon={BedDouble}
+                title="Read-only occupancy access"
+              />
+            )}
+        </FormDrawer>
         <div className="grid gap-6 2xl:grid-cols-2">
           <SurfaceCard>
             <div className="flex items-start justify-between gap-4">

@@ -1,8 +1,7 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { usePathname } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 import { DashboardFooter } from "@/components/layout/dashboard-footer";
 import { DashboardSidebar } from "@/components/layout/dashboard-sidebar";
@@ -20,42 +19,15 @@ export function DashboardShell({
   const pathname = usePathname();
   const { user } = useAuthUser();
   const permissions = user?.permissions ?? [];
-  const scrollAreaRef = useRef<HTMLDivElement | null>(null);
-  const {
-    closeTransientUi,
-    isDesktop,
-    isSidebarCollapsed,
-    setTopbarCondensed,
-  } = useAppShell();
+  const { closeTransientUi, isSidebarCollapsed } = useAppShell();
 
   useEffect(() => {
-    const scrollArea = scrollAreaRef.current;
-    if (!scrollArea) {
-      return;
-    }
-
-    const handleScroll = () => {
-      setTopbarCondensed(
-        scrollArea.scrollTop > APP_THEME.layout.topbarCondenseOffset,
-      );
-    };
-
-    handleScroll();
-    scrollArea.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => {
-      scrollArea.removeEventListener("scroll", handleScroll);
-    };
-  }, [isDesktop, setTopbarCondensed]);
-
-  useEffect(() => {
-    const scrollArea = scrollAreaRef.current;
-    if (!scrollArea) {
+    if (typeof window === "undefined") {
       return;
     }
 
     closeTransientUi();
-    scrollArea.scrollTo({ top: 0, behavior: "auto" });
+    window.scrollTo({ top: 0, behavior: "auto" });
   }, [closeTransientUi, pathname]);
 
   return (
@@ -64,7 +36,7 @@ export function DashboardShell({
         className="app-shell-max"
         style={{ maxWidth: `${APP_THEME.layout.shellMaxWidth}px` }}
       >
-        <div className="flex min-h-[calc(100vh-2rem)] flex-col gap-4 lg:flex-row lg:items-stretch">
+        <div className="flex min-h-[calc(100dvh-2rem)] flex-col gap-4 lg:flex-row lg:items-start">
           <DashboardSidebar
             collapsed={isSidebarCollapsed}
             navGroups={navGroups}
@@ -72,30 +44,14 @@ export function DashboardShell({
             permissions={permissions}
           />
 
-          <div className="flex min-h-[calc(100vh-2rem)] min-w-0 flex-1 flex-col overflow-hidden rounded-[var(--radius-panel)] border bg-background shadow-[var(--shadow-soft)]">
+          <div className="app-shell-panel flex min-h-[calc(100dvh-2rem)] min-w-0 flex-1 flex-col rounded-[calc(var(--radius-panel)+0.35rem)]">
             <DashboardTopbar navGroups={navGroups} pathname={pathname} permissions={permissions} />
-            <div
-              className="min-h-0 flex-1 overflow-y-auto overscroll-contain scrollbar-none"
-              ref={scrollAreaRef}
-            >
-              <main className="min-w-0 px-4 pb-8 pt-4 sm:px-5 lg:px-6">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={pathname}
-                    initial={{ opacity: 0, y: APP_THEME.motion.pageEnterOffset }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -APP_THEME.motion.pageEnterOffset }}
-                    transition={{
-                      duration: APP_THEME.motion.pageEnterDuration,
-                      ease: "easeOut",
-                    }}
-                  >
-                    {children}
-                  </motion.div>
-                </AnimatePresence>
-              </main>
+            <main className="min-w-0 px-4 pb-8 pt-4 sm:px-5 lg:px-6">
+              <div className="space-y-6" key={pathname}>
+                {children}
+              </div>
               <DashboardFooter />
-            </div>
+            </main>
           </div>
         </div>
       </div>

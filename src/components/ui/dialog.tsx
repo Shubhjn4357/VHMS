@@ -17,7 +17,7 @@ const DialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Overlay
     className={cn(
-      "app-overlay fixed inset-0 z-50 data-[state=closed]:animate-out data-[state=open]:animate-in data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "app-overlay fixed inset-0 z-50",
       className,
     )}
     ref={ref}
@@ -31,21 +31,26 @@ const DialogContent = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content> & {
     showClose?: boolean;
   }
->(({ children, className, showClose = true, ...props }, ref) => (
+>(({ children, className, showClose = true, style, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 grid w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 gap-5 rounded-[var(--radius-panel)] border bg-background p-6 text-card-foreground shadow-[var(--shadow-card)] duration-200 lg:p-7",
+        "fixed left-1/2 top-1/2 z-50 flex w-[calc(100%-2rem)] max-w-3xl -translate-x-1/2 -translate-y-1/2 flex-col gap-4 overflow-y-auto overscroll-contain rounded-[var(--radius-panel)] border bg-background p-5 text-card-foreground shadow-[var(--shadow-soft)] lg:p-6",
         className,
       )}
       ref={ref}
+      style={{
+        maxHeight:
+          "calc(100dvh - max(env(safe-area-inset-top), 0.75rem) - max(env(safe-area-inset-bottom), 0.75rem))",
+        ...style,
+      }}
       {...props}
     >
       {children}
       {showClose
         ? (
-          <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-accent-foreground">
+          <DialogPrimitive.Close className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius-control)+0.05rem)] text-muted-foreground hover:bg-muted/70 hover:text-foreground">
             <X className="h-4 w-4" />
             <span className="sr-only">Close</span>
           </DialogPrimitive.Close>
@@ -69,7 +74,7 @@ function DialogFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex flex-col-reverse gap-3 border-t border-border/70 pt-4 sm:flex-row sm:justify-end", className)}
+      className={cn("flex flex-col-reverse gap-2 border-t border-border/70 pt-3 sm:flex-row sm:justify-end", className)}
       {...props}
     />
   );
@@ -80,7 +85,7 @@ const DialogTitle = React.forwardRef<
   React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Title
-    className={cn("text-2xl font-semibold tracking-tight text-foreground", className)}
+    className={cn("text-xl font-semibold tracking-tight text-foreground", className)}
     ref={ref}
     {...props}
   />

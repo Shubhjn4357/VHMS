@@ -1,10 +1,10 @@
-# VHMS Enterprise App Demo
+# Vahi Hospital OS Deployment Demo
 
 ## Product shape
 
-VHMS Enterprise is a split public-site and protected-operations product:
+Vahi Hospital OS is a split public-site and protected-operations deployment package:
 
-- public marketing pages: `/`, `/features`, `/solutions`, `/pricing`, `/about`, `/contact`
+- public marketing pages: `/`, `/features`, `/solutions`, `/about`, `/contact`
 - public blog and article pages: `/blog`, `/blog/[slug]`
 - protected operational workspace: `/dashboard/*`
 - protected print routes for A4 and thermal documents

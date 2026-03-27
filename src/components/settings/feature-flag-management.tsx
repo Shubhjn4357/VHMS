@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { AlertTriangle, Loader2, Settings2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Loader2,
+  Search,
+  Settings2,
+  ShieldCheck,
+} from "lucide-react";
 
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +28,14 @@ type FeatureFlagDraft = {
   targetRoles: AppRole[];
 };
 
+type FeatureFlagFilter =
+  | "all"
+  | "enabled"
+  | "locked"
+  | "rollout"
+  | "role-targeted"
+  | "dirty";
+
 function formatTimestamp(value: string) {
   return value === new Date(0).toISOString()
     ? "Seed default"
@@ -34,6 +48,30 @@ function formatTimestamp(value: string) {
     });
 }
 
+function parseRolloutPercentage(value: string) {
+  const parsed = Number(value);
+
+  if (Number.isNaN(parsed)) {
+    return 0;
+  }
+
+  return Math.min(100, Math.max(0, parsed));
+}
+
+function areRolesEqual(left: AppRole[], right: AppRole[]) {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return [...left].sort().every((role, index) => role === [...right].sort()[index]);
+}
+
+function hasDraftChanges(flag: FeatureFlagRecord, draft: FeatureFlagDraft) {
+  return draft.enabled !== flag.dbEnabled ||
+    parseRolloutPercentage(draft.rolloutPercentage) !== flag.rolloutPercentage ||
+    !areRolesEqual(draft.targetRoles, flag.targetRoles);
+}
+
 type FeatureFlagManagementProps = {
   hideHeader?: boolean;
 };
@@ -42,6 +80,8 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
   const flagsQuery = useFeatureFlags();
   const updateFlagMutation = useUpdateFeatureFlag();
   const { canAccess: canManage } = useModuleAccess(["settings.manage"]);
+  const [activeFilter, setActiveFilter] = useState<FeatureFlagFilter>("all");
+  const [searchValue, setSearchValue] = useState("");
   const [drafts, setDrafts] = useState<
     Partial<Record<FeatureFlagKey, FeatureFlagDraft>>
   >({});
@@ -65,6 +105,18 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
         ...nextDraft,
       },
     }));
+  }
+
+  function clearDraft(flagKey: FeatureFlagKey) {
+    setDrafts((current) => {
+      if (!current[flagKey]) {
+        return current;
+      }
+
+      const nextDrafts = { ...current };
+      delete nextDrafts[flagKey];
+      return nextDrafts;
+    });
   }
 
   if (flagsQuery.isLoading) {
@@ -91,6 +143,82 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
     );
   }
 
+  const dirtyDraftCount = flagsQuery.data.flags.filter((flag) =>
+    hasDraftChanges(flag, getDraft(flag))
+  ).length;
+  const normalizedSearch = searchValue.trim().toLowerCase();
+  const filterCounts: Record<FeatureFlagFilter, number> = {
+    all: flagsQuery.data.flags.length,
+    enabled: flagsQuery.data.flags.filter((flag) => flag.resolvedEnabled).length,
+    locked: flagsQuery.data.flags.filter((flag) => flag.lockedByEnv).length,
+    rollout: flagsQuery.data.flags.filter((flag) => flag.rolloutActive).length,
+    "role-targeted": flagsQuery.data.flags.filter((flag) => flag.roleTargeted).length,
+    dirty: dirtyDraftCount,
+  };
+  const filteredFlags = flagsQuery.data.flags.filter((flag) => {
+    const draft = getDraft(flag);
+    const isDirty = hasDraftChanges(flag, draft);
+    const roleLabels = flag.targetRoles.map((role) => ROLE_LABELS[role]).join(" ");
+    const searchTarget = `${flag.key} ${flag.description} ${roleLabels}`.toLowerCase();
+    const matchesSearch = normalizedSearch.length === 0 ||
+      searchTarget.includes(normalizedSearch);
+
+    if (!matchesSearch) {
+      return false;
+    }
+
+    switch (activeFilter) {
+      case "enabled":
+        return flag.resolvedEnabled;
+      case "locked":
+        return flag.lockedByEnv;
+      case "rollout":
+        return flag.rolloutActive;
+      case "role-targeted":
+        return flag.roleTargeted;
+      case "dirty":
+        return isDirty;
+      default:
+        return true;
+    }
+  });
+  const filterOptions: Array<{
+    description: string;
+    label: string;
+    value: FeatureFlagFilter;
+  }> = [
+    {
+      value: "all",
+      label: "All flags",
+      description: "Complete workspace",
+    },
+    {
+      value: "enabled",
+      label: "Enabled",
+      description: "Resolved active modules",
+    },
+    {
+      value: "locked",
+      label: "Locked",
+      description: "Env-controlled only",
+    },
+    {
+      value: "rollout",
+      label: "Rollout",
+      description: "Partial percentage rollout",
+    },
+    {
+      value: "role-targeted",
+      label: "Role targeted",
+      description: "Restricted by role",
+    },
+    {
+      value: "dirty",
+      label: "Draft changes",
+      description: "Unsaved edits",
+    },
+  ];
+
   return (
     <div className="space-y-6">
       {hideHeader
@@ -102,6 +230,87 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
             description="Database-controlled flags are merged with environment overrides so staged rollout stays visible and auditable."
           />
         )}
+
+      <section className="grid gap-4 xl:grid-cols-[minmax(0,1.35fr)_repeat(3,minmax(0,0.55fr))]">
+        <SurfaceCard className="xl:col-span-2">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                Workspace controls
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
+                Search active rollouts and surface unsaved policy changes fast
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                Filter the control room by rollout, role targeting, environment locks,
+                or unsaved drafts so release operators can work through changes without
+                scanning the entire registry.
+              </p>
+            </div>
+
+            <div className="w-full max-w-md">
+              <label className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Search by key, description, or role
+              </label>
+              <div className="relative mt-3">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  placeholder="Search flags, modules, or target roles"
+                  type="search"
+                  value={searchValue}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {filterOptions.map((option) => (
+              <Button
+                className="h-auto min-w-[10rem] justify-between rounded-[var(--radius-panel)] px-4 py-3 text-left"
+                key={option.value}
+                onClick={() => setActiveFilter(option.value)}
+                size="sm"
+                type="button"
+                variant={activeFilter === option.value ? "secondary" : "outline"}
+              >
+                <span className="flex min-w-0 flex-col items-start">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+                    {option.label}
+                  </span>
+                  <span className="text-[11px] font-medium normal-case text-muted-foreground">
+                    {option.description}
+                  </span>
+                </span>
+                <Badge variant={activeFilter === option.value ? "secondary" : "outline"}>
+                  {filterCounts[option.value]}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+        </SurfaceCard>
+
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Matching flags</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {filteredFlags.length}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Current result set after search and filter rules.
+          </p>
+        </SurfaceCard>
+
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Unsaved drafts</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {dirtyDraftCount}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Flag cards with local edits not yet persisted to the database.
+          </p>
+        </SurfaceCard>
+      </section>
 
       <section className="grid gap-4 xl:grid-cols-4">
         {[
@@ -122,8 +331,20 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
       </section>
 
       <div className="space-y-4">
-        {flagsQuery.data.flags.map((flag) => {
+        {filteredFlags.length === 0
+          ? (
+            <EmptyState
+              className="min-h-[18rem]"
+              icon={ShieldCheck}
+              title="No feature flags match this view"
+              description="Broaden the search or switch filters to review other operational controls."
+            />
+          )
+          : null}
+
+        {filteredFlags.map((flag) => {
           const draft = getDraft(flag);
+          const isDirty = hasDraftChanges(flag, draft);
           const isPending = updateFlagMutation.isPending &&
             updateFlagMutation.variables?.key === flag.key;
 
@@ -148,6 +369,9 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                     {flag.roleTargeted
                       ? <Badge variant="outline">Role targeted</Badge>
                       : null}
+                    {isDirty
+                      ? <Badge variant="secondary">Draft changed</Badge>
+                      : null}
                   </div>
                   <p className="mt-3 text-lg font-semibold text-foreground">
                     {flag.description}
@@ -167,6 +391,11 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                   <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
                     Updated {formatTimestamp(flag.updatedAt)}
                     {flag.updatedByName ? ` by ${flag.updatedByName}` : ""}
+                  </p>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {isDirty
+                      ? "Draft changes differ from the saved database policy."
+                      : "No local edits pending for this rollout policy."}
                   </p>
                 </div>
 
@@ -252,7 +481,7 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
 
                   <div className="flex flex-wrap items-center gap-3">
                     <Button
-                      disabled={!canManage || flag.lockedByEnv || isPending}
+                      disabled={!canManage || flag.lockedByEnv || isPending || !isDirty}
                       onClick={() =>
                         updateFlagMutation.mutate({
                           key: flag.key,
@@ -261,6 +490,8 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                             draft.rolloutPercentage || "0",
                           ),
                           targetRoles: draft.targetRoles,
+                        }, {
+                          onSuccess: () => clearDraft(flag.key),
                         })}
                       size="sm"
                       type="button"
@@ -274,6 +505,16 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                     <Button
                       disabled={!canManage || flag.lockedByEnv || isPending}
                       onClick={() =>
+                        clearDraft(flag.key)}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      Discard changes
+                    </Button>
+                    <Button
+                      disabled={!canManage || flag.lockedByEnv || isPending}
+                      onClick={() =>
                         updateDraft(flag, {
                           enabled: flag.defaultEnabled,
                           rolloutPercentage: "100",
@@ -283,7 +524,7 @@ export function FeatureFlagManagement({ hideHeader = false }: FeatureFlagManagem
                       type="button"
                       variant="ghost"
                     >
-                      Reset draft
+                      Load default baseline
                     </Button>
                   </div>
                 </div>

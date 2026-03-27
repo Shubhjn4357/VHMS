@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { env } from "@/env";
 
-const siteName = "Vahi HMS Enterprise";
+const siteName = "Vahi Hospital OS";
 const defaultImagePath = "/icon.svg";
 
 export function getMetadataBase() {

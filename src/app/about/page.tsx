@@ -7,7 +7,7 @@ import { buildPublicMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = buildPublicMetadata({
   title: "About",
   description:
-    "Learn the product direction behind Vahi HMS Enterprise: compact hospital operations, connected patient workflows, print-safe runtime outputs, and governance-aware admin controls.",
+    "Learn the deployment philosophy behind Vahi Hospital OS: compact hospital operations, connected patient workflows, print-safe outputs, and governance-aware admin controls.",
   path: "/about",
   keywords: [
     "about hospital management system",

@@ -10,7 +10,7 @@ export function SurfaceCard({
   return (
     <Card
       className={cn(
-        "p-4 lg:p-5",
+        "relative p-4 lg:p-5",
         className,
       )}
       {...props}

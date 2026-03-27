@@ -27,6 +27,8 @@ Set these in production:
 - `BOOTSTRAP_SUPER_ADMIN_EMAILS`
 - `BOOTSTRAP_ADMIN_EMAILS`
 
+Set `APP_NAME` and `HOSPITAL_NAME` to the buyer hospital before go-live so browser metadata, manifests, exports, and runtime copy do not ship with demo defaults.
+
 Recommended:
 
 - `NODE_ENV=production`

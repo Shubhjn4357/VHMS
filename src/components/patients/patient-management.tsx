@@ -4,8 +4,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import {
+  AlertTriangle,
+  BadgePlus,
   Download,
+  Eye,
   Loader2,
+  MapPin,
+  Phone,
   Printer,
   RefreshCcw,
   Search,
@@ -35,19 +40,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { NativeImage } from "@/components/ui/native-image";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormDrawer, FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
-import { OptionsMenu } from "@/components/ui/options-menu";
+import {
+  RecordPreviewDialog,
+  RecordPreviewField,
+  RecordPreviewSection,
+} from "@/components/ui/record-preview-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { PageHeader } from "@/components/ui/page-header";
 import { Textarea } from "@/components/ui/textarea";
 import { ThemedSelect } from "@/components/ui/themed-select";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerHeader,
-  DrawerTitle,
-  DrawerDescription,
-} from "@/components/ui/bottom-drawer";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
 import { useDebouncedSearch } from "@/hooks/useDebouncedSearch";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
@@ -90,6 +93,7 @@ const defaultFormValues: PatientFormValues = {
 };
 
 const defaultPatientFormValuesJson = JSON.stringify(defaultFormValues);
+const patientFormId = "patient-management-form";
 
 function formatDateTime(value: string) {
   return format(new Date(value), "dd MMM yyyy, hh:mm a");
@@ -102,19 +106,24 @@ function formatPatientLocation(patient: PatientRecord) {
 
 type PatientManagementProps = {
   hideHeader?: boolean;
+  defaultCreateOpen?: boolean;
 };
 
-export function PatientManagement({ hideHeader = false }: PatientManagementProps) {
+export function PatientManagement({
+  hideHeader = false,
+  defaultCreateOpen = false,
+}: PatientManagementProps) {
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const queryParam = searchParams.get("q") ?? "";
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkDeleting, setIsBulkDeleting] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [isDrawerOpen, setIsDrawerOpen] = useState(defaultCreateOpen);
   const [selectedEntry, setSelectedEntry] = useState<PatientRecord | null>(
     null,
   );
+  const [previewEntry, setPreviewEntry] = useState<PatientRecord | null>(null);
   const deferredSearch = useDebouncedSearch(search);
 
   const { canAccess: canCreate } = useModuleAccess(["patients.create"]);
@@ -210,6 +219,14 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
       setSelectedEntry(null);
       setIsDrawerOpen(false);
     });
+  }
+
+  function openPreview(entry: PatientRecord) {
+    startTransition(() => setPreviewEntry(entry));
+  }
+
+  function closePreview() {
+    startTransition(() => setPreviewEntry(null));
   }
 
   function restoreDraft() {
@@ -498,53 +515,83 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
 
       <section className="patient-summary-grid grid gap-4 xl:grid-cols-4">
         {[
-          ["Registered patients", summary?.total ?? 0, "Master directory size"],
-          [
-            "Added this week",
-            summary?.addedThisWeek ?? 0,
-            "Fresh registration load",
-          ],
-          [
-            "Primary phones",
-            summary?.withPrimaryPhone ?? 0,
-            "Ready for reminder flows",
-          ],
-          [
-            "Needs completion",
-            summary?.missingCriticalProfile ?? 0,
-            "Missing phone or date of birth",
-          ],
-        ].map(([label, value, detail]) => (
-          <SurfaceCard key={label}>
-            <p className="text-sm text-muted-foreground">{label}</p>
-            <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
-              {value}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-muted-foreground">{detail}</p>
-          </SurfaceCard>
-        ))}
+          {
+            label: "Registered patients",
+            value: summary?.total ?? 0,
+            detail: "Master directory size",
+            icon: UserRound,
+            tone: "primary",
+          },
+          {
+            label: "Added this week",
+            value: summary?.addedThisWeek ?? 0,
+            detail: "Fresh registration load",
+            icon: BadgePlus,
+            tone: "accent",
+          },
+          {
+            label: "Primary phones",
+            value: summary?.withPrimaryPhone ?? 0,
+            detail: "Ready for reminder flows",
+            icon: Phone,
+            tone: "success",
+          },
+          {
+            label: "Needs completion",
+            value: summary?.missingCriticalProfile ?? 0,
+            detail: "Missing phone or date of birth",
+            icon: AlertTriangle,
+            tone: "warning",
+          },
+        ].map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <SurfaceCard key={item.label}>
+              <div className="flex items-start justify-between gap-3">
+                <p className="text-sm text-muted-foreground">{item.label}</p>
+                <span
+                  className={`flex h-11 w-11 items-center justify-center rounded-2xl ${
+                    item.tone === "accent"
+                      ? "bg-accent text-accent-foreground"
+                      : item.tone === "success"
+                      ? "bg-success/14 text-success"
+                      : item.tone === "warning"
+                      ? "bg-warning/16 text-warning"
+                      : "bg-primary/12 text-primary"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+              </div>
+              <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+                {item.value}
+              </p>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">{item.detail}</p>
+            </SurfaceCard>
+          );
+        })}
       </section>
 
       <section className="patient-main-grid space-y-6">
-        <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>
-                {selectedEntry ? "Edit patient profile" : "Register patient"}
-              </DrawerTitle>
-              <DrawerDescription>
-                {selectedEntry
-                  ? `Update ${selectedEntry.fullName}`
-                  : "Capture the patient identity once"}
-              </DrawerDescription>
-            </DrawerHeader>
-
-            <div className="p-4 bg-background">
-              <div className="flex items-start justify-between gap-4">
-                <div />
-                {selectedEntry
-                  ? (
-                    <div className="flex flex-wrap gap-2">
+        <FormDrawer
+          contentClassName="pb-0"
+          description={selectedEntry
+            ? `Update ${selectedEntry.fullName} without losing the directory context.`
+            : "Capture the patient identity once so appointments, billing, and admissions remain attached to the same thread."}
+          footer={canManagePatients
+            ? (
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="management-selection-pill px-4 py-3 text-sm leading-6 text-muted-foreground">
+                  {selectedEntry
+                    ? "Changes flow back into the live patient master immediately."
+                    : isOnline
+                    ? "New registrations autosave locally and queue on this device if connectivity drops before submit."
+                    : "You are offline. New registrations will queue on this device and sync after reconnect."}
+                </div>
+                <div className="flex flex-wrap justify-end gap-3">
+                  {selectedEntry
+                    ? (
                       <Button
                         onClick={() => handleDelete(selectedEntry)}
                         size="sm"
@@ -554,269 +601,371 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
                         <Trash2 className="h-4 w-4" />
                         Delete patient
                       </Button>
-                      <Button
-                        onClick={clearSelection}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        Cancel edit
-                      </Button>
-                    </div>
-                  )
-                  : null}
-              </div>
-
-              {!selectedEntry && drafts.patientRegistration
-                ? (
-                  <div className="mt-2">
-                    <OfflineDraftPanel
-                      description="This registration draft is stored locally in the browser, so reception can recover it after a refresh or connection drop."
-                      isOnline={isOnline}
-                      onDiscard={discardDraft}
-                      onRestore={restoreDraft}
-                      title="Saved patient registration draft"
-                      updatedAt={drafts.patientRegistration.updatedAt}
-                    />
-                  </div>
-                )
-                : null}
-
-              {canManagePatients
-                ? (
-                  <form
-                    className="mt-4 space-y-5"
-                    onSubmit={form.handleSubmit(handleSubmit)}
+                    )
+                    : null}
+                  <Button
+                    onClick={clearPatientForm}
+                    size="sm"
+                    type="button"
+                    variant="outline"
                   >
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          First name
-                        </span>
-                        <Input
-                          {...form.register("firstName")}
-                          className="mt-2"
-                          placeholder="Ritika"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.firstName?.message}
-                        </p>
-                      </label>
+                    {selectedEntry ? "Cancel edit" : "Clear form"}
+                  </Button>
+                  <Button
+                    disabled={isSaving || (!canCreate && !selectedEntry)}
+                    form={patientFormId}
+                    type="submit"
+                  >
+                    {isSaving
+                      ? <Loader2 className="h-4 w-4 animate-spin" />
+                      : selectedEntry
+                      ? <UserRoundPen className="h-4 w-4" />
+                      : <UserRound className="h-4 w-4" />}
+                    {selectedEntry ? "Save patient profile" : "Register patient"}
+                  </Button>
+                </div>
+              </div>
+            )
+            : null}
+          mode={selectedEntry ? "edit" : "create"}
+          onOpenChange={(open) => {
+            setIsDrawerOpen(open);
+            if (!open) {
+              clearSelection();
+            }
+          }}
+          open={isDrawerOpen}
+          statusLabel={selectedEntry?.hospitalNumber}
+          title={selectedEntry ? "Edit patient profile" : "Register patient"}
+        >
+          {!selectedEntry && drafts.patientRegistration
+            ? (
+              <OfflineDraftPanel
+                description="This registration draft is stored locally in the browser, so reception can recover it after a refresh or connection drop."
+                isOnline={isOnline}
+                onDiscard={discardDraft}
+                onRestore={restoreDraft}
+                title="Saved patient registration draft"
+                updatedAt={drafts.patientRegistration.updatedAt}
+              />
+            )
+            : null}
 
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Last name
-                        </span>
-                        <Input
-                          {...form.register("lastName")}
-                          className="mt-2"
-                          placeholder="Sharma"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.lastName?.message}
-                        </p>
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Gender</span>
-                        <ThemedSelect
-                          {...form.register("gender")}
-                          className="mt-2"
-                        >
-                          {PATIENT_GENDERS.map((gender) => (
-                            <option key={gender} value={gender}>
-                              {gender.replaceAll("_", " ")}
-                            </option>
-                          ))}
-                        </ThemedSelect>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Date of birth
-                        </span>
-                        <Input
-                          {...form.register("dateOfBirth")}
-                          className="mt-2"
-                          type="date"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.dateOfBirth?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Blood group
-                        </span>
-                        <ThemedSelect
-                          {...form.register("bloodGroup")}
-                          className="mt-2"
-                        >
-                          <option value="">Not captured</option>
-                          {BLOOD_GROUPS.map((bloodGroup) => (
-                            <option key={bloodGroup} value={bloodGroup}>
-                              {bloodGroup}
-                            </option>
-                          ))}
-                        </ThemedSelect>
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.bloodGroup?.message}
-                        </p>
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Phone</span>
-                        <Input
-                          {...form.register("phone")}
-                          className="mt-2"
-                          placeholder="+91-9876543210"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Alternate phone
-                        </span>
-                        <Input
-                          {...form.register("alternatePhone")}
-                          className="mt-2"
-                          placeholder="+91-9123456780"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">Email</span>
-                        <Input
-                          {...form.register("email")}
-                          className="mt-2"
-                          placeholder="patient@example.com"
-                        />
-                        <p className="mt-2 text-sm text-danger">
-                          {form.formState.errors.email?.message}
-                        </p>
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">
-                          Emergency contact
-                        </span>
-                        <Input
-                          {...form.register("emergencyContact")}
-                          className="mt-2"
-                          placeholder="Sonal Sharma - +91-9000000000"
-                        />
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 sm:grid-cols-3">
-                      <label className="block sm:col-span-3">
-                        <span className="text-sm font-medium text-ink">
-                          Address
-                        </span>
-                        <Textarea
-                          {...form.register("address")}
-                          className="mt-2 min-h-24"
-                          placeholder="Sector 12, Jaipur"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">City</span>
-                        <Input
-                          {...form.register("city")}
-                          className="mt-2"
-                          placeholder="Jaipur"
-                        />
-                      </label>
-
-                      <label className="block">
-                        <span className="text-sm font-medium text-ink">State</span>
-                        <Input
-                          {...form.register("state")}
-                          className="mt-2"
-                          placeholder="Rajasthan"
-                        />
-                      </label>
-
-                      <div className="block">
-                        <UploadField
-                          description="Optional patient profile image for identification in front-desk workflows."
-                          label="Patient photo"
-                          onChange={(value) =>
-                            form.setValue("photoUrl", value, {
-                              shouldDirty: true,
-                              shouldValidate: true,
-                            })}
-                          target="PATIENT_PHOTO"
-                          value={photoUrlValue ?? ""}
-                        />
-                      </div>
-                    </div>
-
+          {canManagePatients
+            ? (
+              <form
+                className="space-y-5"
+                id={patientFormId}
+                onSubmit={form.handleSubmit(handleSubmit)}
+              >
+                <FormDrawerSection
+                  description="Capture the core identity once so every downstream workflow stays attached to the correct patient."
+                  title="Identity and registration"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <label className="block">
-                      <span className="text-sm font-medium text-ink">Notes</span>
-                      <Textarea
-                        {...form.register("notes")}
-                        className="mt-2 min-h-28"
-                        placeholder="Allergy notes, registration remarks, or follow-up context."
+                      <span className="text-sm font-medium text-ink">
+                        First name
+                      </span>
+                      <Input
+                        {...form.register("firstName")}
+                        className="mt-2"
+                        placeholder="Ritika"
                       />
                       <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.notes?.message}
+                        {form.formState.errors.firstName?.message}
                       </p>
                     </label>
 
-                    <div className="flex flex-wrap gap-3 pb-6">
-                      <Button
-                        disabled={isSaving || (!canCreate && !selectedEntry)}
-                        type="submit"
-                      >
-                        {isSaving
-                          ? <Loader2 className="h-4 w-4 animate-spin" />
-                          : selectedEntry
-                          ? <UserRoundPen className="h-4 w-4" />
-                          : <UserRound className="h-4 w-4" />}
-                        {selectedEntry ? "Save patient profile" : "Register patient"}
-                      </Button>
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Last name
+                      </span>
+                      <Input
+                        {...form.register("lastName")}
+                        className="mt-2"
+                        placeholder="Sharma"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.lastName?.message}
+                      </p>
+                    </label>
+                  </div>
 
-                      <Button
-                        onClick={clearPatientForm}
-                        size="sm"
-                        type="button"
-                        variant="outline"
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Gender</span>
+                      <ThemedSelect
+                        {...form.register("gender")}
+                        className="mt-2"
                       >
-                        Clear form
-                      </Button>
-                    </div>
+                        {PATIENT_GENDERS.map((gender) => (
+                          <option key={gender} value={gender}>
+                            {gender.replaceAll("_", " ")}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                    </label>
 
-                    {!selectedEntry
-                      ? (
-                        <p className="text-sm leading-6 text-ink-soft pb-6">
-                          {isOnline
-                            ? "New registrations autosave locally and queue on this device if the connection drops before submit."
-                            : "You are offline. New registrations will queue on this device and sync after reconnect."}
-                        </p>
-                      )
-                      : null}
-                  </form>
-                )
-                : (
-                  <EmptyState
-                    className="mt-6 min-h-56 mb-8"
-                    description="This route is available to patient viewers, but creating or editing profiles requires patients.create or patients.update."
-                    icon={UserRound}
-                    title="Read-only patient directory"
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Date of birth
+                      </span>
+                      <Input
+                        {...form.register("dateOfBirth")}
+                        className="mt-2"
+                        type="date"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.dateOfBirth?.message}
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Blood group
+                      </span>
+                      <ThemedSelect
+                        {...form.register("bloodGroup")}
+                        className="mt-2"
+                      >
+                        <option value="">Not captured</option>
+                        {BLOOD_GROUPS.map((bloodGroup) => (
+                          <option key={bloodGroup} value={bloodGroup}>
+                            {bloodGroup}
+                          </option>
+                        ))}
+                      </ThemedSelect>
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.bloodGroup?.message}
+                      </p>
+                    </label>
+                  </div>
+
+                  <UploadField
+                    description="Optional patient profile image for identification in front-desk workflows."
+                    label="Patient photo"
+                    onChange={(value) =>
+                      form.setValue("photoUrl", value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })}
+                    target="PATIENT_PHOTO"
+                    value={photoUrlValue ?? ""}
                   />
-                )}
-            </div>
-          </DrawerContent>
-        </Drawer>
+                </FormDrawerSection>
+
+                <FormDrawerSection
+                  description="Keep communication channels current for reminders, billing, and emergency workflows."
+                  title="Contact and emergency details"
+                >
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Phone</span>
+                      <Input
+                        {...form.register("phone")}
+                        className="mt-2"
+                        placeholder="+91-9876543210"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Alternate phone
+                      </span>
+                      <Input
+                        {...form.register("alternatePhone")}
+                        className="mt-2"
+                        placeholder="+91-9123456780"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">Email</span>
+                      <Input
+                        {...form.register("email")}
+                        className="mt-2"
+                        placeholder="patient@example.com"
+                      />
+                      <p className="mt-2 text-sm text-danger">
+                        {form.formState.errors.email?.message}
+                      </p>
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">
+                        Emergency contact
+                      </span>
+                      <Input
+                        {...form.register("emergencyContact")}
+                        className="mt-2"
+                        placeholder="Sonal Sharma - +91-9000000000"
+                      />
+                    </label>
+                  </div>
+                </FormDrawerSection>
+
+                <FormDrawerSection
+                  description="Complete the address and keep any clinically relevant administrative notes with the patient record."
+                  title="Address and notes"
+                >
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">
+                      Address
+                    </span>
+                    <Textarea
+                      {...form.register("address")}
+                      className="mt-2 min-h-24"
+                      placeholder="Sector 12, Jaipur"
+                    />
+                  </label>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">City</span>
+                      <Input
+                        {...form.register("city")}
+                        className="mt-2"
+                        placeholder="Jaipur"
+                      />
+                    </label>
+
+                    <label className="block">
+                      <span className="text-sm font-medium text-ink">State</span>
+                      <Input
+                        {...form.register("state")}
+                        className="mt-2"
+                        placeholder="Rajasthan"
+                      />
+                    </label>
+                  </div>
+
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Notes</span>
+                    <Textarea
+                      {...form.register("notes")}
+                      className="mt-2 min-h-28"
+                      placeholder="Allergy notes, registration remarks, or follow-up context."
+                    />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.notes?.message}
+                    </p>
+                  </label>
+                </FormDrawerSection>
+              </form>
+            )
+            : (
+              <EmptyState
+                className="min-h-56"
+                description="This route is available to patient viewers, but creating or editing profiles requires patients.create or patients.update."
+                icon={UserRound}
+                title="Read-only patient directory"
+              />
+            )}
+        </FormDrawer>
+
+        <RecordPreviewDialog
+          actions={canUpdate && previewEntry
+            ? (
+              <Button
+                onClick={() => {
+                  closePreview();
+                  beginEditing(previewEntry);
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <UserRoundPen className="h-4 w-4" />
+                Edit patient
+              </Button>
+            )
+            : null}
+          description="Review the patient thread before starting appointments, billing, or admission actions."
+          eyebrow="Patient profile"
+          onOpenChange={(open) => {
+            if (!open) {
+              closePreview();
+            }
+          }}
+          open={Boolean(previewEntry)}
+          status={previewEntry ? <Badge variant="outline">{previewEntry.hospitalNumber}</Badge> : null}
+          title={previewEntry?.fullName ?? "Patient profile"}
+        >
+          {previewEntry ? (
+            <>
+              <SurfaceCard className="p-5">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                  {previewEntry.photoUrl
+                    ? (
+                      <NativeImage
+                        alt={previewEntry.fullName}
+                        className="h-20 w-20 rounded-3xl border border-border/70 object-cover"
+                        src={previewEntry.photoUrl}
+                      />
+                    )
+                    : (
+                      <span className="flex h-20 w-20 items-center justify-center rounded-3xl border border-border/70 bg-muted text-2xl font-semibold text-foreground">
+                        {previewEntry.firstName.slice(0, 1)}
+                      </span>
+                    )}
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge variant="secondary">{previewEntry.gender}</Badge>
+                      <Badge variant="outline">
+                        {previewEntry.ageLabel ?? "DOB not captured"}
+                      </Badge>
+                      <Badge variant={previewEntry.phone ? "success" : "warning"}>
+                        {previewEntry.phone ? "Contact ready" : "Phone missing"}
+                      </Badge>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                      Updated {formatDateTime(previewEntry.updatedAt)}
+                    </p>
+                  </div>
+                </div>
+              </SurfaceCard>
+
+              <RecordPreviewSection
+                description="Core identity fields used by downstream scheduling, billing, and admission workflows."
+                icon={UserRound}
+                title="Identity"
+              >
+                <RecordPreviewField label="Hospital number" value={previewEntry.hospitalNumber} />
+                <RecordPreviewField label="Blood group" value={previewEntry.bloodGroup || "Not captured"} />
+                <RecordPreviewField label="Date of birth" value={previewEntry.dateOfBirth || "Not captured"} />
+                <RecordPreviewField label="Age label" value={previewEntry.ageLabel || "Not available"} />
+              </RecordPreviewSection>
+
+              <RecordPreviewSection
+                description="Primary and backup channels that support appointment and reminder workflows."
+                icon={Phone}
+                title="Contact details"
+              >
+                <RecordPreviewField label="Primary phone" value={previewEntry.phone || "Not captured"} />
+                <RecordPreviewField label="Alternate phone" value={previewEntry.alternatePhone || "Not captured"} />
+                <RecordPreviewField label="Email" value={previewEntry.email || "Not captured"} />
+                <RecordPreviewField label="Emergency contact" value={previewEntry.emergencyContact || "Not captured"} />
+              </RecordPreviewSection>
+
+              <RecordPreviewSection
+                description="Residential context and operational notes available to the front desk and billing teams."
+                icon={MapPin}
+                title="Address and notes"
+              >
+                <RecordPreviewField label="Location" value={formatPatientLocation(previewEntry)} />
+                <RecordPreviewField label="Address" value={previewEntry.address || "Not captured"} />
+                <RecordPreviewField
+                  className="md:col-span-2"
+                  label="Notes"
+                  value={previewEntry.notes || "No notes captured"}
+                />
+              </RecordPreviewSection>
+            </>
+          ) : null}
+        </RecordPreviewDialog>
 
         <SurfaceCard className="patient-directory-panel">
           <div className="management-toolbar-shell">
@@ -995,25 +1144,41 @@ export function PatientManagement({ hideHeader = false }: PatientManagementProps
                     <p className="text-sm text-muted-foreground">
                       Updated {formatDateTime(entry.updatedAt)}
                     </p>
-                    {canUpdate
-                      ? (
-                        <OptionsMenu
-                          items={[
-                            {
-                              icon: UserRoundPen,
-                              label: "Edit profile",
-                              onSelect: () => beginEditing(entry),
-                            },
-                            {
-                              icon: Trash2,
-                              label: "Delete patient",
-                              onSelect: () => handleDelete(entry),
-                              tone: "danger",
-                            },
-                          ]}
-                        />
-                      )
-                      : null}
+                    <div className="flex flex-wrap gap-2 xl:justify-end">
+                      <Button
+                        onClick={() => openPreview(entry)}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <Eye className="h-4 w-4" />
+                        View
+                      </Button>
+                      {canUpdate
+                        ? (
+                          <>
+                            <Button
+                              onClick={() => beginEditing(entry)}
+                              size="sm"
+                              type="button"
+                              variant="outline"
+                            >
+                              <UserRoundPen className="h-4 w-4" />
+                              Edit
+                            </Button>
+                            <Button
+                              onClick={() => void handleDelete(entry)}
+                              size="sm"
+                              type="button"
+                              variant="destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              Delete
+                            </Button>
+                          </>
+                        )
+                        : null}
+                    </div>
                   </div>
                 </div>
               </article>

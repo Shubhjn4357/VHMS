@@ -7,7 +7,7 @@ import { buildPublicMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = buildPublicMetadata({
   title: "Staff Login",
   description:
-    "Secure invite-only staff login for Vahi HMS Enterprise using approved Google identities, role hydration, and module-level access control.",
+    "Secure invite-only staff login for Vahi Hospital OS using approved Google identities, role hydration, and module-level access control.",
   path: "/login",
   keywords: [
     "hospital staff login",
@@ -18,7 +18,7 @@ export const metadata: Metadata = buildPublicMetadata({
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/20 px-4 py-10 sm:px-6">
+    <div className="flex min-h-screen items-start justify-center bg-muted/20 px-4 py-10 sm:px-6 lg:items-center">
       <div className="grid w-full max-w-5xl gap-6 lg:grid-cols-[0.96fr_1.04fr]">
         <section className="rounded-2xl border bg-sidebar p-8 text-sidebar-foreground shadow-[var(--shadow-card)]">
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-sidebar-foreground/70">
@@ -95,7 +95,7 @@ export default function LoginPage() {
               href="/blog"
               className="inline-flex items-center justify-center rounded-md border bg-background px-4 py-3 text-muted-foreground transition hover:bg-accent hover:text-accent-foreground"
             >
-              Read the blog
+              Read the journal
             </Link>
           </div>
         </section>

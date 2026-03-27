@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { IBM_Plex_Mono, Manrope } from "next/font/google";
 import Script from "next/script";
 
 import { AppProviders } from "@/components/providers/app-providers";
@@ -6,6 +7,19 @@ import { APP_TEXT } from "@/constants/appText";
 import { env } from "@/env";
 import { getMetadataBase } from "@/lib/seo/metadata";
 import "./globals.css";
+
+const appSans = Manrope({
+  subsets: ["latin"],
+  variable: "--font-app-sans",
+  display: "swap",
+});
+
+const appMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-app-mono",
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: getMetadataBase(),
@@ -45,7 +59,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="text-foreground antialiased">
+      <body className={`${appSans.variable} ${appMono.variable} text-foreground antialiased`}>
         {env.ENABLE_FIGMA_CAPTURE
           ? (
             <Script

@@ -28,6 +28,7 @@ import {
   Loader2,
   RotateCcw,
   Save,
+  Search,
   Settings2,
   X,
 } from "lucide-react";
@@ -38,6 +39,7 @@ import { toast } from "sonner";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { DASHBOARD_OVERVIEW_WIDGETS } from "@/constants/dashboardLayouts";
 import {
@@ -54,6 +56,13 @@ import type {
 } from "@/types/dashboardLayouts";
 
 const OVERVIEW_LAYOUT_KEY = "dashboard.overview" as const;
+
+type OverviewFocus =
+  | "all"
+  | "throughput"
+  | "capacity"
+  | "communications"
+  | "governance";
 
 function formatCurrency(value: number) {
   return new Intl.NumberFormat("en-IN", {
@@ -125,6 +134,38 @@ function getWidgetSpan(widget: DashboardLayoutWidgetRecord) {
   }
 
   return "xl:col-span-6";
+}
+
+function resolveWidgetFocus(
+  widget: DashboardLayoutWidgetRecord,
+): Exclude<OverviewFocus, "all"> {
+  if (widget.key === "summary" || widget.key === "queue") {
+    return "throughput";
+  }
+
+  if (widget.key === "occupancy") {
+    return "capacity";
+  }
+
+  if (widget.key === "communications") {
+    return "communications";
+  }
+
+  return "governance";
+}
+
+function matchesOverviewSearch(
+  widget: DashboardLayoutWidgetRecord,
+  searchValue: string,
+) {
+  const normalized = searchValue.trim().toLowerCase();
+
+  if (!normalized) {
+    return true;
+  }
+
+  return `${widget.key} ${widget.label} ${widget.description}`.toLowerCase()
+    .includes(normalized);
 }
 
 function SortableLayoutWidget({
@@ -264,9 +305,17 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-            Live sync
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="management-selection-pill px-3 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+              Live sync
+            </span>
+            <Button asChild size="sm" type="button" variant="outline">
+              <a href="/dashboard/analytics">
+                <ArrowUpRight className="h-4 w-4" />
+                Analytics
+              </a>
+            </Button>
+          </div>
         }
         description="Patient, appointment, and occupancy signals pulled from the real hospital runtime."
         title="Statistical summary"
@@ -302,12 +351,20 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <Button onClick={onRefresh} size="sm" type="button" variant="outline">
-            {isRefreshing
-              ? <Loader2 className="h-4 w-4 animate-spin" />
-              : <RotateCcw className="h-4 w-4" />}
-            Refresh
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={onRefresh} size="sm" type="button" variant="outline">
+              {isRefreshing
+                ? <Loader2 className="h-4 w-4 animate-spin" />
+                : <RotateCcw className="h-4 w-4" />}
+              Refresh
+            </Button>
+            <Button asChild size="sm" type="button" variant="outline">
+              <a href="/dashboard/appointments">
+                <ArrowUpRight className="h-4 w-4" />
+                Appointments
+              </a>
+            </Button>
+          </div>
         }
         description="Doctor availability and front-desk progress for today's appointment flow."
         title="Doctor schedule and queue"
@@ -366,9 +423,17 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
-            {summary.totalBeds} mapped beds
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
+              {summary.totalBeds} mapped beds
+            </span>
+            <Button asChild size="sm" type="button" variant="outline">
+              <a href="/dashboard/occupancy">
+                <ArrowUpRight className="h-4 w-4" />
+                Occupancy
+              </a>
+            </Button>
+          </div>
         }
         description="Ward-level capacity and movement pressure from the live occupancy board."
         title="Ward capacity"
@@ -420,9 +485,17 @@ function renderOverviewWidget(
     return (
       <OverviewPanel
         actions={
-          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
-            {summary.pendingApprovals} waiting
-          </span>
+          <div className="flex flex-wrap gap-2">
+            <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
+              {summary.pendingApprovals} waiting
+            </span>
+            <Button asChild size="sm" type="button" variant="outline">
+              <a href="/dashboard/communications">
+                <ArrowUpRight className="h-4 w-4" />
+                Communications
+              </a>
+            </Button>
+          </div>
         }
         description="Delivery queue and pending approval pressure across message channels."
         title="Care coordination"
@@ -460,9 +533,17 @@ function renderOverviewWidget(
   return (
     <OverviewPanel
       actions={
-        <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
-          {activityFeed.length} recent events
-        </span>
+        <div className="flex flex-wrap gap-2">
+          <span className="management-selection-pill px-3 py-2 text-xs text-muted-foreground">
+            {activityFeed.length} recent events
+          </span>
+          <Button asChild size="sm" type="button" variant="outline">
+            <a href="/dashboard/audit-logs">
+              <ArrowUpRight className="h-4 w-4" />
+              Audit logs
+            </a>
+          </Button>
+        </div>
       }
       description="Permission, billing, discharge, and communication activity remains visible."
       title="Audit and approvals"
@@ -508,6 +589,8 @@ export function DashboardOverview() {
   const saveLayoutMutation = useSaveDashboardLayout();
   const resetLayoutMutation = useResetDashboardLayout();
   const { canAccess: canConfigure } = useModuleAccess(["dashboard.configure"]);
+  const [overviewSearch, setOverviewSearch] = useState("");
+  const [overviewFocus, setOverviewFocus] = useState<OverviewFocus>("all");
   const [draftWidgets, setDraftWidgets] = useState<
     DashboardLayoutRecord["widgets"] | null
   >(null);
@@ -516,6 +599,10 @@ export function DashboardOverview() {
   const savedWidgets = layoutQuery.data?.widgets ?? defaultWidgets;
   const widgets = sortWidgets(draftWidgets ?? savedWidgets);
   const visibleWidgets = widgets.filter((widget) => widget.visible);
+  const filteredVisibleWidgets = visibleWidgets.filter((widget) =>
+    matchesOverviewSearch(widget, overviewSearch) &&
+    (overviewFocus === "all" || resolveWidgetFocus(widget) === overviewFocus)
+  );
   const isEditing = draftWidgets !== null;
   const isDirty = isEditing && !areLayoutsEqual(draftWidgets, savedWidgets);
   const isSaving = saveLayoutMutation.isPending || resetLayoutMutation.isPending;
@@ -631,6 +718,59 @@ export function DashboardOverview() {
     );
   }
 
+  const focusCounts: Record<OverviewFocus, number> = {
+    all: visibleWidgets.length,
+    throughput: visibleWidgets.filter((widget) => resolveWidgetFocus(widget) === "throughput")
+      .length,
+    capacity: visibleWidgets.filter((widget) => resolveWidgetFocus(widget) === "capacity")
+      .length,
+    communications: visibleWidgets.filter((widget) =>
+      resolveWidgetFocus(widget) === "communications"
+    ).length,
+    governance: visibleWidgets.filter((widget) => resolveWidgetFocus(widget) === "governance")
+      .length,
+  };
+  const focusOptions: Array<{
+    description: string;
+    label: string;
+    value: OverviewFocus;
+  }> = [
+    {
+      value: "all",
+      label: "All panels",
+      description: "Full command surface",
+    },
+    {
+      value: "throughput",
+      label: "Throughput",
+      description: "Summary and queue",
+    },
+    {
+      value: "capacity",
+      label: "Capacity",
+      description: "Beds and wards",
+    },
+    {
+      value: "communications",
+      label: "Coordination",
+      description: "Notifications and queue",
+    },
+    {
+      value: "governance",
+      label: "Governance",
+      description: "Audit and approvals",
+    },
+  ];
+  const queuePressure = Math.max(
+    overviewQuery.data.summary.appointmentsToday -
+      overviewQuery.data.summary.appointmentsCheckedIn,
+    0,
+  );
+  const capacityRate = Math.round(
+    (overviewQuery.data.summary.occupiedBeds /
+      Math.max(overviewQuery.data.summary.totalBeds, 1)) * 100,
+  );
+
   return (
     <div className="space-y-5">
       <SurfaceCard className="p-5">
@@ -641,12 +781,15 @@ export function DashboardOverview() {
               <Badge variant="outline">
                 {layoutQuery.data?.summary.customized ? "Personalized" : "Default"}
               </Badge>
+              <Badge variant="outline">
+                {visibleWidgets.length}/{widgets.length} visible
+              </Badge>
             </div>
             <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-              Compact hospital command surface
+              Hospital command surface
             </h3>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
-              The overview stays live, permission-aware, and personalizable without breaking the real operating data underneath it.
+              The overview stays live, permission-aware, searchable, and personalizable without breaking the real operating data underneath it.
             </p>
             <p className="mt-2 text-xs uppercase tracking-[0.16em] text-muted-foreground">
               {layoutQuery.data?.updatedAt
@@ -707,7 +850,101 @@ export function DashboardOverview() {
             </Button>
           </div>
         </div>
+
+        <div className="mt-5 border-t border-border/70 pt-5">
+          <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-brand">
+                Command focus
+              </p>
+              <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                Switch between throughput, capacity, coordination, and governance views to
+                reduce noise during live operations without changing your saved layout.
+              </p>
+            </div>
+
+            <div className="w-full max-w-md">
+              <label className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                Search visible panels
+              </label>
+              <div className="relative mt-3">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-9"
+                  onChange={(event) => setOverviewSearch(event.target.value)}
+                  placeholder="Summary, queue, occupancy, communications, audit"
+                  type="search"
+                  value={overviewSearch}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 flex flex-wrap gap-3">
+            {focusOptions.map((option) => (
+              <Button
+                className="h-auto min-w-[10rem] justify-between rounded-[var(--radius-panel)] px-4 py-3 text-left"
+                key={option.value}
+                onClick={() => setOverviewFocus(option.value)}
+                size="sm"
+                type="button"
+                variant={overviewFocus === option.value ? "secondary" : "outline"}
+              >
+                <span className="flex min-w-0 flex-col items-start">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em]">
+                    {option.label}
+                  </span>
+                  <span className="text-[11px] font-medium normal-case text-muted-foreground">
+                    {option.description}
+                  </span>
+                </span>
+                <Badge variant={overviewFocus === option.value ? "secondary" : "outline"}>
+                  {focusCounts[option.value]}
+                </Badge>
+              </Button>
+            ))}
+          </div>
+        </div>
       </SurfaceCard>
+
+      <section className="grid gap-4 xl:grid-cols-4">
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Queue pressure</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {queuePressure}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Scheduled visits still waiting to be checked in today.
+          </p>
+        </SurfaceCard>
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Capacity rate</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {capacityRate}%
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Current occupied-bed ratio across the mapped hospital capacity.
+          </p>
+        </SurfaceCard>
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Coordination alerts</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {overviewQuery.data.summary.unreadNotifications}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Unread notifications still waiting for operational review.
+          </p>
+        </SurfaceCard>
+        <SurfaceCard>
+          <p className="text-sm text-muted-foreground">Collections today</p>
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+            {formatCurrency(overviewQuery.data.summary.collectionsToday)}
+          </p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Live billed collections captured in the current dashboard window.
+          </p>
+        </SurfaceCard>
+      </section>
 
       {canConfigure && isEditing
         ? (
@@ -788,9 +1025,19 @@ export function DashboardOverview() {
               />
             </div>
           )
+          : filteredVisibleWidgets.length === 0
+          ? (
+            <div className="py-10">
+              <EmptyState
+                description="Adjust the focus mode or search to bring matching panels back into view."
+                icon={LayoutDashboard}
+                title="No dashboard panels match this command view"
+              />
+            </div>
+          )
           : (
             <div className="mt-5 grid gap-5 xl:grid-cols-12">
-              {visibleWidgets.map((widget) => (
+              {filteredVisibleWidgets.map((widget) => (
                 <div className={cn(getWidgetSpan(widget))} key={widget.key}>
                   {renderOverviewWidget(
                     widget,

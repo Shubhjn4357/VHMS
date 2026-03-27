@@ -9,6 +9,7 @@ import { z } from "zod";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { UploadField } from "@/components/forms/upload-field";
 import { Button } from "@/components/ui/button";
+import { FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -143,84 +144,94 @@ export function HospitalProfileManagement({
               className="mt-6 space-y-5"
               onSubmit={form.handleSubmit(handleSubmit)}
             >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Display name</span>
-                  <Input {...form.register("displayName")} className="mt-2" />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.displayName?.message}
-                  </p>
-                </label>
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Legal name</span>
-                  <Input {...form.register("legalName")} className="mt-2" />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.legalName?.message}
-                  </p>
-                </label>
-              </div>
+              <FormDrawerSection
+                description="Core identity used throughout the dashboard, printed documents, and public site."
+                title="Hospital identity"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Display name</span>
+                    <Input {...form.register("displayName")} className="mt-2" />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.displayName?.message}
+                    </p>
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Legal name</span>
+                    <Input {...form.register("legalName")} className="mt-2" />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.legalName?.message}
+                    </p>
+                  </label>
+                </div>
 
-              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">
+                      Registration number
+                    </span>
+                    <Input
+                      {...form.register("registrationNumber")}
+                      className="mt-2"
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Contact email</span>
+                    <Input
+                      {...form.register("contactEmail")}
+                      className="mt-2"
+                      placeholder="ops@hospital.in"
+                    />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.contactEmail?.message}
+                    </p>
+                  </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Contact phone</span>
+                    <Input
+                      {...form.register("contactPhone")}
+                      className="mt-2"
+                      placeholder="+91-141-0000000"
+                    />
+                  </label>
+                </div>
+
+                <label className="block">
+                  <span className="text-sm font-medium text-ink">Address</span>
+                  <Textarea
+                    {...form.register("address")}
+                    className="mt-2 min-h-24"
+                  />
+                </label>
+              </FormDrawerSection>
+
+              <FormDrawerSection
+                description="Brand assets and footer text used in patient-facing and print-safe outputs."
+                title="Brand and letterhead"
+              >
+                <UploadField
+                  description="Used in the public site header and print-safe documents."
+                  label="Hospital logo"
+                    onChange={(value) =>
+                      form.setValue("logoUrl", value, {
+                        shouldDirty: true,
+                        shouldValidate: true,
+                      })}
+                    target="HOSPITAL_LOGO"
+                    value={logoUrlValue ?? ""}
+                  />
+
                 <label className="block">
                   <span className="text-sm font-medium text-ink">
-                    Registration number
+                    Letterhead footer
                   </span>
-                  <Input
-                    {...form.register("registrationNumber")}
-                    className="mt-2"
+                  <Textarea
+                    {...form.register("letterheadFooter")}
+                    className="mt-2 min-h-24"
+                    placeholder="Emergency contact lines, legal footer, or billing disclaimers."
                   />
                 </label>
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Contact email</span>
-                  <Input
-                    {...form.register("contactEmail")}
-                    className="mt-2"
-                    placeholder="ops@hospital.in"
-                  />
-                  <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.contactEmail?.message}
-                  </p>
-                </label>
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Contact phone</span>
-                  <Input
-                    {...form.register("contactPhone")}
-                    className="mt-2"
-                    placeholder="+91-141-0000000"
-                  />
-                </label>
-              </div>
-
-              <label className="block">
-                <span className="text-sm font-medium text-ink">Address</span>
-                <Textarea
-                  {...form.register("address")}
-                  className="mt-2 min-h-24"
-                />
-              </label>
-
-              <UploadField
-                description="Used in the public site header and print-safe documents."
-                label="Hospital logo"
-                  onChange={(value) =>
-                    form.setValue("logoUrl", value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })}
-                  target="HOSPITAL_LOGO"
-                  value={logoUrlValue ?? ""}
-                />
-
-              <label className="block">
-                <span className="text-sm font-medium text-ink">
-                  Letterhead footer
-                </span>
-                <Textarea
-                  {...form.register("letterheadFooter")}
-                  className="mt-2 min-h-24"
-                  placeholder="Emergency contact lines, legal footer, or billing disclaimers."
-                />
-              </label>
+              </FormDrawerSection>
 
               <div className="flex flex-wrap gap-3">
                 <Button disabled={updateMutation.isPending} type="submit">

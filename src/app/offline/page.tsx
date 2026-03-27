@@ -5,7 +5,7 @@ import { buildPublicMetadata } from "@/lib/seo/metadata";
 export const metadata: Metadata = buildPublicMetadata({
   title: "Offline",
   description:
-    "Offline fallback page for Vahi HMS Enterprise showing local draft persistence and queued action behavior.",
+    "Offline fallback page for Vahi Hospital OS showing local draft persistence and queued action behavior.",
   path: "/offline",
 });
 
@@ -20,9 +20,9 @@ export default function OfflineFallbackPage() {
           Connection lost. Local drafts and queued actions stay on this device.
         </h1>
         <p className="mt-6 text-base leading-8 text-muted-foreground">
-          VHMS keeps unsent patient registrations, appointment schedules, and
-          draft bills in the browser until the connection returns. Reopen the
-          dashboard when online to continue syncing.
+          Vahi Hospital OS keeps unsent patient registrations, appointment
+          schedules, and draft bills in the browser until the connection
+          returns. Reopen the dashboard when online to continue syncing.
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-3">

@@ -13,7 +13,8 @@ function hashString(value: string) {
 function buildIdempotencyKey(config: { method?: string; url?: string; data?: unknown }) {
   const payload =
     typeof config.data === "string" ? config.data : JSON.stringify(config.data ?? null);
-  return hashString(`${config.method ?? "post"}:${config.url ?? ""}:${payload}`);
+  const hash = hashString(`${config.method ?? "post"}:${config.url ?? ""}:${payload}`);
+  return `req-${hash.padStart(8, "0")}`;
 }
 
 export const apiClient = axios.create({

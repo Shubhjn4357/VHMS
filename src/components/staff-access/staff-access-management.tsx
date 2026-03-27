@@ -7,6 +7,7 @@ import {
   AlertCircle,
   CheckCircle2,
   Download,
+  Eye,
   Loader2,
   Plus,
   Printer,
@@ -39,8 +40,13 @@ import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
+import { FormDrawer, FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
+import {
+  RecordPreviewDialog,
+  RecordPreviewField,
+  RecordPreviewSection,
+} from "@/components/ui/record-preview-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
@@ -73,6 +79,7 @@ const defaultFormValues: StaffAccessFormValues = {
   status: "APPROVED",
   defaultPermissions: [...ROLE_PERMISSIONS.RECEPTION_STAFF],
 };
+const staffAccessFormId = "staff-access-form";
 
 const statusToneMap = {
   APPROVED: "border-transparent bg-success/15 text-success",
@@ -101,6 +108,7 @@ export function StaffAccessManagement() {
   const [selectedEntry, setSelectedEntry] = useState<StaffAccessRecord | null>(
     null,
   );
+  const [previewEntry, setPreviewEntry] = useState<StaffAccessRecord | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const deferredSearch = useDebouncedSearch(search);
 
@@ -221,6 +229,14 @@ export function StaffAccessManagement() {
   function clearSelection() {
     startTransition(() => setSelectedEntry(null));
     setIsDrawerOpen(false);
+  }
+
+  function openPreview(entry: StaffAccessRecord) {
+    startTransition(() => setPreviewEntry(entry));
+  }
+
+  function closePreview() {
+    startTransition(() => setPreviewEntry(null));
   }
 
   function clearBulkSelection() {
@@ -531,202 +547,290 @@ export function StaffAccessManagement() {
         </div>
       </SurfaceCard>
 
-      <Drawer
-        open={isDrawerOpen}
+      <FormDrawer
+        className="max-h-[92dvh]"
+        contentClassName="pb-0"
+        description={selectedEntry
+          ? "Update roles and permission overrides for this approved identity."
+          : "Pre-approve a Google identity for hospital dashboard sign-in."}
+        footer={canManage
+          ? (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="management-selection-pill px-4 py-3 text-sm leading-6 text-muted-foreground">
+                {currentPermissions.length} permissions selected. Use role presets as the baseline and add overrides only for real operational exceptions.
+              </div>
+              <div className="flex flex-wrap justify-end gap-3">
+                {selectedEntry
+                  ? (
+                    <Button
+                      onClick={() => handleDelete(selectedEntry)}
+                      size="sm"
+                      type="button"
+                      variant="destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Delete access
+                    </Button>
+                  )
+                  : null}
+                <Button
+                  onClick={clearSelection}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  {selectedEntry ? "Cancel edit" : "Close"}
+                </Button>
+                <Button
+                  disabled={isSaving}
+                  form={staffAccessFormId}
+                  type="submit"
+                >
+                  {isSaving
+                    ? <Loader2 className="h-4 w-4 animate-spin" />
+                    : selectedEntry
+                    ? <UserRoundPen className="h-4 w-4 mr-2" />
+                    : <Plus className="h-4 w-4 mr-2" />}
+                  {selectedEntry
+                    ? "Save access changes"
+                    : "Create staff access"}
+                </Button>
+              </div>
+            </div>
+          )
+          : null}
+        mode={selectedEntry ? "edit" : "create"}
         onOpenChange={(open) => {
           setIsDrawerOpen(open);
           if (!open) clearSelection();
         }}
+        open={isDrawerOpen}
+        statusLabel={selectedEntry ? ROLE_LABELS[selectedEntry.role] : undefined}
+        title={selectedEntry ? `Edit ${selectedEntry.displayName}` : "Create staff access"}
       >
-        <DrawerContent>
-          <DrawerHeader>
-            <DrawerTitle>
-              {selectedEntry ? `Edit ${selectedEntry.displayName}` : "Create staff access"}
-            </DrawerTitle>
-            <DrawerDescription>
-              {selectedEntry ? "Update roles and permissions for this identity." : "Pre-approve a Google identity for hospital dashboard sign-in."}
-            </DrawerDescription>
-          </DrawerHeader>
+        {canManage
+          ? (
+            <form
+              className="space-y-5"
+              id={staffAccessFormId}
+              onSubmit={form.handleSubmit(handleSubmit)}
+            >
+              <FormDrawerSection
+                description="Define the Google identity, runtime role, and approval state before sign-in happens."
+                title="Identity and role"
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">
+                      Staff email
+                    </span>
+                    <Input
+                      {...form.register("email")}
+                      className="mt-2"
+                      disabled={Boolean(selectedEntry)}
+                      placeholder="billing.kiosk@hospital.in"
+                    />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.email?.message}
+                    </p>
+                  </label>
 
-          <div className="p-4 bg-background max-h-[70vh] overflow-y-auto">
-            {canManage
-              ? (
-                <form
-                  className="space-y-5"
-                  onSubmit={form.handleSubmit(handleSubmit)}
-                >
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Staff email
-                      </span>
-                      <Input
-                        {...form.register("email")}
-                        className="mt-2"
-                        disabled={Boolean(selectedEntry)}
-                        placeholder="billing.kiosk@hospital.in"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.email?.message}
-                      </p>
-                    </label>
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">
+                      Display name
+                    </span>
+                    <Input
+                      {...form.register("displayName")}
+                      className="mt-2"
+                      placeholder="Billing Kiosk"
+                    />
+                    <p className="mt-2 text-sm text-danger">
+                      {form.formState.errors.displayName?.message}
+                    </p>
+                  </label>
+                </div>
 
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">
-                        Display name
-                      </span>
-                      <Input
-                        {...form.register("displayName")}
-                        className="mt-2"
-                        placeholder="Billing Kiosk"
-                      />
-                      <p className="mt-2 text-sm text-danger">
-                        {form.formState.errors.displayName?.message}
-                      </p>
-                    </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Role</span>
+                    <ThemedSelect
+                      {...form.register("role")}
+                      className="mt-2"
+                    >
+                      {Object.entries(ROLE_LABELS).map(([role, label]) => (
+                        <option key={role} value={role}>
+                          {label}
+                        </option>
+                      ))}
+                    </ThemedSelect>
+                  </label>
+
+                  <label className="block">
+                    <span className="text-sm font-medium text-ink">Status</span>
+                    <ThemedSelect
+                      {...form.register("status")}
+                      className="mt-2"
+                    >
+                      {STAFF_ACCESS_STATUS.map((status) => (
+                        <option key={status} value={status}>
+                          {status.replaceAll("_", " ")}
+                        </option>
+                      ))}
+                    </ThemedSelect>
+                  </label>
+                </div>
+              </FormDrawerSection>
+
+              <FormDrawerSection
+                description="Role presets are the baseline. Apply overrides only where there is a genuine operational exception."
+                title="Module permissions"
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
+                    {ROLE_LABELS[currentRole]} preset
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">Role</span>
-                      <ThemedSelect
-                        {...form.register("role")}
-                        className="mt-2"
-                      >
-                        {Object.entries(ROLE_LABELS).map(([role, label]) => (
-                          <option key={role} value={role}>
-                            {label}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
+                  <Button
+                    onClick={resetToRolePreset}
+                    size="sm"
+                    type="button"
+                    variant="outline"
+                  >
+                    <ShieldCheck className="h-4 w-4" />
+                    Apply {ROLE_LABELS[currentRole]} preset
+                  </Button>
+                </div>
 
-                    <label className="block">
-                      <span className="text-sm font-medium text-ink">Status</span>
-                      <ThemedSelect
-                        {...form.register("status")}
-                        className="mt-2"
-                      >
-                        {STAFF_ACCESS_STATUS.map((status) => (
-                          <option key={status} value={status}>
-                            {status.replaceAll("_", " ")}
-                          </option>
-                        ))}
-                      </ThemedSelect>
-                    </label>
-                  </div>
-
-                  <div className="management-subtle-card p-4 sm:p-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                          Module permissions
+                <div className="space-y-4">
+                  {Object.entries(PERMISSION_GROUPS).map((
+                    [groupKey, permissions],
+                  ) => (
+                    <section
+                      key={groupKey}
+                      className="rounded-xl border bg-card p-4 shadow-sm"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-sm font-semibold uppercase tracking-[0.16em] text-foreground">
+                          {groupKey}
                         </p>
-                        <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          Role presets are a starting point. Use overrides only
-                          where there is a real operational need.
-                        </p>
+                        <Badge variant="outline">
+                          {permissions.filter((permission) =>
+                            currentPermissions.includes(permission)
+                          ).length}
+                          /{permissions.length}
+                        </Badge>
                       </div>
 
-                      <Button
-                        onClick={resetToRolePreset}
-                        size="sm"
-                        type="button"
-                        variant="outline"
-                      >
-                        <ShieldCheck className="h-4 w-4" />
-                        Apply {ROLE_LABELS[currentRole]} preset
-                      </Button>
-                    </div>
+                      <div className="mt-4 grid gap-3 lg:grid-cols-2">
+                        {permissions.map((permission) => {
+                          const checked = currentPermissions.includes(
+                            permission,
+                          );
 
-                    <div className="mt-5 space-y-4">
-                      {Object.entries(PERMISSION_GROUPS).map((
-                        [groupKey, permissions],
-                      ) => (
-                        <section
-                          key={groupKey}
-                          className="rounded-xl border bg-card p-4 shadow-sm"
-                        >
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-semibold uppercase tracking-[0.16em] text-foreground">
-                              {groupKey}
-                            </p>
-                            <Badge variant="outline">
-                              {permissions.filter((permission) =>
-                                currentPermissions.includes(permission)
-                              ).length}
-                              /{permissions.length}
-                            </Badge>
-                          </div>
-
-                          <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                            {permissions.map((permission) => {
-                              const checked = currentPermissions.includes(
-                                permission,
-                              );
-
-                              return (
-                                <label
-                                  key={permission}
-                                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition ${
-                                    checked
-                                      ? "border-primary bg-primary/5"
-                                      : "border-border bg-background"
-                                  }`}
-                                >
-                                  <Checkbox
-                                    checked={checked}
-                                    onChange={() => togglePermission(permission)}
-                                  />
-                                  <span className="text-sm text-foreground">
-                                    {permissionLabel(permission)}
-                                  </span>
-                                </label>
-                              );
-                            })}
-                          </div>
-                        </section>
-                      ))}
-                    </div>
-                    <p className="mt-3 text-sm text-danger">
-                      {form.formState.errors.defaultPermissions?.message}
-                    </p>
-                  </div>
-
-                  <div className="flex justify-end gap-3 pt-4 pb-8">
-                    <Button
-                      disabled={isSaving}
-                      type="submit"
-                    >
-                      {isSaving
-                        ? <Loader2 className="h-4 w-4 animate-spin" />
-                        : selectedEntry
-                        ? <UserRoundPen className="h-4 w-4 mr-2" />
-                        : <Plus className="h-4 w-4 mr-2" />}
-                      {selectedEntry
-                        ? "Save access changes"
-                        : "Create staff access"}
-                    </Button>
-
-                    <div className="management-selection-pill px-4 py-3 text-sm text-muted-foreground">
-                      {currentPermissions.length} permissions selected
-                    </div>
-                  </div>
-                </form>
-              )
-              : (
-                <div className="management-subtle-card mt-6 mb-8 p-5 text-sm leading-7 text-muted-foreground">
-                  You can review invite-only access records, but permission
-                  changes require the{" "}
-                  <span className="font-semibold text-foreground">
-                    staffAccess.manage
-                  </span>{" "}
-                  capability.
+                          return (
+                            <label
+                              key={permission}
+                              className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition ${
+                                checked
+                                  ? "border-primary bg-primary/5"
+                                  : "border-border bg-background"
+                              }`}
+                            >
+                              <Checkbox
+                                checked={checked}
+                                onChange={() => togglePermission(permission)}
+                              />
+                              <span className="text-sm text-foreground">
+                                {permissionLabel(permission)}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
                 </div>
-              )}
-          </div>
-        </DrawerContent>
-      </Drawer>
+                <p className="text-sm text-danger">
+                  {form.formState.errors.defaultPermissions?.message}
+                </p>
+              </FormDrawerSection>
+            </form>
+          )
+          : (
+            <div className="management-subtle-card p-5 text-sm leading-7 text-muted-foreground">
+              You can review invite-only access records, but permission
+              changes require the{" "}
+              <span className="font-semibold text-foreground">
+                staffAccess.manage
+              </span>{" "}
+              capability.
+            </div>
+          )}
+      </FormDrawer>
+
+      <RecordPreviewDialog
+        actions={canManage && previewEntry
+          ? (
+            <Button
+              onClick={() => {
+                closePreview();
+                beginEditing(previewEntry);
+              }}
+              size="sm"
+              type="button"
+              variant="outline"
+            >
+              <UserRoundPen className="h-4 w-4" />
+              Edit access
+            </Button>
+          )
+          : null}
+        description="Review access state, role, and module permissions before approving or revoking identity access."
+        eyebrow="Access profile"
+        onOpenChange={(open) => {
+          if (!open) {
+            closePreview();
+          }
+        }}
+        open={Boolean(previewEntry)}
+        status={previewEntry
+          ? (
+            <Badge className={statusToneMap[previewEntry.status]} variant="outline">
+              {previewEntry.status}
+            </Badge>
+          )
+          : null}
+        title={previewEntry?.displayName ?? "Access profile"}
+      >
+        {previewEntry ? (
+          <>
+            <RecordPreviewSection
+              description="Invite-only identity information used to resolve dashboard access before sign-in."
+              icon={ShieldCheck}
+              title="Identity and approval"
+            >
+              <RecordPreviewField label="Email" value={previewEntry.email} />
+              <RecordPreviewField label="Role" value={ROLE_LABELS[previewEntry.role]} />
+              <RecordPreviewField label="Approved at" value={formatDateTime(previewEntry.approvedAt)} />
+              <RecordPreviewField label="Last login" value={formatDateTime(previewEntry.lastLoginAt)} />
+            </RecordPreviewSection>
+
+            <RecordPreviewSection
+              description="Current permission footprint granted to this identity."
+              icon={Search}
+              title="Module permissions"
+            >
+              <RecordPreviewField label="Runtime user" value={previewEntry.userStatus ?? "No runtime user"} />
+              <RecordPreviewField label="Permission count" value={previewEntry.defaultPermissions.length} />
+              <RecordPreviewField
+                className="md:col-span-2"
+                label="Granted modules"
+                value={previewEntry.defaultPermissions.join(", ")}
+              />
+            </RecordPreviewSection>
+          </>
+        ) : null}
+      </RecordPreviewDialog>
 
       <section>
           <div className="flex items-start justify-between gap-4">
@@ -965,18 +1069,27 @@ export function StaffAccessManagement() {
 
                       <div className="flex flex-wrap gap-3 xl:w-56 xl:justify-end">
                         <Button
-                          onClick={() => beginEditing(entry)}
+                          onClick={() => openPreview(entry)}
                           size="sm"
                           type="button"
                           variant="outline"
                         >
-                          <UserRoundPen className="h-4 w-4" />
-                          Edit
+                          <Eye className="h-4 w-4" />
+                          View
                         </Button>
 
                         {canManage
                           ? (
                             <>
+                              <Button
+                                onClick={() => beginEditing(entry)}
+                                size="sm"
+                                type="button"
+                                variant="outline"
+                              >
+                                <UserRoundPen className="h-4 w-4" />
+                                Edit
+                              </Button>
                               <Button
                                 className={entry.status === "APPROVED"
                                   ? "hover:border-warning hover:text-warning"

@@ -5,8 +5,9 @@ import { useState } from "react";
 import {
   Globe,
   Menu,
-  PanelLeftClose,
-  PanelLeftOpen,
+  LayoutDashboard,
+  LineChart,
+  ShieldCheck,
   Settings2,
 } from "lucide-react";
 
@@ -17,7 +18,7 @@ import { OfflineStatusChip } from "@/components/pwa/offline-status-chip";
 import { SyncHealthChip } from "@/components/pwa/sync-health-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { OptionsMenu } from "@/components/ui/options-menu";
+import { OverflowMenu } from "@/components/ui/overflow-menu";
 import {
   Sheet,
   SheetContent,
@@ -26,13 +27,11 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { APP_TEXT } from "@/constants/appText";
 import type { PermissionKey } from "@/constants/permissions";
 import { useAppShell } from "@/hooks/useAppShell";
 import { resolveDashboardRouteContext } from "@/lib/dashboard/route-context";
 import type { NavGroup } from "@/lib/module-config";
-import { cn } from "@/lib/utils/cn";
 
 type DashboardTopbarProps = {
   navGroups: NavGroup[];
@@ -40,61 +39,44 @@ type DashboardTopbarProps = {
   permissions: PermissionKey[];
 };
 
-function hasAccess(
-  permissions: PermissionKey[],
-  requiredPermissions?: PermissionKey[],
-) {
-  if (!requiredPermissions || requiredPermissions.length === 0) {
-    return true;
-  }
-
-  return requiredPermissions.every((permission) => permissions.includes(permission));
-}
-
-function isActiveRoute(pathname: string, href?: string) {
-  if (!href) {
-    return false;
-  }
-
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
-
 export function DashboardTopbar({
   navGroups,
   pathname,
   permissions,
 }: DashboardTopbarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const {
-    isDesktop,
-    isSidebarCollapsed,
-    isTopbarCondensed,
-    toggleSidebar,
-  } = useAppShell();
+  const { isDesktop } = useAppShell();
   const routeContext = resolveDashboardRouteContext(pathname, navGroups, permissions);
-  const quickLinks = routeContext.quickLinks.filter((item) =>
-    hasAccess(permissions, item.permissions)
-  );
   const commandMenuItems = [
-    ...(isDesktop
-      ? [{
-          label: isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar",
-          description: "Adjust the navigation density for focused or broad work.",
-          onSelect: toggleSidebar,
-          icon: isSidebarCollapsed ? PanelLeftOpen : PanelLeftClose,
-        }]
-      : []),
     {
       label: APP_TEXT.SHELL.PUBLIC_SITE,
-      description: "Open the public-facing product and marketing surface.",
+      description: "Open the public-facing hospital site.",
       href: "/",
       icon: Globe,
+    },
+    {
+      label: "Dashboard home",
+      description: "Return to the main operations dashboard.",
+      href: "/dashboard",
+      icon: LayoutDashboard,
+    },
+    {
+      label: "Reports",
+      description: "Open reporting and analytics workspaces.",
+      href: "/dashboard/reports",
+      icon: LineChart,
     },
     {
       label: "Workspace settings",
       description: "Hospital profile, feature flags, and print templates.",
       href: "/dashboard/settings",
       icon: Settings2,
+    },
+    {
+      label: "Access control",
+      description: "Review staff access, permissions, and audit operations.",
+      href: "/dashboard/staff-access",
+      icon: ShieldCheck,
     },
   ];
 
@@ -104,161 +86,133 @@ export function DashboardTopbar({
       open={!isDesktop && isMobileMenuOpen}
     >
       <header
-        className={cn(
-          "sticky top-0 z-30 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 transition-all duration-300",
-          isTopbarCondensed
-            ? "px-4 py-3 sm:px-5 lg:px-6"
-            : "px-4 py-4 sm:px-5 lg:px-6",
-        )}
+        className="sticky top-0 z-30 mx-1 mt-1 rounded-[calc(var(--radius-panel)+0.15rem)] border border-border/75 bg-background/88 px-4 py-3 shadow-[var(--shadow-soft)] backdrop-blur supports-[backdrop-filter]:bg-background/72 sm:px-5 lg:px-6"
       >
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex min-w-0 flex-1 items-start gap-3">
-              <div className="flex shrink-0 items-center gap-2 pt-0.5">
-                <SheetTrigger asChild>
-                  <Button
-                    aria-label={APP_TEXT.SHELL.MENU_TITLE}
-                    className="lg:hidden"
-                    size="icon"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Menu className="h-5 w-5" />
-                  </Button>
-                </SheetTrigger>
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-2">
+              <SheetTrigger asChild>
                 <Button
-                  className="hidden lg:inline-flex"
-                  onClick={toggleSidebar}
+                  aria-label={APP_TEXT.SHELL.MENU_TITLE}
+                  className="lg:hidden"
                   size="icon"
                   type="button"
                   variant="outline"
                 >
-                  {isSidebarCollapsed
-                    ? <PanelLeftOpen className="h-5 w-5" />
-                    : <PanelLeftClose className="h-5 w-5" />}
+                  <Menu className="h-5 w-5" />
                 </Button>
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="secondary">{routeContext.sectionTitle}</Badge>
-                  <Badge variant="outline">{APP_TEXT.SHELL.OPERATION_LABEL}</Badge>
-                </div>
-                <h2
-                  className={cn(
-                    "mt-3 font-semibold tracking-tight text-foreground transition-all",
-                    isTopbarCondensed
-                      ? "text-xl sm:text-2xl"
-                      : "text-[1.5rem] sm:text-[1.85rem]",
-                  )}
-                >
-                  {routeContext.title}
-                </h2>
-                <p
-                  className={cn(
-                    "mt-2 max-w-3xl text-sm leading-6 text-muted-foreground",
-                    isTopbarCondensed ? "line-clamp-1" : "line-clamp-2",
-                  )}
-                >
-                  {routeContext.detail}
-                </p>
-              </div>
+              </SheetTrigger>
+              <Link
+                className="inline-flex items-center rounded-full border border-border/70 bg-card/90 px-3 py-2 text-sm font-semibold tracking-tight text-foreground shadow-[var(--shadow-soft)] transition-colors hover:bg-accent hover:text-accent-foreground"
+                href="/"
+              >
+                {APP_TEXT.BRAND_NAME}
+              </Link>
             </div>
 
-            <div className="flex shrink-0 flex-wrap items-center gap-2 lg:justify-end">
-              <Button asChild className="hidden md:inline-flex" size="sm" variant="ghost">
-                <Link href="/">{APP_TEXT.SHELL.PUBLIC_SITE}</Link>
-              </Button>
-              <OptionsMenu items={commandMenuItems} key={`${pathname}-commands`} />
-              <ThemeToggle compact={!isDesktop || isTopbarCondensed} />
-              <AuthUserPanel compact={!isDesktop || isTopbarCondensed} />
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-[11px] font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                {routeContext.sectionTitle}
+              </p>
+              <div className="mt-1 flex items-center gap-2">
+                <h2 className="truncate text-lg font-semibold tracking-tight text-foreground sm:text-xl">
+                  {routeContext.title}
+                </h2>
+                <Badge className="hidden rounded-full md:inline-flex" variant="outline">
+                  {APP_TEXT.SHELL.OPERATION_LABEL}
+                </Badge>
+              </div>
+              <p className="mt-1 hidden truncate text-sm text-muted-foreground lg:block">
+                {routeContext.detail}
+              </p>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-2">
+              <div className="hidden lg:block lg:w-[20rem]">
+                <GlobalSearch compact key={pathname} />
+              </div>
+              <div className="hidden lg:block">
+                <OverflowMenu
+                  items={commandMenuItems}
+                  key={`${pathname}-commands`}
+                  triggerClassName="rounded-full border-border/70 bg-card/90 shadow-[var(--shadow-soft)]"
+                />
+              </div>
+              <AuthUserPanel compact={!isDesktop} />
             </div>
           </div>
 
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div className="min-w-0 flex-1 xl:max-w-3xl">
-              <GlobalSearch compact={isTopbarCondensed} key={pathname} />
+          <div className="flex flex-col gap-3 xl:hidden">
+            <div className="min-w-0">
+              <GlobalSearch compact={false} key={pathname} />
             </div>
-            <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+            <div className="flex flex-wrap items-center gap-2">
               <OfflineStatusChip />
               <SyncHealthChip />
             </div>
           </div>
-
-          {quickLinks.length > 0 ? (
-            <div
-              className={cn(
-                "overflow-hidden transition-all duration-300",
-                isTopbarCondensed ? "max-h-0 opacity-0" : "max-h-14 opacity-100",
-              )}
-            >
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-                {quickLinks.map((item) => {
-                  const active = isActiveRoute(pathname, item.href);
-
-                  return (
-                    <Link
-                      className={cn(
-                        "whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "bg-secondary text-secondary-foreground"
-                          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                      )}
-                      href={item.href!}
-                      key={item.label}
-                    >
-                      {item.label}
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
         </div>
       </header>
 
       <SheetContent className="w-[min(92vw,24rem)] p-0" side="left">
-          <SheetHeader className="border-b px-5 py-4 text-left">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">{routeContext.sectionTitle}</Badge>
-              <Badge variant="outline">{APP_TEXT.SHELL.OPERATION_LABEL}</Badge>
+        <div className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-contain">
+          <div className="flex min-h-full flex-col">
+            <SheetHeader className="border-b px-5 py-4 text-left">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="secondary">{routeContext.sectionTitle}</Badge>
+                <Badge variant="outline">{APP_TEXT.SHELL.OPERATION_LABEL}</Badge>
+              </div>
+              <SheetTitle className="pt-2 text-xl font-semibold">
+                {APP_TEXT.SHELL.MENU_TITLE}
+              </SheetTitle>
+              <SheetDescription>{APP_TEXT.SHELL.MENU_DESCRIPTION}</SheetDescription>
+            </SheetHeader>
+
+            <div className="border-b px-5 py-4">
+              <AuthUserPanel compact={false} />
             </div>
-            <SheetTitle className="pt-2 text-xl font-semibold">
-              {APP_TEXT.SHELL.MENU_TITLE}
-            </SheetTitle>
-            <SheetDescription>{APP_TEXT.SHELL.MENU_DESCRIPTION}</SheetDescription>
-          </SheetHeader>
 
-          <div className="border-b px-5 py-4">
-            <AuthUserPanel compact={false} />
-          </div>
+            <div className="border-b px-5 py-4">
+              <div className="flex flex-wrap gap-2">
+                <OfflineStatusChip />
+                <SyncHealthChip />
+              </div>
+            </div>
 
-          <div className="border-b px-5 py-4">
-            <div className="flex flex-wrap gap-2">
-              <OfflineStatusChip />
-              <SyncHealthChip />
+            <div className="flex-1 px-4 py-4">
+              <DashboardNavigation
+                navGroups={navGroups}
+                onNavigate={() => setIsMobileMenuOpen(false)}
+                pathname={pathname}
+                permissions={permissions}
+              />
+            </div>
+
+            <div className="mt-auto border-t px-5 py-4">
+              <div className="grid gap-2">
+                {commandMenuItems.map((item) => {
+                  const Icon = item.icon;
+
+                  return (
+                    <Button
+                      asChild
+                      className="justify-start"
+                      key={item.label}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Link href={item.href} onClick={() => setIsMobileMenuOpen(false)}>
+                        {Icon ? <Icon className="h-4 w-4" /> : null}
+                        {item.label}
+                      </Link>
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
           </div>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4">
-            <DashboardNavigation
-              navGroups={navGroups}
-              onNavigate={() => setIsMobileMenuOpen(false)}
-              pathname={pathname}
-              permissions={permissions}
-            />
-          </div>
-
-          <div className="border-t px-5 py-4">
-            <div className="flex flex-wrap gap-2">
-              <Button asChild size="sm" type="button" variant="outline">
-                <Link href="/">{APP_TEXT.SHELL.PUBLIC_SITE}</Link>
-              </Button>
-              <Button asChild size="sm" type="button" variant="outline">
-                <Link href="/dashboard/settings">Settings</Link>
-              </Button>
-            </div>
-          </div>
+        </div>
       </SheetContent>
     </Sheet>
   );

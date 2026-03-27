@@ -23,11 +23,11 @@ export async function PublicMarketingPage({
   return (
     <PublicSiteChrome>
       <div className="space-y-6">
-        <section className="rounded-[var(--radius-panel)] border bg-card p-6 shadow-[var(--shadow-soft)] sm:p-8">
+        <section className="public-grid-shell rounded-[calc(var(--radius-panel)+0.3rem)] p-6 sm:p-8">
           <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
             <PageHeader
               actions={
-                <Badge className="rounded-full px-3 py-1.5 text-[11px] uppercase tracking-[0.18em]">
+                <Badge className="rounded-full px-3 py-1.5 tracking-[0.18em]">
                   {content.badge}
                 </Badge>
               }
@@ -39,9 +39,9 @@ export async function PublicMarketingPage({
 
             <div className="grid gap-4 sm:grid-cols-3">
               {content.metrics.map((metric) => (
-                <SurfaceCard key={metric.label}>
+                <SurfaceCard key={metric.label} className="min-h-[11rem]">
                   <p className="text-sm text-muted-foreground">{metric.label}</p>
-                  <p className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+                  <p className="mt-4 text-3xl font-semibold tracking-tight text-foreground">
                     {metric.value}
                   </p>
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -74,10 +74,10 @@ export async function PublicMarketingPage({
                 <div className="mt-5 grid gap-3">
                   {section.points.map((point) => (
                     <div
-                      className="management-subtle-card flex items-start gap-3 px-4 py-4"
-                      key={point}
-                    >
-                      <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
+                        className="management-subtle-card flex items-start gap-3 px-4 py-4"
+                        key={point}
+                      >
+                        <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
                       <p className="text-sm leading-7 text-foreground">{point}</p>
                     </div>
                   ))}

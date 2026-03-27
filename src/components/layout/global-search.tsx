@@ -163,7 +163,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
     >
       <label
         className={cn(
-          "flex w-full min-w-0 items-center gap-2 rounded-[var(--radius-control)] border bg-background transition-all duration-300 shadow-[var(--shadow-soft)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20",
+          "flex w-full min-w-0 items-center gap-2 rounded-[calc(var(--radius-control)+0.2rem)] border bg-[linear-gradient(145deg,color-mix(in_srgb,var(--background)_92%,white_8%)_0%,color-mix(in_srgb,var(--background)_84%,var(--accent)_16%)_100%)] transition-all duration-300 shadow-[var(--shadow-soft)] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/20",
           compact ? "min-h-10 px-3" : "min-h-11 px-4",
         )}
       >
@@ -187,7 +187,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
         <div className="flex items-center gap-2">
           {query ? (
             <Button
-              className="h-8 w-8 rounded-md text-muted-foreground"
+              className="h-8 w-8 rounded-xl text-muted-foreground"
               onClick={() => {
                 closeSearch({ clearQuery: true });
               }}
@@ -199,7 +199,7 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
             </Button>
           ) : (
             <Button
-              className="h-8 w-8 rounded-md text-muted-foreground"
+              className="h-8 w-8 rounded-xl text-muted-foreground"
               onClick={() => {
                 setIsCameraOpen(true);
                 closeSearch();
@@ -269,6 +269,12 @@ export function GlobalSearch({ compact = false }: GlobalSearchProps) {
                     </section>
                   ))
                 : null}
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
+              <Badge variant="outline">Module aware</Badge>
+              <Badge variant="outline">RBAC filtered</Badge>
+              <Badge variant="outline">Barcode ready</Badge>
             </div>
           </CardContent>
         </Card>

@@ -17,7 +17,7 @@ import { DISCHARGE_SUMMARY_STATUS } from "@/constants/dischargeSummaryStatus";
 import { EmptyState } from "@/components/feedback/empty-state";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Drawer, DrawerContent, DrawerDescription, DrawerHeader, DrawerTitle } from "@/components/ui/bottom-drawer";
+import { FormDrawer, FormDrawerSection } from "@/components/ui/form-drawer";
 import { Input } from "@/components/ui/input";
 import { PageHeader } from "@/components/ui/page-header";
 import { SurfaceCard } from "@/components/ui/surface-card";
@@ -43,6 +43,7 @@ const defaultValues: DischargeFormValues = {
   dischargeAdvice: "",
   followUpInstructions: "",
 };
+const dischargeFormId = "discharge-summary-form";
 
 const statusToneMap = {
   DRAFT: "border-transparent bg-secondary text-secondary-foreground",
@@ -201,132 +202,149 @@ export function DischargeManagement({ hideHeader = false }: DischargeManagementP
         ))}
       </section>
 
-      <Drawer open={isDrawerOpen} onOpenChange={(open: boolean) => {
-        setIsDrawerOpen(open);
-        if (!open) clearSelection();
-      }}>
-        <DrawerContent>
-          <div className="mx-auto w-full max-w-4xl overflow-y-auto p-6 pt-0">
-            <DrawerHeader className="px-0">
-              <DrawerTitle className="text-2xl font-semibold tracking-tight text-foreground">
-                {selectedSummary ? "Revise discharge draft" : "Create new summary"}
-              </DrawerTitle>
-              <DrawerDescription className="text-muted-foreground">
-                {selectedSummary 
-                  ? "Update the clinical journey and final advice for this patient." 
-                  : "Fill in the clinical details to start a new discharge summary draft."}
-              </DrawerDescription>
-            </DrawerHeader>
-
-            {canManage ? (
-              <form
-                className="mt-2 space-y-5 pb-8"
-                onSubmit={form.handleSubmit((values) => {
-                  handleSubmit(values);
-                  setIsDrawerOpen(false);
-                })}
-              >
-                <label className="block">
-                  <span className="text-sm font-medium text-ink">Admission</span>
-                  <ThemedSelect
-                    {...form.register("admissionId")}
-                    className="mt-2"
-                    disabled={Boolean(selectedSummary)}
-                    onChange={(event) => {
-                      setSelectedAdmissionId(event.target.value);
-                      form.setValue("admissionId", event.target.value);
-                    }}
+      <FormDrawer
+        contentClassName="pb-0"
+        description={selectedSummary
+          ? "Update the clinical journey and final advice for this patient."
+          : "Fill in the clinical details to start a new discharge summary draft."}
+        footer={canManage
+          ? (
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="management-selection-pill px-4 py-3 text-sm leading-6 text-muted-foreground">
+                {isFinalizedSelection
+                  ? "Finalized summaries are locked for editing and remain available as read-only clinical print records."
+                  : "Each save preserves the working document trail before final sealing."}
+              </div>
+              <div className="flex flex-wrap justify-end gap-3">
+                {selectedSummary ? (
+                  <a
+                    className={buttonVariants({ variant: "outline" })}
+                    href={`/dashboard/print/discharge/${selectedSummary.id}`}
+                    rel="noreferrer"
+                    target="_blank"
                   >
-                    <option value="">Select admission</option>
-                    {availableAdmissions.map((admission) => (
-                      <option key={admission.id} value={admission.id}>
-                        {admission.patientHospitalNumber} - {admission.patientName}
-                        {admission.bedNumber ? ` / ${admission.bedNumber}` : ""}
-                      </option>
-                    ))}
-                  </ThemedSelect>
+                    <Printer className="h-4 w-4" />
+                    Print summary
+                  </a>
+                ) : null}
+                <Button
+                  onClick={clearSelection}
+                  size="sm"
+                  type="button"
+                  variant="outline"
+                >
+                  Close
+                </Button>
+                <Button
+                  disabled={Boolean(isFinalizedSelection) || createMutation.isPending || updateMutation.isPending}
+                  form={dischargeFormId}
+                  type="submit"
+                >
+                  {createMutation.isPending || updateMutation.isPending 
+                    ? <Loader2 className="h-4 w-4 animate-spin" /> 
+                    : <ClipboardPen className="h-4 w-4" />}
+                  {selectedSummary ? "Save draft" : "Create draft"}
+                </Button>
+                {selectedSummary && selectedSummary.status === "DRAFT" ? (
+                  <Button
+                    disabled={finalizeMutation.isPending}
+                    onClick={handleFinalize}
+                    type="button"
+                    variant="outline"
+                  >
+                    {finalizeMutation.isPending 
+                      ? <Loader2 className="h-4 w-4 animate-spin" /> 
+                      : <FileCheck2 className="h-4 w-4" />}
+                    Finalize summary
+                  </Button>
+                ) : null}
+              </div>
+            </div>
+          )
+          : null}
+        mode={selectedSummary ? "edit" : "create"}
+        onOpenChange={(open: boolean) => {
+          setIsDrawerOpen(open);
+          if (!open) clearSelection();
+        }}
+        open={isDrawerOpen}
+        statusLabel={selectedSummary?.status}
+        title={selectedSummary ? "Revise discharge draft" : "Create new summary"}
+      >
+        {canManage ? (
+          <form
+            className="space-y-5"
+            id={dischargeFormId}
+            onSubmit={form.handleSubmit((values) => {
+              handleSubmit(values);
+              setIsDrawerOpen(false);
+            })}
+          >
+            <FormDrawerSection
+              description="Select the admission first so the summary remains linked to the real inpatient encounter."
+              title="Admission link"
+            >
+              <label className="block">
+                <span className="text-sm font-medium text-ink">Admission</span>
+                <ThemedSelect
+                  {...form.register("admissionId")}
+                  className="mt-2"
+                  disabled={Boolean(selectedSummary)}
+                  onChange={(event) => {
+                    setSelectedAdmissionId(event.target.value);
+                    form.setValue("admissionId", event.target.value);
+                  }}
+                >
+                  <option value="">Select admission</option>
+                  {availableAdmissions.map((admission) => (
+                    <option key={admission.id} value={admission.id}>
+                      {admission.patientHospitalNumber} - {admission.patientName}
+                      {admission.bedNumber ? ` / ${admission.bedNumber}` : ""}
+                    </option>
+                  ))}
+                </ThemedSelect>
+                <p className="mt-2 text-sm text-danger">
+                  {form.formState.errors.admissionId?.message}
+                </p>
+              </label>
+            </FormDrawerSection>
+
+            <FormDrawerSection
+              description="Capture the clinical journey, interventions, medication, and follow-up guidance in one structured draft."
+              title="Summary content"
+            >
+              {[
+                ["diagnosis", "Diagnosis", "Primary diagnosis and discharge indication."],
+                ["hospitalCourse", "Hospital course summary", "Key admission-to-discharge clinical journey."],
+                ["procedures", "Procedures and treatment", "Procedure summary, interventions, and clinical notes."],
+                ["dischargeMedication", "Medication on discharge", "Medicines, dosage notes, and continuity instructions."],
+                ["dischargeAdvice", "Discharge advice", "Home care instructions, restrictions, red flags."],
+                ["followUpInstructions", "Follow-up instructions", "Review date, department, and escalation guidance."],
+              ].map(([field, label, placeholder]) => (
+                <label key={field} className="block">
+                  <span className="text-sm font-medium text-ink">{label}</span>
+                  <Textarea
+                    {...form.register(field as keyof DischargeFormValues)}
+                    className="mt-2 min-h-28"
+                    disabled={isFinalizedSelection}
+                    placeholder={placeholder}
+                  />
                   <p className="mt-2 text-sm text-danger">
-                    {form.formState.errors.admissionId?.message}
+                    {form.formState.errors[field as keyof DischargeFormValues]?.message?.toString()}
                   </p>
                 </label>
-
-                {[
-                  ["diagnosis", "Diagnosis", "Primary diagnosis and discharge indication."],
-                  ["hospitalCourse", "Hospital course summary", "Key admission-to-discharge clinical journey."],
-                  ["procedures", "Procedures and treatment", "Procedure summary, interventions, and clinical notes."],
-                  ["dischargeMedication", "Medication on discharge", "Medicines, dosage notes, and continuity instructions."],
-                  ["dischargeAdvice", "Discharge advice", "Home care instructions, restrictions, red flags."],
-                  ["followUpInstructions", "Follow-up instructions", "Review date, department, and escalation guidance."],
-                ].map(([field, label, placeholder]) => (
-                  <label key={field} className="block">
-                    <span className="text-sm font-medium text-ink">{label}</span>
-                    <Textarea
-                      {...form.register(field as keyof DischargeFormValues)}
-                      className="mt-2 min-h-28"
-                      disabled={isFinalizedSelection}
-                      placeholder={placeholder}
-                    />
-                    <p className="mt-2 text-sm text-danger">
-                      {form.formState.errors[field as keyof DischargeFormValues]?.message?.toString()}
-                    </p>
-                  </label>
-                ))}
-
-                <div className="flex flex-wrap gap-3">
-                  {selectedSummary ? (
-                    <a
-                      className={buttonVariants({ variant: "outline" })}
-                      href={`/dashboard/print/discharge/${selectedSummary.id}`}
-                      rel="noreferrer"
-                      target="_blank"
-                    >
-                      <Printer className="h-4 w-4" />
-                      Print summary
-                    </a>
-                  ) : null}
-
-                  <Button
-                    disabled={Boolean(isFinalizedSelection) || createMutation.isPending || updateMutation.isPending}
-                    type="submit"
-                  >
-                    {createMutation.isPending || updateMutation.isPending 
-                      ? <Loader2 className="h-4 w-4 animate-spin" /> 
-                      : <ClipboardPen className="h-4 w-4" />}
-                    {selectedSummary ? "Save draft" : "Create draft"}
-                  </Button>
-
-                  {selectedSummary && selectedSummary.status === "DRAFT" ? (
-                    <Button
-                      disabled={finalizeMutation.isPending}
-                      onClick={handleFinalize}
-                      type="button"
-                      variant="outline"
-                    >
-                      {finalizeMutation.isPending 
-                        ? <Loader2 className="h-4 w-4 animate-spin" /> 
-                        : <FileCheck2 className="h-4 w-4" />}
-                      Finalize summary
-                    </Button>
-                  ) : null}
-                </div>
-
-                {isFinalizedSelection && (
-                  <p className="text-sm text-muted-foreground">
-                    Finalized summaries are locked for editing and remain available here as read-only clinical print records.
-                  </p>
-                )}
-              </form>
-            ) : (
-              <EmptyState
-                className="mt-6 min-h-64"
-                description="This clinical module is visible to discharge viewers, but drafting and finalizing summaries requires discharge.create."
-                icon={ClipboardPen}
-                title="Read-only discharge access"
-              />
-            )}
-          </div>
-        </DrawerContent>
-      </Drawer>
+              ))}
+            </FormDrawerSection>
+          </form>
+        ) : (
+          <EmptyState
+            className="min-h-64"
+            description="This clinical module is visible to discharge viewers, but drafting and finalizing summaries requires discharge.create."
+            icon={ClipboardPen}
+            title="Read-only discharge access"
+          />
+        )}
+      </FormDrawer>
 
       <section>
         <SurfaceCard className="space-y-5">

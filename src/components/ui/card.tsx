@@ -9,7 +9,7 @@ function Card({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-[var(--radius-panel)] border bg-card text-card-foreground shadow-[var(--shadow-soft)]",
+        "overflow-hidden rounded-[var(--radius-panel)] border border-border/80 bg-card text-card-foreground shadow-[var(--shadow-soft)]",
         className,
       )}
       {...props}
@@ -21,7 +21,7 @@ function CardHeader({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("flex flex-col gap-1.5 p-6", className)} {...props} />;
+  return <div className={cn("flex flex-col gap-1.5 p-5 sm:p-6", className)} {...props} />;
 }
 
 function CardTitle({
@@ -52,7 +52,7 @@ function CardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("p-6 pt-0", className)} {...props} />;
+  return <div className={cn("p-5 pt-0 sm:p-6 sm:pt-0", className)} {...props} />;
 }
 
 function CardFooter({
@@ -61,7 +61,7 @@ function CardFooter({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("flex items-center p-6 pt-0", className)}
+      className={cn("flex items-center p-5 pt-0 sm:p-6 sm:pt-0", className)}
       {...props}
     />
   );

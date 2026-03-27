@@ -17,12 +17,11 @@ async function expectNoEncodingArtifacts(page: Page) {
 }
 
 for (const [route, headingName] of [
-  ["/", /Transform healthcare operations with one connected command surface\./],
-  ["/about", /A hospital system designed around live operations, not disconnected admin screens\./],
-  ["/features", /Hospital workflows that stay connected from reception to discharge\./],
-  ["/pricing", /Transparent platform packaging for operational rollout, not feature confusion\./],
-  ["/solutions", /Built for hospitals that need billing discipline without slowing reception or ward movement\./],
-  ["/contact", /Start a hospital rollout conversation with the right operational context\./],
+  ["/", /The hospital no longer runs on disconnected admin screens\./],
+  ["/about", /A hospital system designed around real operating pressure, not disconnected admin screens\./],
+  ["/features", /All core hospital workflows run from one operational spine\./],
+  ["/solutions", /Designed for hospitals that need speed at the desk and control in the back office\./],
+  ["/contact", /Start a hospital deployment conversation with the right operational context\./],
 ] as const) {
   test(`public route ${route} renders without horizontal overflow`, async ({
     page,
@@ -40,7 +39,7 @@ test("public blog index and article routes render without encoding artifacts", a
   await page.goto("/blog", { waitUntil: "domcontentloaded" });
   await expect(
     page.getByRole("heading", {
-      name: "Hospital workflow notes, launch updates, and operating insights.",
+      name: "Hospital workflow notes, launch updates, and deployment insights.",
     }),
   ).toBeVisible();
   await expectNoHorizontalOverflow(page);

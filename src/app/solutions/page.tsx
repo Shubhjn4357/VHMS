@@ -5,9 +5,9 @@ import { marketingPages } from "@/lib/public-site/marketing-pages";
 import { buildPublicMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = buildPublicMetadata({
-  title: "Solutions",
+  title: "Operations",
   description:
-    "See how Vahi HMS Enterprise supports front-desk operations, OPD and IPD workflows, occupancy management, billing control, and audit-ready hospital administration.",
+    "See how Vahi Hospital OS supports front-desk operations, OPD and IPD workflows, occupancy management, billing control, and audit-ready hospital administration.",
   path: "/solutions",
   keywords: [
     "hospital workflow software",

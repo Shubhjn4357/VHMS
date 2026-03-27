@@ -31,7 +31,7 @@ export default function DashboardAppointmentCreatePage() {
         }
       />
       <div className="[&_.appointment-page-header]:hidden [&_.appointment-summary-grid]:hidden [&_.appointment-queue-panel]:hidden [&_.appointment-doctors-panel]:hidden [&_.appointment-main-grid]:block [&_.appointment-form-panel]:mx-auto [&_.appointment-form-panel]:max-w-5xl">
-        <AppointmentManagement />
+        <AppointmentManagement defaultCreateOpen />
       </div>
     </div>
   );

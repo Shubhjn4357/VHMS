@@ -1,29 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import {
-  Activity,
-  BarChart3,
-  BellRing,
-  BedDouble,
-  CalendarDays,
-  FileSignature,
-  FileText,
-  LayoutDashboard,
-  Megaphone,
-  MessageSquareMore,
-  PenSquare,
-  Printer,
-  Receipt,
-  ScrollText,
-  Settings2,
-  Stethoscope,
-  UserCog,
-  Users,
-  Warehouse,
-} from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
+import { getDashboardNavIcon } from "@/components/layout/dashboard-nav-icons";
 import type { PermissionKey } from "@/constants/permissions";
 import type { NavGroup } from "@/lib/module-config";
 import { cn } from "@/lib/utils/cn";
@@ -47,65 +26,6 @@ function isActiveRoute(pathname: string, href?: string) {
   }
 
   return pathname === href || pathname.startsWith(`${href}/`);
-}
-
-function getNavIcon(href?: string) {
-  switch (href) {
-    case "/dashboard":
-      return LayoutDashboard;
-    case "/dashboard/patients":
-      return Users;
-    case "/dashboard/opd":
-      return CalendarDays;
-    case "/dashboard/doctors":
-      return Stethoscope;
-    case "/dashboard/staff":
-      return UserCog;
-    case "/dashboard/appointments":
-      return CalendarDays;
-    case "/dashboard/billing":
-      return Receipt;
-    case "/dashboard/charge-master":
-      return Receipt;
-    case "/dashboard/rooms":
-      return Warehouse;
-    case "/dashboard/wards":
-      return Warehouse;
-    case "/dashboard/ipd":
-      return BedDouble;
-    case "/dashboard/occupancy":
-      return BedDouble;
-    case "/dashboard/discharge-summaries":
-      return FileText;
-    case "/dashboard/discharge":
-      return FileText;
-    case "/dashboard/consents":
-      return FileSignature;
-    case "/dashboard/staff-access":
-      return UserCog;
-    case "/dashboard/announcements":
-      return Megaphone;
-    case "/dashboard/notifications":
-      return BellRing;
-    case "/dashboard/communications":
-      return MessageSquareMore;
-    case "/dashboard/print-templates":
-      return Printer;
-    case "/dashboard/reports":
-      return ScrollText;
-    case "/dashboard/analytics":
-      return BarChart3;
-    case "/dashboard/audit-logs":
-      return Activity;
-    case "/dashboard/settings":
-      return Settings2;
-    case "/dashboard/profile":
-      return UserCog;
-    case "/dashboard/blog":
-      return PenSquare;
-    default:
-      return LayoutDashboard;
-  }
 }
 
 type DashboardNavigationProps = {
@@ -133,17 +53,14 @@ export function DashboardNavigation({
     .filter((group) => group.items.length > 0);
 
   return (
-    <div className="space-y-5">
+    <div className={cn("space-y-4", collapsed && "space-y-3")}>
       {visibleGroups.map((group) => (
         <section className="min-w-0 space-y-2" key={group.title}>
           {!collapsed ? (
-            <div className="flex items-center justify-between px-3">
-              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/50">
+            <div className="px-3">
+              <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/45">
                 {group.title}
               </p>
-              <span className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/40">
-                {group.items.length}
-              </span>
             </div>
           ) : null}
 
@@ -151,30 +68,38 @@ export function DashboardNavigation({
             {group.items.map((item) =>
               item.href
                 ? (() => {
-                    const Icon = getNavIcon(item.href);
+                    const Icon = getDashboardNavIcon(item.href);
                     const active = isActiveRoute(pathname, item.href);
 
                     return (
                       <Link
                         aria-label={item.label}
                         className={cn(
-                          "group flex min-w-0 items-center gap-3 rounded-lg border border-transparent px-3 py-2.5 text-sm transition-colors",
+                          "group relative flex min-w-0 items-center gap-3 rounded-[calc(var(--radius-control)+0.1rem)] px-3 py-2.5 text-sm",
                           active
-                            ? "border-sidebar-border/70 bg-sidebar-accent text-sidebar-accent-foreground"
-                            : "text-sidebar-foreground/70 hover:border-sidebar-border/60 hover:bg-sidebar-accent/80 hover:text-sidebar-accent-foreground",
-                          collapsed && "mx-auto h-10 w-10 justify-center px-0",
+                            ? "bg-sidebar-primary/10 text-sidebar-accent-foreground"
+                            : "text-sidebar-foreground/72 hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground",
+                          collapsed && "mx-auto h-11 w-11 justify-center rounded-2xl px-0",
                         )}
                         href={item.href}
                         key={item.label}
                         onClick={onNavigate}
                         title={collapsed ? item.label : undefined}
                       >
+                        {!collapsed ? (
+                          <span
+                            className={cn(
+                              "absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-full",
+                              active ? "bg-sidebar-primary opacity-100" : "opacity-0",
+                            )}
+                          />
+                        ) : null}
                         <Icon
                           className={cn(
                             "h-5 w-5 shrink-0",
                             active
-                              ? "text-sidebar-accent-foreground"
-                              : "text-sidebar-foreground/60 group-hover:text-sidebar-accent-foreground",
+                              ? "text-sidebar-primary"
+                              : "text-sidebar-foreground/58 group-hover:text-sidebar-accent-foreground",
                           )}
                         />
 
@@ -184,16 +109,16 @@ export function DashboardNavigation({
                               {item.label}
                             </span>
                             {item.badge ? (
-                              <Badge
+                              <span
                                 className={cn(
+                                  "shrink-0 text-[11px] font-medium",
                                   active
-                                    ? "border-transparent bg-sidebar text-sidebar-foreground"
-                                    : "border-sidebar-border bg-transparent text-sidebar-foreground/70",
+                                    ? "text-sidebar-foreground/70"
+                                    : "text-sidebar-foreground/50",
                                 )}
-                                variant="outline"
                               >
                                 {item.badge}
-                              </Badge>
+                              </span>
                             ) : null}
                           </>
                         ) : null}

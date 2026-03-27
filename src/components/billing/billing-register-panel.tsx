@@ -27,6 +27,11 @@ import { BulkActionToolbar } from "@/components/tables/bulk-action-toolbar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import {
+  RecordPreviewDialog,
+  RecordPreviewField,
+  RecordPreviewSection,
+} from "@/components/ui/record-preview-dialog";
 import { SurfaceCard } from "@/components/ui/surface-card";
 import { ThemedSelect } from "@/components/ui/themed-select";
 import { useConfirmationDialog } from "@/hooks/useConfirmationDialog";
@@ -97,6 +102,7 @@ export function BillingRegisterPanel() {
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [isBulkUpdating, setIsBulkUpdating] = useState(false);
   const [selectedBill, setSelectedBill] = useState<BillRecord | null>(null);
+  const [previewEntry, setPreviewEntry] = useState<BillRecord | null>(null);
   const deferredSearch = useDebouncedSearch(search);
 
   const { canAccess: canFinalizeBilling } = useModuleAccess([
@@ -140,6 +146,14 @@ export function BillingRegisterPanel() {
 
   function clearSelection() {
     startTransition(() => setSelectedBill(null));
+  }
+
+  function openPreview(entry: BillRecord) {
+    setPreviewEntry(entry);
+  }
+
+  function closePreview() {
+    setPreviewEntry(null);
   }
 
   function handleSettlementSubmit(values: SettlementFormValues) {
@@ -332,6 +346,17 @@ export function BillingRegisterPanel() {
       current.filter((id) => entries.some((entry) => entry.id === id))
     );
   }, [entries]);
+
+  useEffect(() => {
+    if (!previewEntry) {
+      return;
+    }
+
+    const nextEntry = entries.find((entry) => entry.id === previewEntry.id);
+    if (nextEntry) {
+      setPreviewEntry(nextEntry);
+    }
+  }, [entries, previewEntry]);
 
   return (
     <section className="grid gap-6 xl:grid-cols-[1.04fr_0.96fr]">
@@ -574,6 +599,14 @@ export function BillingRegisterPanel() {
                 {canFinalizeBilling
                   ? (
                     <div className="flex flex-wrap gap-3">
+                      <Button
+                        onClick={() => openPreview(entry)}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        View bill
+                      </Button>
                       {canSettleBill(entry)
                         ? (
                           <Button
@@ -604,7 +637,16 @@ export function BillingRegisterPanel() {
                         : null}
                     </div>
                   )
-                  : null}
+                  : (
+                    <Button
+                      onClick={() => openPreview(entry)}
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      View bill
+                    </Button>
+                  )}
               </div>
             </article>
           ))}
@@ -624,6 +666,131 @@ export function BillingRegisterPanel() {
           )
           : null}
       </SurfaceCard>
+
+      <RecordPreviewDialog
+        actions={previewEntry ? (
+          <>
+            <a
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              href={`/dashboard/print/bills/${previewEntry.id}/a4`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Printer className="h-4 w-4" />
+              A4 print
+            </a>
+            <a
+              className={buttonVariants({ size: "sm", variant: "outline" })}
+              href={`/dashboard/print/bills/${previewEntry.id}/thermal`}
+              rel="noreferrer"
+              target="_blank"
+            >
+              <Printer className="h-4 w-4" />
+              Thermal print
+            </a>
+            {canFinalizeBilling && canSettleBill(previewEntry) ? (
+              <Button
+                onClick={() => {
+                  closePreview();
+                  prepareSettlement(previewEntry);
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <Wallet className="h-4 w-4" />
+                Open settlement
+              </Button>
+            ) : null}
+          </>
+        ) : null}
+        description="Review invoice lines, totals, payment state, and print options before settlement or cancellation."
+        eyebrow="Billing record"
+        onOpenChange={(open) => {
+          if (!open) {
+            closePreview();
+          }
+        }}
+        open={Boolean(previewEntry)}
+        status={previewEntry ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                billStatusToneMap[previewEntry.billStatus] ??
+                "status-pill-neutral text-foreground"
+              }`}
+            >
+              {previewEntry.billStatus.replaceAll("_", " ")}
+            </span>
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] ${
+                paymentStatusToneMap[previewEntry.paymentStatus] ??
+                "status-pill-neutral text-foreground"
+              }`}
+            >
+              {previewEntry.paymentStatus.replaceAll("_", " ")}
+            </span>
+          </div>
+        ) : null}
+        title={previewEntry?.billNumber ?? "Bill preview"}
+      >
+        {previewEntry ? (
+          <>
+            <RecordPreviewSection
+              description="Core patient and billing context attached to this invoice."
+              icon={Wallet}
+              title="Invoice overview"
+            >
+              <RecordPreviewField label="Patient" value={previewEntry.patientName} />
+              <RecordPreviewField label="UHID" value={previewEntry.patientHospitalNumber} />
+              <RecordPreviewField label="Doctor" value={previewEntry.doctorName || "Doctor unavailable"} />
+              <RecordPreviewField label="Department" value={previewEntry.doctorDepartment || "Department unavailable"} />
+              <RecordPreviewField label="Created" value={formatDateTime(previewEntry.createdAt)} />
+              <RecordPreviewField
+                label="Appointment"
+                value={previewEntry.appointmentScheduledFor ? formatDateTime(previewEntry.appointmentScheduledFor) : "Not linked"}
+              />
+            </RecordPreviewSection>
+
+            <RecordPreviewSection
+              description="Financial totals and settlement state for the invoice."
+              icon={FileText}
+              title="Amounts"
+            >
+              <RecordPreviewField label="Subtotal" value={formatCurrency(previewEntry.subtotal)} />
+              <RecordPreviewField label="Tax" value={formatCurrency(previewEntry.taxAmount)} />
+              <RecordPreviewField label="Discount" value={formatCurrency(previewEntry.discountAmount)} />
+              <RecordPreviewField label="Grand total" value={formatCurrency(previewEntry.totalAmount)} />
+              <RecordPreviewField label="Paid" value={formatCurrency(previewEntry.amountPaid)} />
+              <RecordPreviewField label="Balance" value={formatCurrency(previewEntry.balanceAmount)} />
+            </RecordPreviewSection>
+
+            <RecordPreviewSection
+              description="Invoice line breakdown captured at bill creation time."
+              icon={Printer}
+              title="Line items"
+            >
+              <RecordPreviewField
+                className="md:col-span-2"
+                label="Lines"
+                value={
+                  <div className="space-y-2">
+                    {previewEntry.items.map((item) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between gap-3 rounded-lg border border-border/70 bg-background px-3 py-3"
+                      >
+                        <span>{item.description} / {item.quantity} x {formatCurrency(item.unitPrice)}</span>
+                        <span className="font-medium">{formatCurrency(item.lineTotal)}</span>
+                      </div>
+                    ))}
+                  </div>
+                }
+              />
+            </RecordPreviewSection>
+          </>
+        ) : null}
+      </RecordPreviewDialog>
 
       <SurfaceCard>
         <div>

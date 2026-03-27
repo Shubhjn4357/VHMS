@@ -3,12 +3,12 @@ export const APP_THEME = {
     sidebarCollapsed: "vhms.sidebar.collapsed",
   },
   layout: {
-    shellMaxWidth: 1600,
+    shellMaxWidth: 1720,
     desktopBreakpoint: 1024,
-    sidebarExpandedWidth: 304,
-    sidebarCollapsedWidth: 92,
-    topbarCondenseOffset: 20,
-    drawerMaxWidth: 1120,
+    sidebarExpandedWidth: 288,
+    sidebarCollapsedWidth: 84,
+    topbarCondenseOffset: 26,
+    drawerMaxWidth: 1180,
   },
   motion: {
     pageEnterOffset: 18,

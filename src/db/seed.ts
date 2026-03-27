@@ -51,14 +51,14 @@ async function seed() {
   const db = getDb();
 
   await db.insert(hospitalProfile).values({
-    legalName: "Vahi Hospital and Medical Services Pvt. Ltd.",
-    displayName: "Vahi Hospital",
+    legalName: "Vahi Multispeciality Hospital",
+    displayName: "Vahi Multispeciality",
     registrationNumber: "VHMS-REG-2026",
-    contactEmail: "ops@vahi-hospital.test",
+    contactEmail: "admin@vahi-hospital.test",
     contactPhone: "+91-9876543210",
-    address: "Sector 12, Jaipur, Rajasthan",
+    address: "Civil Lines, Jaipur, Rajasthan",
     logoUrl: "/icon.svg",
-    letterheadFooter: "24x7 emergency care | NABH workflow ready",
+    letterheadFooter: "24x7 emergency care | OPD, IPD, diagnostics, and critical care",
   }).onConflictDoNothing();
 
   await db

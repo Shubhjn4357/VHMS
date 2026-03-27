@@ -31,7 +31,7 @@ export default function DashboardPatientRegistrationPage() {
         }
       />
       <div className="[&_.patient-page-header]:hidden [&_.patient-summary-grid]:hidden [&_.patient-directory-panel]:hidden [&_.patient-main-grid]:block [&_.patient-form-panel]:mx-auto [&_.patient-form-panel]:max-w-4xl">
-        <PatientManagement />
+        <PatientManagement defaultCreateOpen />
       </div>
     </div>
   );

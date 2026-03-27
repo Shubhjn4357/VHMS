@@ -5,15 +5,17 @@ import { PublicFooter } from "./public-footer";
 
 export async function PublicSiteChrome({
   children,
+  extraLinks,
 }: {
   children: ReactNode;
+  extraLinks?: { label: string; href: string }[];
 }) {
   const hospital = await getHospitalBranding();
 
   return (
-    <div className="min-h-screen">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <PublicNavbar hospital={hospital} />
+    <div className="public-site-frame">
+      <div className="public-site-inner mx-auto px-4 py-5 sm:px-6 lg:px-8">
+        <PublicNavbar extraLinks={extraLinks} hospital={hospital} />
         <main className="mt-8">{children}</main>
         <PublicFooter />
       </div>

@@ -26,7 +26,7 @@ export function PublicBlogArticle({
   return (
     <PublicSiteChrome>
       <div className="space-y-6">
-        <SurfaceCard className="overflow-hidden border bg-card shadow-[var(--shadow-card)]">
+        <SurfaceCard className="overflow-hidden">
           <Link
             href="/blog"
             className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground transition hover:text-foreground"
@@ -49,7 +49,7 @@ export function PublicBlogArticle({
           </h1>
           <p className="mt-5 max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg">
             {post.seoDescription ?? post.excerpt ??
-              "A product and workflow note from the VHMS rollout."}
+              "A product and workflow note from the hospital deployment journal."}
           </p>
 
           <div className="mt-8 flex flex-wrap gap-5 text-sm text-muted-foreground">

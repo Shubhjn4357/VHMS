@@ -18,7 +18,7 @@ export function ThemedSelect({
     <div className={cn("relative", containerClassName)}>
       <select
         className={cn(
-          "h-9 w-full appearance-none rounded-[var(--radius-control)] border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground shadow-[var(--shadow-soft)] outline-none transition-colors focus:border-ring focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60",
+          "h-10 w-full appearance-none rounded-[calc(var(--radius-control)+0.05rem)] border border-input bg-background px-3 py-2 pr-10 text-sm text-foreground outline-none transition-colors duration-150 focus:border-ring focus-visible:ring-2 focus-visible:ring-ring/60 disabled:cursor-not-allowed disabled:opacity-60",
           className,
         )}
         {...props}

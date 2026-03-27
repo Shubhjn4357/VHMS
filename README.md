@@ -1,6 +1,6 @@
-# VHMS Enterprise
+# Vahi Hospital OS
 
-VHMS Enterprise is a production-oriented hospital operations platform built on Next.js, Auth.js, Drizzle ORM, TanStack Query, and a pnpm-only workflow. It includes invite-only Google sign-in, role-based module access, patient and appointment masters, OPD/IPD workflows, billing, occupancy, discharge and consent workflows, communications, analytics, print-safe documents, offline/PWA support, barcode lookup, rollout-capable feature flags, and pluggable upload storage.
+Vahi Hospital OS is a production-oriented hospital operations platform built on Next.js, Auth.js, Drizzle ORM, TanStack Query, and a pnpm-only workflow. It includes invite-only Google sign-in, role-based module access, patient and appointment masters, OPD/IPD workflows, billing, occupancy, discharge and consent workflows, communications, analytics, print-safe documents, offline/PWA support, barcode lookup, rollout-capable feature flags, and pluggable upload storage.
 
 ## Stack
 
@@ -66,6 +66,8 @@ Copy [.env.example](d:/Code/hms/web/.env.example) to `web/.env` and set at minim
 - `APP_NAME`
 - `HOSPITAL_NAME`
 
+Set `APP_NAME` and `HOSPITAL_NAME` to the buyer hospital before rollout so manifests, exports, auth surfaces, and browser copy do not ship with demo defaults.
+
 For deployment-oriented setup, start from [.env.production.example](d:/Code/hms/web/.env.production.example).
 
 Bootstrap emails in `BOOTSTRAP_SUPER_ADMIN_EMAILS` and `BOOTSTRAP_ADMIN_EMAILS` bypass the invite table and are intended for permanent owner/admin access.
@@ -77,6 +79,8 @@ Uploads use local disk by default. The runtime now automatically switches to clo
 - Cloudflare R2 is preferred when `R2_*` env vars are configured
 - AWS S3 is used when `S3_*` env vars are configured
 - local disk remains the fallback when neither cloud provider is configured
+
+For local storage, files are written under `public` using the path from `UPLOAD_PUBLIC_BASE_URL` such as `/uploads`.
 
 The upload runtime is implemented in [service.ts](d:/Code/hms/web/src/lib/uploads/service.ts).
 

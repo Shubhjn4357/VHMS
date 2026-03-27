@@ -22,9 +22,9 @@ export function PublicBlogIndex({
     <PublicSiteChrome>
       <div className="space-y-6">
         <PageHeader
-          eyebrow="Product journal"
-          title="Hospital workflow notes, launch updates, and operating insights."
-          description="This public blog is the SEO-facing phase-2 content surface. Published articles come from the same CMS used inside the admin dashboard."
+          eyebrow="Public journal"
+          title="Hospital workflow notes, launch updates, and deployment insights."
+          description="This public journal is the SEO-facing content surface. Published articles come from the same CMS used inside the invite-only admin runtime."
         />
 
         {posts.length === 0
@@ -84,7 +84,7 @@ export function PublicBlogIndex({
                   <div className="mt-8">
                     <Link
                       href={`/blog/${post.slug}`}
-                      className="inline-flex items-center justify-center rounded-md bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
+                      className="inline-flex items-center justify-center rounded-[calc(var(--radius-control)+0.15rem)] bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-[var(--shadow-button)] transition hover:-translate-y-[1px] hover:bg-primary/92"
                     >
                       Read article
                     </Link>

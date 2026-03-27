@@ -10,12 +10,15 @@ import {
   beds,
   bills,
   communicationLogs,
+  communicationTemplates,
   doctors,
   messageQueue,
+  notificationCenterItems,
   patients,
   staffAccess,
   wards,
 } from "@/db/schema";
+import { buildCommunicationWorkflowInsights } from "@/lib/communications/insights";
 import type {
   AppointmentStatusRow,
   CommunicationChannelRow,
@@ -34,6 +37,7 @@ export async function listReportsWorkspace(): Promise<
     billRows,
     appointmentRows,
     communicationRows,
+    notificationRows,
     bedRows,
     staffRows,
     admissionRows,
@@ -65,8 +69,25 @@ export async function listReportsWorkspace(): Promise<
       .select({
         channel: communicationLogs.channel,
         status: communicationLogs.status,
+        templateKey: communicationTemplates.key,
+        templateTitle: communicationTemplates.title,
+        payload: communicationLogs.payload,
       })
-      .from(communicationLogs),
+      .from(communicationLogs)
+      .leftJoin(
+        communicationTemplates,
+        eq(communicationLogs.templateId, communicationTemplates.id),
+      ),
+    db
+      .select({
+        title: notificationCenterItems.title,
+        body: notificationCenterItems.body,
+        read: notificationCenterItems.read,
+        href: notificationCenterItems.href,
+        sourceType: notificationCenterItems.sourceType,
+        targetRole: notificationCenterItems.targetRole,
+      })
+      .from(notificationCenterItems),
     db
       .select({
         wardId: wards.id,
@@ -155,6 +176,10 @@ export async function listReportsWorkspace(): Promise<
   }
 
   const wardMap = new Map<string, OccupancyByWardRow>();
+  const communicationWorkflows = buildCommunicationWorkflowInsights({
+    messages: communicationRows,
+    notifications: notificationRows,
+  });
 
   for (const row of bedRows) {
     const wardId = row.wardId ?? "unmapped";
@@ -233,6 +258,7 @@ export async function listReportsWorkspace(): Promise<
     communicationByChannel: Array.from(communicationMap.values()).sort(
       (left, right) => right.total - left.total,
     ),
+    communicationWorkflows,
     occupancyByWard,
     staffAccessByRole: Array.from(staffAccessMap.values()).sort((left, right) =>
       left.role.localeCompare(right.role)
@@ -319,6 +345,31 @@ export function buildReportsCsv(workspace: ReportsWorkspaceResponse) {
       row.delivered,
       row.queued,
       row.failed,
+    ]),
+  );
+
+  appendSection(
+    lines,
+    "Communication workflows",
+    [
+      "Workflow",
+      "Messages",
+      "Delivered",
+      "Queued",
+      "Failed",
+      "Notifications",
+      "Unread",
+      "Delivery rate",
+    ],
+    workspace.communicationWorkflows.map((row) => [
+      row.label,
+      row.messageCount,
+      row.delivered,
+      row.queued,
+      row.failed,
+      row.notificationCount,
+      row.unreadNotifications,
+      `${Math.round(row.deliveryRate * 100)}%`,
     ]),
   );
 
@@ -436,6 +487,29 @@ function buildReportsHtmlBody(workspace: ReportsWorkspaceResponse) {
       ]),
     ),
     buildTableHtml(
+      "Communication workflows",
+      [
+        "Workflow",
+        "Messages",
+        "Delivered",
+        "Queued",
+        "Failed",
+        "Notifications",
+        "Unread",
+        "Delivery rate",
+      ],
+      workspace.communicationWorkflows.map((row) => [
+        row.label,
+        row.messageCount,
+        row.delivered,
+        row.queued,
+        row.failed,
+        row.notificationCount,
+        row.unreadNotifications,
+        `${Math.round(row.deliveryRate * 100)}%`,
+      ]),
+    ),
+    buildTableHtml(
       "Occupancy by ward",
       ["Ward", "Occupied", "Total", "Reserved", "Cleaning", "Blocked", "Rate"],
       workspace.occupancyByWard.map((row) => [
@@ -468,7 +542,7 @@ export function buildReportsPrintHtml(workspace: ReportsWorkspaceResponse) {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>VHMS Reports</title>
+    <title>Operational Reports</title>
     <style>
       body { font-family: Arial, sans-serif; margin: 24px; color: ${APP_REPORT_COLORS.body}; }
       h1 { margin: 0 0 12px; font-size: 24px; }
@@ -484,7 +558,7 @@ export function buildReportsPrintHtml(workspace: ReportsWorkspaceResponse) {
     </style>
   </head>
   <body>
-    <h1>VHMS Operational Reports</h1>
+    <h1>Operational Reports</h1>
     <p class="meta">Generated ${escapeHtml(new Date().toLocaleString("en-IN"))}</p>
     ${buildReportsHtmlBody(workspace)}
   </body>
@@ -496,7 +570,7 @@ export function buildReportsExcelHtml(workspace: ReportsWorkspaceResponse) {
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>VHMS Reports Export</title>
+    <title>Operational Reports Export</title>
   </head>
   <body>
     ${buildReportsHtmlBody(workspace)}
@@ -578,6 +652,34 @@ export function buildReportsXlsx(workspace: ReportsWorkspaceResponse) {
   XLSX.utils.book_append_sheet(
     workbook,
     buildWorkbookSheet(
+      "Communication workflows",
+      [
+        "Workflow",
+        "Messages",
+        "Delivered",
+        "Queued",
+        "Failed",
+        "Notifications",
+        "Unread",
+        "Delivery rate",
+      ],
+      workspace.communicationWorkflows.map((row) => [
+        row.label,
+        row.messageCount,
+        row.delivered,
+        row.queued,
+        row.failed,
+        row.notificationCount,
+        row.unreadNotifications,
+        `${Math.round(row.deliveryRate * 100)}%`,
+      ]),
+    ),
+    "Workflows",
+  );
+
+  XLSX.utils.book_append_sheet(
+    workbook,
+    buildWorkbookSheet(
       "Occupancy by ward",
       ["Ward", "Occupied", "Total", "Reserved", "Cleaning", "Blocked", "Rate"],
       workspace.occupancyByWard.map((row) => [
@@ -654,6 +756,12 @@ function pdfRows(workspace: ReportsWorkspaceResponse) {
       ),
     },
     {
+      title: "Communication workflows",
+      rows: workspace.communicationWorkflows.map((row) =>
+        `${row.label} | messages ${row.messageCount} | delivered ${row.delivered} | queued ${row.queued} | failed ${row.failed} | notifications ${row.notificationCount} | unread ${row.unreadNotifications} | rate ${Math.round(row.deliveryRate * 100)}%`
+      ),
+    },
+    {
       title: "Occupancy by ward",
       rows: workspace.occupancyByWard.map((row) =>
         `${row.wardName} | occupied ${row.occupied}/${row.total} | reserved ${row.reserved} | cleaning ${row.cleaning} | blocked ${row.blocked} | rate ${Math.round(row.occupancyRate * 100)}%`
@@ -702,7 +810,7 @@ export async function buildReportsPdf(workspace: ReportsWorkspaceResponse) {
     y -= lineHeight;
   }
 
-  drawText("VHMS Operational Reports", {
+  drawText("Operational Reports", {
     size: 18,
     bold: true,
     color: toPdfColor(APP_REPORT_COLORS.accent),

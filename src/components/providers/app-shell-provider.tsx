@@ -15,14 +15,12 @@ type AppShellContextValue = {
   isSidebarCollapsed: boolean;
   isMobileNavOpen: boolean;
   isGlobalSearchOpen: boolean;
-  isTopbarCondensed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
   openMobileNav: () => void;
   closeMobileNav: () => void;
   setMobileNavOpen: (open: boolean) => void;
   setGlobalSearchOpen: (open: boolean) => void;
-  setTopbarCondensed: (condensed: boolean) => void;
   closeTransientUi: () => void;
 };
 
@@ -116,7 +114,6 @@ export function AppShellProvider({
   );
   const [isMobileNavOpen, setMobileNavOpenState] = useState(false);
   const [isGlobalSearchOpen, setGlobalSearchOpen] = useState(false);
-  const [isTopbarCondensed, setTopbarCondensed] = useState(false);
 
   function setSidebarCollapsed(collapsed: boolean) {
     if (!isDesktop) {
@@ -165,14 +162,12 @@ export function AppShellProvider({
         isSidebarCollapsed,
         isMobileNavOpen,
         isGlobalSearchOpen,
-        isTopbarCondensed,
         setSidebarCollapsed,
         toggleSidebar,
         openMobileNav,
         closeMobileNav,
         setMobileNavOpen,
         setGlobalSearchOpen,
-        setTopbarCondensed,
         closeTransientUi,
       }}
     >

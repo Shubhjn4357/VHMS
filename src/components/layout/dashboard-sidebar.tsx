@@ -2,15 +2,22 @@
 
 import Link from "next/link";
 
-import { Activity, BellRing, Settings2 } from "lucide-react";
+import {
+  BedDouble,
+  BellRing,
+  FileSpreadsheet,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Settings2,
+  ShieldAlert,
+} from "lucide-react";
 
 import { DashboardNavigation } from "@/components/layout/dashboard-navigation";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { APP_TEXT } from "@/constants/appText";
 import { APP_THEME } from "@/constants/appTheme";
 import type { PermissionKey } from "@/constants/permissions";
 import { useDashboardOverview } from "@/hooks/useAnalyticsApi";
+import { useAppShell } from "@/hooks/useAppShell";
 import { resolveDashboardRouteContext } from "@/lib/dashboard/route-context";
 import type { NavGroup } from "@/lib/module-config";
 import { cn } from "@/lib/utils/cn";
@@ -34,14 +41,30 @@ export function DashboardSidebar({
   const pendingApprovals = overviewQuery.data?.summary.pendingApprovals ?? 0;
   const unreadNotifications = overviewQuery.data?.summary.unreadNotifications ?? 0;
   const routeContext = resolveDashboardRouteContext(pathname, navGroups, permissions);
-  const occupancyPercentage = Math.round(
-    (occupiedBeds / Math.max(totalBeds, 1)) * 100,
-  );
+  const { setSidebarCollapsed } = useAppShell();
+  const liveStatusItems = [
+    {
+      label: "Beds",
+      value: `${occupiedBeds}/${totalBeds}`,
+      icon: BedDouble,
+    },
+    {
+      label: "Pending",
+      value: String(pendingApprovals),
+      icon: ShieldAlert,
+    },
+    {
+      label: "Alerts",
+      value: String(unreadNotifications),
+      icon: BellRing,
+    },
+  ] as const;
 
   return (
     <aside
-      className="hidden min-h-0 shrink-0 transition-[width] duration-300 lg:flex lg:flex-col"
+      className="hidden shrink-0 transition-[width] duration-150 ease-out lg:sticky lg:top-4 lg:flex lg:h-[calc(100dvh-2rem)] lg:flex-col lg:self-start"
       style={{
+        willChange: "width",
         width: collapsed
           ? `${APP_THEME.layout.sidebarCollapsedWidth}px`
           : `${APP_THEME.layout.sidebarExpandedWidth}px`,
@@ -49,163 +72,165 @@ export function DashboardSidebar({
     >
       <div
         className={cn(
-          "flex h-full min-h-0 flex-col overflow-hidden rounded-[var(--radius-panel)] border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[var(--shadow-card)]",
-          collapsed ? "px-2 py-3" : "px-3 py-3",
+          "h-[calc(100dvh-2rem)] min-h-0 overflow-y-auto overscroll-contain rounded-[calc(var(--radius-panel)+0.35rem)] border border-sidebar-border bg-sidebar text-sidebar-foreground shadow-[var(--shadow-soft)]",
+          collapsed ? "px-2 py-3" : "px-3 py-4",
         )}
       >
-        <div
-          className={cn(
-            "border-b border-sidebar-border pb-4",
-            collapsed ? "flex min-h-[72px] items-center justify-center" : "px-2 pt-2",
-          )}
-        >
-          {collapsed ? (
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-sidebar-accent text-sm font-semibold text-sidebar-accent-foreground">
-              {APP_TEXT.BRAND_SHORT}
-            </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">
-                    {APP_TEXT.SHELL.OVERLINE}
-                  </p>
-                  <h1 className="mt-2 text-lg font-semibold tracking-tight text-sidebar-foreground">
-                    {APP_TEXT.BRAND_NAME}
-                  </h1>
-                </div>
-                <Badge
-                  className="border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground"
-                  variant="outline"
+        <div className="flex min-h-full flex-col">
+          <div
+            className={cn(
+              "shrink-0 border-b border-sidebar-border/80 pb-4",
+              collapsed ? "px-1 pt-1" : "px-2 pt-2",
+            )}
+          >
+            <div className={cn("space-y-3", collapsed && "space-y-4")}>
+              <div
+                className={cn(
+                  "flex items-center gap-2",
+                  collapsed ? "flex-col" : "justify-between",
+                )}
+              >
+                <Link
+                  className={cn(
+                    "flex items-center text-sidebar-foreground hover:text-sidebar-accent-foreground",
+                    collapsed
+                      ? "h-12 w-12 justify-center rounded-2xl bg-sidebar-accent/35 text-sm font-semibold"
+                      : "min-w-0 flex-1 rounded-2xl px-1 py-1",
+                  )}
+                  href="/dashboard"
+                  title={collapsed ? APP_TEXT.BRAND_NAME : undefined}
                 >
-                  {APP_TEXT.SHELL.OPERATION_LABEL}
-                </Badge>
-              </div>
-              <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/70 p-3">
-                <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">
-                  {routeContext.sectionTitle}
-                </p>
-                <h2 className="mt-2 text-base font-semibold text-sidebar-foreground">
-                  {routeContext.title}
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-sidebar-foreground/70">
-                  {routeContext.detail}
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="min-h-0 flex-1 overflow-y-auto px-1 py-4 scrollbar-none">
-          <DashboardNavigation
-            collapsed={collapsed}
-            navGroups={navGroups}
-            pathname={pathname}
-            permissions={permissions}
-          />
-        </div>
-
-        {!collapsed ? (
-          <div className="border-t border-sidebar-border px-2 pt-4">
-            <div className="rounded-lg border border-sidebar-border bg-sidebar-accent/60 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-[11px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/60">
-                    {APP_TEXT.SHELL.OCCUPANCY_TITLE}
-                  </p>
-                  <p className="mt-2 text-2xl font-semibold tracking-tight text-sidebar-foreground">
-                    {occupiedBeds}
-                    <span className="px-1 text-sidebar-foreground/30">/</span>
-                    {totalBeds}
-                  </p>
-                </div>
-                <Badge
-                  className="border-transparent bg-sidebar-primary text-sidebar-primary-foreground"
-                  variant="secondary"
-                >
-                  {occupancyPercentage}% active
-                </Badge>
-              </div>
-
-              <p className="mt-2 text-sm text-sidebar-foreground/70">
-                {APP_TEXT.SHELL.OCCUPANCY_DESCRIPTION}
-              </p>
-
-              <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-sidebar-border">
-                <div
-                  className="h-full rounded-full bg-sidebar-primary transition-all duration-500"
-                  style={{ width: `${occupancyPercentage}%` }}
-                />
-              </div>
-
-              <div className="mt-5 grid gap-3">
-                <div className="rounded-lg border border-sidebar-border bg-sidebar px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-md bg-sidebar-accent text-sidebar-accent-foreground">
-                        <Activity className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold tracking-tight text-sidebar-foreground">
-                          Pending approvals
-                        </p>
-                        <p className="text-xs text-sidebar-foreground/60">
-                          Discharge, consent, and workflow checks
-                        </p>
-                      </div>
+                  {collapsed ? (
+                    APP_TEXT.BRAND_SHORT
+                  ) : (
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-medium uppercase tracking-[0.18em] text-sidebar-foreground/50">
+                        {APP_TEXT.SHELL.OPERATION_LABEL}
+                      </p>
+                      <p className="mt-1 truncate text-lg font-semibold tracking-tight text-sidebar-foreground">
+                        {APP_TEXT.BRAND_NAME}
+                      </p>
                     </div>
-                    <p className="text-lg font-semibold text-sidebar-foreground">
-                      {pendingApprovals}
+                  )}
+                </Link>
+                <button
+                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  className={cn(
+                    "shrink-0 rounded-xl border border-transparent bg-transparent text-sidebar-foreground/65 outline-none hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar",
+                    collapsed ? "h-10 w-10 rounded-2xl" : "rounded-xl",
+                  )}
+                  onClick={() => setSidebarCollapsed(!collapsed)}
+                  type="button"
+                >
+                  {collapsed ? (
+                    <PanelLeftOpen className="h-4 w-4" />
+                  ) : (
+                    <PanelLeftClose className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
+
+              {!collapsed ? (
+                <div className="space-y-3 px-1">
+                  <div>
+                    <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/45">
+                      {routeContext.sectionTitle}
+                    </p>
+                    <p className="mt-1 text-sm font-semibold tracking-tight text-sidebar-foreground">
+                      {routeContext.title}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-sidebar-foreground/58">
+                      {routeContext.detail}
                     </p>
                   </div>
-                </div>
 
-                <div className="rounded-lg border border-sidebar-border bg-sidebar px-4 py-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-10 w-10 items-center justify-center rounded-md bg-sidebar-accent text-sidebar-accent-foreground">
-                        <BellRing className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold tracking-tight text-sidebar-foreground">
-                          Unread alerts
-                        </p>
-                        <p className="text-xs text-sidebar-foreground/60">
-                          Review queue and staff notifications
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-lg font-semibold text-sidebar-foreground">
-                      {unreadNotifications}
-                    </p>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {liveStatusItems.map((item) => {
+                      const Icon = item.icon;
+
+                      return (
+                        <div
+                          className="rounded-[calc(var(--radius-control)+0.05rem)] bg-sidebar-accent/24 px-2.5 py-2"
+                          key={item.label}
+                        >
+                          <Icon className="h-3.5 w-3.5 text-sidebar-primary" />
+                          <p className="mt-2 truncate text-sm font-semibold tracking-tight text-sidebar-foreground">
+                            {item.value}
+                          </p>
+                          <p className="text-[10px] uppercase tracking-[0.14em] text-sidebar-foreground/45">
+                            {item.label}
+                          </p>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
-              </div>
-
-              <div className="mt-5 grid gap-2 sm:grid-cols-2">
-                <Button
-                  asChild
-                  className="min-w-0 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
-                  size="sm"
-                  variant="outline"
-                >
-                  <Link href="/dashboard/reports">Reports</Link>
-                </Button>
-                <Button
-                  asChild
-                  className="min-w-0 border-sidebar-border bg-sidebar-accent text-sidebar-accent-foreground hover:bg-sidebar hover:text-sidebar-foreground"
-                  size="sm"
-                  variant="outline"
-                >
-                  <Link href="/dashboard/settings">
-                    <Settings2 className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </Button>
-              </div>
+              ) : null}
             </div>
           </div>
-        ) : null}
+
+          <div className={cn("flex-1 py-4", collapsed ? "px-0" : "px-1")}>
+            <DashboardNavigation
+              collapsed={collapsed}
+              navGroups={navGroups}
+              pathname={pathname}
+              permissions={permissions}
+            />
+          </div>
+
+          <div
+            className={cn(
+              "mt-auto border-t border-sidebar-border/80 pt-4",
+              collapsed ? "px-1" : "px-2",
+            )}
+          >
+            {collapsed ? (
+              <div className="flex flex-col items-center gap-2">
+                <Link
+                  aria-label="Reports"
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl text-sidebar-foreground/65 hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground"
+                  href="/dashboard/reports"
+                  title="Reports"
+                >
+                  <FileSpreadsheet className="h-4 w-4" />
+                </Link>
+                <Link
+                  aria-label="Settings"
+                  className="flex h-10 w-10 items-center justify-center rounded-2xl text-sidebar-foreground/65 hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground"
+                  href="/dashboard/settings"
+                  title="Settings"
+                >
+                  <Settings2 className="h-4 w-4" />
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div>
+                  <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-sidebar-foreground/45">
+                    Shortcuts
+                  </p>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Link
+                    className="flex min-w-0 items-center justify-start gap-2 rounded-[calc(var(--radius-control)+0.1rem)] px-3 py-2.5 text-sm font-medium text-sidebar-foreground/72 hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground"
+                    href="/dashboard/reports"
+                  >
+                    <FileSpreadsheet className="h-4 w-4 shrink-0" />
+                    Reports
+                  </Link>
+                  <Link
+                    className="flex min-w-0 items-center justify-start gap-2 rounded-[calc(var(--radius-control)+0.1rem)] px-3 py-2.5 text-sm font-medium text-sidebar-foreground/72 hover:bg-sidebar-accent/45 hover:text-sidebar-accent-foreground"
+                    href="/dashboard/settings"
+                  >
+                    <Settings2 className="h-4 w-4 shrink-0" />
+                    Settings
+                  </Link>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </aside>
   );

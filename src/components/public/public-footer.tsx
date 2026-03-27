@@ -4,8 +4,15 @@ import { APP_TEXT } from "@/constants/appText";
 import { publicSiteNavigation } from "@/lib/public-site/navigation";
 
 export function PublicFooter() {
+  const platformLinks = publicSiteNavigation.filter((item) =>
+    ["/", "/features", "/solutions"].includes(item.href)
+  );
+  const infoLinks = publicSiteNavigation.filter((item) =>
+    ["/about", "/contact", "/blog"].includes(item.href)
+  );
+
   return (
-    <footer className="mt-8 rounded-[var(--radius-panel)] border bg-card px-8 py-10 shadow-[var(--shadow-soft)]">
+    <footer className="public-grid-shell mt-8 rounded-[calc(var(--radius-panel)+0.2rem)] px-8 py-10">
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-md">
           <p className="text-xs font-semibold uppercase tracking-[0.22em] text-primary">
@@ -26,7 +33,7 @@ export function PublicFooter() {
           <div className="space-y-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">Platform</p>
             <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
-              {publicSiteNavigation.slice(0, 4).map((item) => (
+              {platformLinks.map((item) => (
                 <Link className="transition hover:text-primary" href={item.href} key={item.label}>
                   {item.label}
                 </Link>
@@ -34,9 +41,9 @@ export function PublicFooter() {
             </nav>
           </div>
           <div className="space-y-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">Community</p>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-foreground">Company</p>
             <nav className="flex flex-col gap-3 text-sm font-medium text-muted-foreground">
-              {publicSiteNavigation.slice(4).map((item) => (
+              {infoLinks.map((item) => (
                 <Link className="transition hover:text-primary" href={item.href} key={item.label}>
                   {item.label}
                 </Link>

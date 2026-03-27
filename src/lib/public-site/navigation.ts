@@ -1,9 +1,8 @@
 export const publicSiteNavigation = [
   { label: "Home", href: "/" },
-  { label: "Features", href: "/features" },
-  { label: "Solutions", href: "/solutions" },
-  { label: "Pricing", href: "/pricing" },
+  { label: "Capabilities", href: "/features" },
+  { label: "Operations", href: "/solutions" },
   { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
-  { label: "Blog", href: "/blog" },
+  { label: "Journal", href: "/blog" },
 ] as const;

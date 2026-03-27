@@ -9,6 +9,7 @@ import {
   beds,
   bills,
   communicationLogs,
+  communicationTemplates,
   consentDocuments,
   dischargeSummaries,
   doctors,
@@ -19,6 +20,7 @@ import {
   wards,
 } from "@/db/schema";
 import { listRecentAuditEntries } from "@/lib/audit/service";
+import { buildCommunicationWorkflowInsights } from "@/lib/communications/insights";
 import type {
   AnalyticsActionActivity,
   AnalyticsChannelPerformance,
@@ -425,8 +427,15 @@ export async function listAnalyticsSnapshot(): Promise<
       .select({
         channel: communicationLogs.channel,
         status: communicationLogs.status,
+        templateKey: communicationTemplates.key,
+        templateTitle: communicationTemplates.title,
+        payload: communicationLogs.payload,
       })
-      .from(communicationLogs),
+      .from(communicationLogs)
+      .leftJoin(
+        communicationTemplates,
+        eq(communicationLogs.templateId, communicationTemplates.id),
+      ),
     db
       .select({
         action: auditLogs.action,
@@ -436,6 +445,11 @@ export async function listAnalyticsSnapshot(): Promise<
     db
       .select({
         read: notificationCenterItems.read,
+        title: notificationCenterItems.title,
+        body: notificationCenterItems.body,
+        href: notificationCenterItems.href,
+        sourceType: notificationCenterItems.sourceType,
+        targetRole: notificationCenterItems.targetRole,
       })
       .from(notificationCenterItems),
     db
@@ -456,6 +470,10 @@ export async function listAnalyticsSnapshot(): Promise<
   }
 
   const channelBreakdown = toChannelBreakdown(communicationRows);
+  const communicationWorkflows = buildCommunicationWorkflowInsights({
+    messages: communicationRows,
+    notifications: notificationRows,
+  });
   const deliveryRate = channelBreakdown.reduce(
     (sum, entry) => sum + entry.delivered,
     0,
@@ -543,6 +561,7 @@ export async function listAnalyticsSnapshot(): Promise<
         deliveryRate: entry.delivered / Math.max(entry.total, 1),
       }),
     ),
+    communicationWorkflows,
     roleDistribution: Array.from(roleMap.values()).sort((left, right) =>
       right.total - left.total
     ),

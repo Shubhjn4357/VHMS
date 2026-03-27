@@ -16,7 +16,7 @@ export default defineConfig({
     globals: true,
     include: ["src/**/*.test.ts"],
     env: {
-      APP_NAME: "VHMS Enterprise Test",
+      APP_NAME: "Vahi Hospital OS Test",
       DATABASE_URL: "postgresql://user:password@host/database",
       GOOGLE_CLIENT_ID: "test-google-client-id",
       GOOGLE_CLIENT_SECRET: "test-google-client-secret",

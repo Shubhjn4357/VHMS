@@ -34,20 +34,25 @@ const SheetContent = React.forwardRef<
     side?: keyof typeof sheetVariants;
     showClose?: boolean;
   }
->(({ children, className, side = "right", showClose = true, ...props }, ref) => (
+>(({ children, className, side = "right", showClose = true, style, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
       className={cn(
-        "z-50 flex flex-col gap-5 overflow-y-auto p-6 duration-200",
+        "z-50 flex flex-col gap-4 overflow-y-auto overscroll-contain p-5 lg:p-6",
         sheetVariants[side],
         className,
       )}
       ref={ref}
+      style={{
+        paddingTop: "max(env(safe-area-inset-top), 1rem)",
+        paddingBottom: "max(env(safe-area-inset-bottom), 1rem)",
+        ...style,
+      }}
       {...props}
     >
       {showClose ? (
-        <SheetClose className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition hover:bg-accent hover:text-accent-foreground">
+        <SheetClose className="absolute right-4 top-4 inline-flex h-8 w-8 items-center justify-center rounded-[calc(var(--radius-control)+0.05rem)] text-muted-foreground hover:bg-muted/70 hover:text-foreground">
           <X className="h-4 w-4" />
           <span className="sr-only">Close</span>
         </SheetClose>

@@ -34,6 +34,19 @@ describe("reports export helpers", () => {
           failed: 1,
         },
       ],
+      communicationWorkflows: [
+        {
+          workflow: "appointment_reminders",
+          label: "Appointment reminders",
+          messageCount: 2,
+          delivered: 1,
+          queued: 0,
+          failed: 1,
+          notificationCount: 0,
+          unreadNotifications: 0,
+          deliveryRate: 0.5,
+        },
+      ],
       occupancyByWard: [
         {
           wardId: "ward_a",
@@ -71,8 +84,10 @@ describe("reports export helpers", () => {
 
     expect(csv).toContain("Summary");
     expect(csv).toContain("Revenue by doctor");
+    expect(csv).toContain("Communication workflows");
     expect(csv).toContain("Outstanding bills");
     expect(csv).toContain("Dr. Ananya Verma,2,2400,1800,600");
+    expect(csv).toContain("Appointment reminders,2,1,0,1,0,0,50%");
     expect(csv).toContain("Ward A,6,10,1,1,0,60%");
   });
 });
